@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | Horkos WM",
   },
   description:
-    "Cabinet de gestion de patrimoine au Maroc. Accompagnement personnalise en structuration patrimoniale, investissement et transmission.",
+    "Cabinet de gestion de patrimoine au Maroc. Accompagnement personnalisé en structuration patrimoniale, investissement et transmission.",
 };
 
 export default function RootLayout({

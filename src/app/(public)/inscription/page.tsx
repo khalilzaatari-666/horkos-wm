@@ -26,7 +26,7 @@ export default function InscriptionPage() {
     setLoading(true);
 
     if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caracteres.");
+      setError("Le mot de passe doit contenir au moins 6 caractères.");
       setLoading(false);
       return;
     }
@@ -50,7 +50,7 @@ export default function InscriptionPage() {
     });
 
     if (error) {
-      setError("Une erreur est survenue. Veuillez reessayer.");
+      setError("Une erreur est survenue. Veuillez réessayer.");
       setLoading(false);
       return;
     }
@@ -73,7 +73,7 @@ export default function InscriptionPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-ink">Creer un compte</h1>
+          <h1 className="text-3xl font-semibold text-ink">Créer un compte</h1>
           <p className="mt-2 text-warm-grey">
             Rejoignez Horkos Wealth Management
           </p>
@@ -115,13 +115,13 @@ export default function InscriptionPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">Prenom</Label>
+              <Label htmlFor="firstName">Prénom</Label>
               <Input
                 id="firstName"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Prenom"
+                placeholder="Prénom"
                 required
                 className="mt-1.5"
               />
@@ -160,7 +160,7 @@ export default function InscriptionPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="6 caracteres minimum"
+              placeholder="6 caractères minimum"
               required
               className="mt-1.5"
             />
@@ -188,12 +188,12 @@ export default function InscriptionPage() {
             disabled={loading}
             className="w-full bg-bronze hover:bg-bronze-dark text-white"
           >
-            {loading ? "Creation..." : "Creer mon compte"}
+            {loading ? "Création..." : "Créer mon compte"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-warm-grey">
-          Deja un compte ?{" "}
+          Déjà un compte ?{" "}
           <Link href="/connexion" className="text-bronze hover:text-bronze-dark font-medium">
             Se connecter
           </Link>

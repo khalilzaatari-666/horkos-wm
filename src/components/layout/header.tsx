@@ -8,7 +8,7 @@ const navItems = [
     label: "Le cabinet",
     children: [
       { label: "Notre approche", href: "/cabinet/approche" },
-      { label: "Notre modele", href: "/cabinet/modele" },
+      { label: "Notre modèle", href: "/cabinet/modele" },
       { label: "Nos produits", href: "/cabinet/produits" },
     ],
   },
@@ -16,8 +16,8 @@ const navItems = [
     label: "Conseil",
     children: [
       { label: "Structuration patrimoniale", href: "/conseil/structuration" },
-      { label: "Reseau de professionnels", href: "/conseil/reseau" },
-      { label: "Cas d'usage", href: "/conseil/cas-usage" },
+      { label: "Réseau de professionnels", href: "/conseil/reseau" },
+      { label: "Cas d&apos;usage", href: "/conseil/cas-usage" },
     ],
   },
   {
@@ -25,7 +25,7 @@ const navItems = [
     children: [
       { label: "Articles", href: "/ressources/articles" },
       { label: "Guides", href: "/ressources/guides" },
-      { label: "Evenements", href: "/ressources/evenements" },
+      { label: "Événements", href: "/ressources/evenements" },
     ],
   },
   { label: "Contact", href: "/contact" },
@@ -91,7 +91,7 @@ export function Header() {
             href="/questionnaire"
             className="bg-bronze text-white text-sm font-medium px-5 py-2.5 rounded hover:bg-bronze-dark transition-colors"
           >
-            Prendre rendez-vous
+            Prendre rendez‑vous
           </Link>
         </nav>
 
@@ -147,7 +147,7 @@ export function Header() {
             className="block text-center bg-bronze text-white text-sm font-medium px-5 py-2.5 rounded hover:bg-bronze-dark"
             onClick={() => setMobileOpen(false)}
           >
-            Prendre rendez-vous
+            Prendre rendez‑vous
           </Link>
         </div>
       )}

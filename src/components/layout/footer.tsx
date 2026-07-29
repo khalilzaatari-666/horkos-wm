@@ -13,7 +13,7 @@ export function Footer() {
             <p className="mt-2 text-sm text-warm-grey">Wealth Management</p>
             <p className="mt-4 text-sm text-warm-grey leading-relaxed">
               Cabinet de gestion de patrimoine au Maroc. Accompagnement
-              personnalise en structuration, investissement et transmission.
+              personnalisé en structuration, investissement et transmission.
             </p>
           </div>
 
@@ -30,7 +30,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/cabinet/modele" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Notre modele
+                  Notre modèle
                 </Link>
               </li>
               <li>
@@ -54,7 +54,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/conseil/reseau" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Reseau de professionnels
+                  Réseau de professionnels
                 </Link>
               </li>
               <li>
@@ -88,7 +88,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/questionnaire" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Prendre rendez-vous
+                  Prendre rendez‑vous
                 </Link>
               </li>
             </ul>
@@ -97,14 +97,14 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Horkos Wealth Management. Tous droits reserves.
+            &copy; {new Date().getFullYear()} Horkos Wealth Management. Tous droits réservés.
           </p>
           <div className="flex gap-6">
             <Link href="#" className="text-xs text-gray-500 hover:text-white transition-colors">
-              Mentions legales
+              Mentions légales
             </Link>
             <Link href="#" className="text-xs text-gray-500 hover:text-white transition-colors">
-              Politique de confidentialite
+              Politique de confidentialité
             </Link>
           </div>
         </div>

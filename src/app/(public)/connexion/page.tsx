@@ -64,7 +64,7 @@ function ConnexionForm() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-ink">Connexion</h1>
           <p className="mt-2 text-warm-grey">
-            Accedez a votre espace client
+            Accédez à votre espace client
           </p>
         </div>
 
@@ -144,7 +144,7 @@ function ConnexionForm() {
         <p className="mt-6 text-center text-sm text-warm-grey">
           Pas encore de compte ?{" "}
           <Link href="/inscription" className="text-bronze hover:text-bronze-dark font-medium">
-            Creer un compte
+            Créer un compte
           </Link>
         </p>
       </div>
