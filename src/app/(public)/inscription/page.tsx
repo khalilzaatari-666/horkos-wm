@@ -20,13 +20,46 @@ export default function InscriptionPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function handleNameChange(value: string, setter: (v: string) => void) {
+    if (value === "" || nameRegex.test(value)) {
+      setter(value);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères.");
+    if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+      setError("Le nom ne doit contenir que des lettres.");
+      setLoading(false);
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      setError("Veuillez entrer une adresse email valide.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      setLoading(false);
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un chiffre.");
+      setLoading(false);
+      return;
+    }
+
+    if (!/[a-zA-Z]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une lettre.");
       setLoading(false);
       return;
     }
@@ -120,7 +153,7 @@ export default function InscriptionPage() {
                 id="firstName"
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value, setFirstName)}
                 placeholder="Prénom"
                 required
                 className="mt-1.5"
@@ -132,7 +165,7 @@ export default function InscriptionPage() {
                 id="lastName"
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value, setLastName)}
                 placeholder="Nom"
                 required
                 className="mt-1.5"
@@ -160,7 +193,7 @@ export default function InscriptionPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="6 caractères minimum"
+              placeholder="8 caractères, 1 chiffre, 1 lettre"
               required
               className="mt-1.5"
             />
