@@ -23,6 +23,20 @@ export default function InscriptionPage() {
   const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  function getPasswordStrength(pw: string) {
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[a-zA-Z]/.test(pw)) score++;
+    if (/[^a-zA-Z0-9]/.test(pw)) score++;
+    return score;
+  }
+
+  const strength = getPasswordStrength(password);
+  const strengthLabel = ["", "Faible", "Faible", "Moyen", "Fort", "Très fort"][strength] || "";
+  const strengthColor = ["", "#DC2626", "#DC2626", "#F59E0B", "#22C55E", "#16A34A"][strength] || "";
+
   function handleNameChange(value: string, setter: (v: string) => void) {
     if (value === "" || nameRegex.test(value)) {
       setter(value);
@@ -197,6 +211,27 @@ export default function InscriptionPage() {
               required
               className="mt-1.5"
             />
+            {password && (
+              <div className="mt-2 space-y-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className="h-1 flex-1 rounded-full transition-all duration-300"
+                      style={{
+                        backgroundColor: i <= strength ? strengthColor : "#EFE7D8",
+                      }}
+                    />
+                  ))}
+                </div>
+                <p
+                  className="text-xs transition-colors duration-300"
+                  style={{ color: strengthColor }}
+                >
+                  {strengthLabel}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
