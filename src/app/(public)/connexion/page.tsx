@@ -61,9 +61,9 @@ function ConnexionForm() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <h1 className="text-3xl font-semibold text-ink">Connexion</h1>
-          <p className="mt-2 text-warm-grey">
+          <p className="mt-3 text-warm-grey">
             Accédez à votre espace client
           </p>
         </div>
@@ -71,7 +71,7 @@ function ConnexionForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full h-11"
           onClick={handleGoogleSignIn}
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -95,13 +95,13 @@ function ConnexionForm() {
           Continuer avec Google
         </Button>
 
-        <div className="flex items-center gap-4 my-6">
+        <div className="flex items-center gap-4 my-8">
           <Separator className="flex-1" />
           <span className="text-xs text-warm-grey uppercase">ou</span>
           <Separator className="flex-1" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -135,13 +135,13 @@ function ConnexionForm() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-bronze hover:bg-bronze-dark text-white"
+            className="w-full h-11 bg-bronze hover:bg-bronze-dark text-white mt-2"
           >
             {loading ? "Connexion..." : "Se connecter"}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-warm-grey">
+        <p className="mt-8 text-center text-sm text-warm-grey">
           Pas encore de compte ?{" "}
           <Link href="/inscription" className="text-bronze hover:text-bronze-dark font-medium">
             Créer un compte

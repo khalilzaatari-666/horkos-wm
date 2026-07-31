@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 
 export default function InscriptionPage() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function InscriptionPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]+$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,7 +88,7 @@ export default function InscriptionPage() {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -93,12 +96,19 @@ export default function InscriptionPage() {
           first_name: firstName,
           last_name: lastName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
     if (error) {
       setError("Une erreur est survenue. Veuillez réessayer.");
       setLoading(false);
+      return;
+    }
+
+    // If email confirmation is required, redirect to confirmation page
+    if (data.user && !data.session) {
+      router.push(`/inscription/confirmation?email=${encodeURIComponent(email)}`);
       return;
     }
 
@@ -117,7 +127,7 @@ export default function InscriptionPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="flex justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-ink">Créer un compte</h1>
@@ -202,49 +212,91 @@ export default function InscriptionPage() {
 
           <div>
             <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="8 caractères, 1 chiffre, 1 lettre"
-              required
-              className="mt-1.5"
-            />
-            {password && (
-              <div className="mt-2 space-y-1">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="h-1 flex-1 rounded-full transition-all duration-300"
-                      style={{
-                        backgroundColor: i <= strength ? strengthColor : "#EFE7D8",
-                      }}
-                    />
-                  ))}
+            <div className="relative mt-1.5">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="8 caractères, 1 chiffre, 1 lettre"
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-grey hover:text-ink transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <div
+              className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+              style={{ gridTemplateRows: password ? "1fr" : "0fr" }}
+            >
+              <div className="overflow-hidden">
+                <div className="mt-2 space-y-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className="h-1 flex-1 rounded-full transition-all duration-300"
+                        style={{
+                          backgroundColor: i <= strength ? strengthColor : "#EFE7D8",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    className="text-xs transition-colors duration-300"
+                    style={{ color: strengthColor }}
+                  >
+                    {strengthLabel}
+                  </p>
+                  <ul className="space-y-1 pb-1">
+                    {[
+                      { ok: password.length >= 8, label: "Au moins 8 caractères" },
+                      { ok: /[a-zA-Z]/.test(password), label: "Au moins une lettre" },
+                      { ok: /[0-9]/.test(password), label: "Au moins un chiffre" },
+                      { ok: /[^a-zA-Z0-9]/.test(password), label: "Un caractère spécial (recommandé)" },
+                    ].map((rule) => (
+                      <li key={rule.label} className="flex items-center gap-1.5 text-xs">
+                        {rule.ok ? (
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                        ) : (
+                          <X className="h-3.5 w-3.5 text-warm-grey" />
+                        )}
+                        <span className={rule.ok ? "text-green-600" : "text-warm-grey"}>
+                          {rule.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <p
-                  className="text-xs transition-colors duration-300"
-                  style={{ color: strengthColor }}
-                >
-                  {strengthLabel}
-                </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div>
             <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirmer le mot de passe"
-              required
-              className="mt-1.5"
-            />
+            <div className="relative mt-1.5">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmer le mot de passe"
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-grey hover:text-ink transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           {error && (

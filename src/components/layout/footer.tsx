@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -6,11 +7,14 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
-          <div>
-            <span className="font-heading text-2xl font-semibold tracking-[3px]">
-              HORKOS
-            </span>
-            <p className="mt-2 text-sm text-warm-grey">Wealth Management</p>
+          <div className="flex flex-col items-center md:items-start">
+            <Image
+              src="/images/logo-light.png"
+              alt="Horkos Wealth Management"
+              width={160}
+              height={56}
+              className="h-16 w-auto"
+            />
             <p className="mt-4 text-sm text-warm-grey leading-relaxed">
               Cabinet de gestion de patrimoine au Maroc. Accompagnement
               personnalisé en structuration, investissement et transmission.

@@ -60,7 +60,7 @@
 }
 
 :root {
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-heading: 'Cormorant Garamond', serif;
 
   --background: #FFFFFF;
@@ -112,4 +112,19 @@
   h1, h2, h3 {
     font-family: var(--font-heading);
   }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: page-fade-in 0.5s ease-out;
 }

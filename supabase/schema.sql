@@ -534,6 +534,39 @@ create policy "Staff manage FAQs"
   );
 
 -- ============================================
+-- AUDIT LOG (traçabilité AMMC)
+-- ============================================
+create table public.audit_logs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id),
+  action text not null,
+  entity_type text not null,
+  entity_id uuid,
+  metadata jsonb default '{}',
+  ip_address text,
+  created_at timestamptz default now()
+);
+
+alter table public.audit_logs enable row level security;
+
+create policy "Only admins can view audit logs"
+  on public.audit_logs for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
+    )
+  );
+
+create policy "System can insert audit logs"
+  on public.audit_logs for insert
+  with check (true);
+
+-- Index for fast queries by user and date
+create index idx_audit_logs_user on public.audit_logs(user_id, created_at desc);
+create index idx_audit_logs_entity on public.audit_logs(entity_type, entity_id);
+
+-- ============================================
 -- Enable realtime for messages
 -- ============================================
 alter publication supabase_realtime add table public.messages;
