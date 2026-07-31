@@ -4,7 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function ConfirmationPage() {
   return (
@@ -37,9 +36,9 @@ function ConfirmationContent() {
         <p className="mt-4 text-sm text-warm-grey">
           Vous n&apos;avez pas reçu l&apos;email ? Vérifiez votre dossier spam.
         </p>
-        <Button asChild variant="outline" className="mt-8">
-          <Link href="/connexion">Retour à la connexion</Link>
-        </Button>
+        <Link href="/connexion" className="inline-block mt-8 px-6 py-2.5 border border-ink rounded-lg text-sm font-medium hover:bg-ink hover:text-cream transition-colors">
+          Retour à la connexion
+        </Link>
       </div>
     </div>
   );
