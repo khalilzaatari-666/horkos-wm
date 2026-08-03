@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { SplitHeading } from "@/components/ui/split-heading";
+import { DrawLine } from "@/components/ui/draw-line";
+import { SwipeRow } from "@/components/ui/swipe-row";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -136,18 +139,48 @@ const entreprises: Category[] = [
   },
 ];
 
-function ProductCard({ product, variant = "cream" }: { product: Product; variant?: "cream" | "white" }) {
-  const [open, setOpen] = useState(false);
+interface ProductCardProps {
+  product: Product;
+  variant?: "cream" | "white";
+  /** Reserves two lines for title and summary so siblings collapse to equal heights. */
+  uniform?: boolean;
+  /** Omit both to let the card own its state; pass both to hoist it to the parent. */
+  open?: boolean;
+  onToggle?: () => void;
+}
+
+function ProductCard({
+  product,
+  variant = "cream",
+  uniform = false,
+  open: openProp,
+  onToggle,
+}: ProductCardProps) {
+  const [openState, setOpenState] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openState;
 
   return (
     <div
-      className={`rounded-lg cursor-pointer transition-all duration-300 hover:shadow-sm border ${variant === "cream" ? "bg-cream border-cream-deep hover:border-bronze/30" : "bg-white border-ink/[0.08] hover:border-bronze/30"}`}
-      onClick={() => setOpen(!open)}
+      className={`rounded-lg cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border ${variant === "cream" ? "bg-cream border-cream-deep hover:border-bronze/30" : "bg-white border-ink/[0.08] hover:border-bronze/30"}`}
+      onClick={() => (isControlled ? onToggle?.() : setOpenState(!openState))}
     >
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex-1 min-w-0 mr-4">
-          <h4 className="text-[15px] font-semibold">{product.title}</h4>
-          <p className="text-[13px] text-warm-grey mt-0.5 leading-[1.5]">{product.oneline}</p>
+          <h4
+            className={`text-[15px] font-semibold leading-[1.35] ${
+              uniform ? "line-clamp-2 min-h-[2.7em]" : ""
+            }`}
+          >
+            {product.title}
+          </h4>
+          <p
+            className={`text-[13px] text-warm-grey mt-0.5 leading-[1.5] ${
+              uniform ? "line-clamp-2 min-h-[3em]" : ""
+            }`}
+          >
+            {product.oneline}
+          </p>
         </div>
         <span
           className={`text-bronze text-[18px] transition-transform duration-300 flex-shrink-0 ${open ? "rotate-90" : ""}`}
@@ -173,19 +206,65 @@ function ProductCard({ product, variant = "cream" }: { product: Product; variant
 
 function CategoryBlock({ category, delay, variant = "cream" }: { category: Category; delay: number; variant?: "cream" | "white" }) {
   return (
-    <AnimateIn delay={delay}>
-      <div className="mb-10">
+    <div className="mb-10">
+      <AnimateIn variant="fade-right" delay={delay}>
         <div className="flex items-baseline justify-between mb-4">
           <h3 className="text-[18px] font-semibold">{category.name}</h3>
           <span className="text-[12px] text-warm-grey font-medium">{category.count}</span>
         </div>
-        <div className="grid md:grid-cols-2 gap-3">
-          {category.products.map((p) => (
-            <ProductCard key={p.title} product={p} variant={variant} />
-          ))}
-        </div>
+      </AnimateIn>
+      <div className="grid md:grid-cols-2 gap-3">
+        {category.products.map((p, i) => (
+          <AnimateIn key={p.title} variant="scale-in" delay={delay + (i * 80)}>
+            <ProductCard product={p} variant={variant} />
+          </AnimateIn>
+        ))}
       </div>
-    </AnimateIn>
+    </div>
+  );
+}
+
+/**
+ * One category as a swipeable row. The open card is tracked here rather than
+ * inside each card: a flex row is as tall as its tallest child, so a card left
+ * expanded off-screen would keep the whole row inflated after you close another.
+ */
+function SwipeCategory({ category, variant }: { category: Category; variant: "cream" | "white" }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+
+  return (
+    <div className="mb-10">
+      <AnimateIn variant="fade-up">
+        <div className="flex items-baseline justify-between mb-4">
+          <h3 className="text-[18px] font-semibold">{category.name}</h3>
+          <span className="text-[12px] text-warm-grey font-medium">{category.count}</span>
+        </div>
+      </AnimateIn>
+      <SwipeRow
+        className="-mx-7"
+        items={category.products.map((p, i) => (
+          <ProductCard
+            key={p.title}
+            product={p}
+            variant={variant}
+            uniform
+            open={openIdx === i}
+            onToggle={() => setOpenIdx(openIdx === i ? null : i)}
+          />
+        ))}
+      />
+    </div>
+  );
+}
+
+/** Mobile: category heading + a swipeable row of that category's products. */
+function CategorySwipe({ categories, variant }: { categories: Category[]; variant: "cream" | "white" }) {
+  return (
+    <div className="md:hidden">
+      {categories.map((cat) => (
+        <SwipeCategory key={cat.name} category={cat} variant={variant} />
+      ))}
+    </div>
   );
 }
 
@@ -193,15 +272,19 @@ export default function ProduitsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-ink text-cream pt-[50px] pb-[36px]">
+      <section className="bg-ink text-cream pt-[50px] pb-[36px] overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="blur-in" duration={0.5}>
             <span className="inline-block bg-cream/[0.08] border border-cream/[0.18] text-bronze-light text-[11px] font-semibold tracking-[1.5px] uppercase px-3.5 py-1.5 mb-4">
               Notre gamme
             </span>
-            <h1 className="text-[30px] font-medium text-cream max-w-[660px] leading-[1.3]">
-              Des produits, présentés clairement.
-            </h1>
+          </AnimateIn>
+          <SplitHeading
+            text="Des produits, présentés clairement."
+            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            delay={200}
+          />
+          <AnimateIn variant="fade-up" delay={400}>
             <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
               Cliquez sur une solution pour comprendre à quoi elle sert, sans jargon. Chaque recommandation reste choisie pour votre situation.
             </p>
@@ -212,67 +295,92 @@ export default function ProduitsPage() {
       {/* Solutions individuelles */}
       <section className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               Pour vous
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-8">
-              Solutions individuelles
-            </h2>
           </AnimateIn>
+          <SplitHeading
+            text="Solutions individuelles"
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-8"
+            delay={100}
+          />
 
-          {individuelles.map((cat, i) => (
-            <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="cream" />
-          ))}
+          {/* Desktop: full catalogue, grouped by category */}
+          <div className="hidden md:block">
+            {individuelles.map((cat, i) => (
+              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="cream" />
+            ))}
+          </div>
+
+          {/* Mobile: one swipeable row per category */}
+          <CategorySwipe categories={individuelles} variant="cream" />
         </div>
       </section>
 
       {/* Solutions entreprises */}
       <section className="py-16 bg-cream-deep">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               Pour votre entreprise
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-4">
-              Solutions entreprises
-            </h2>
+          </AnimateIn>
+          <SplitHeading
+            text="Solutions entreprises"
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-4"
+            delay={100}
+          />
+          <AnimateIn variant="fade-up" delay={200}>
             <p className="text-[14.5px] text-warm-grey max-w-[620px] leading-[1.7] mb-8">
               Fidéliser vos collaborateurs, faire fructifier votre trésorerie : nous accompagnons aussi les dirigeants, pas seulement les particuliers.
             </p>
           </AnimateIn>
 
-          <AnimateIn>
+          <AnimateIn variant="fade-left">
             <div className="bg-cream-deep/60 border-l-2 border-bronze-light rounded-r-lg p-5 mb-10 text-[14.5px] text-charcoal leading-[1.7] max-w-[700px]">
               &quot;Vous êtes chef d&apos;entreprise et cherchez à fidéliser vos équipes tout en développant le rendement de la poche fiscale PER de vos collaborateurs ? Nous avons la solution.&quot;
             </div>
           </AnimateIn>
 
-          {entreprises.map((cat, i) => (
-            <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="white" />
-          ))}
+          {/* Desktop: full catalogue, grouped by category */}
+          <div className="hidden md:block">
+            {entreprises.map((cat, i) => (
+              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="white" />
+            ))}
+          </div>
+
+          {/* Mobile: same swipe rows, kept consistent with the section above */}
+          <CategorySwipe categories={entreprises} variant="white" />
         </div>
       </section>
 
       {/* Céder un actif */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <AnimateIn>
-              <div className="flex flex-col justify-center">
+            <div>
+              <AnimateIn variant="fade-right">
                 <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
                   Céder un actif
                 </span>
-                <h2 className="text-[27px] font-semibold mt-2.5 mb-4">
-                  Un actif à céder ?
-                </h2>
+              </AnimateIn>
+              <SplitHeading
+                text="Un actif à céder ?"
+                as="h2"
+                className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-4"
+                delay={100}
+              />
+              <AnimateIn variant="fade-up" delay={250}>
                 <p className="text-[14.5px] text-warm-grey leading-[1.7] max-w-[480px]">
                   Bien immobilier, entreprise, participation, œuvre d&apos;art… décrivez l&apos;actif que vous souhaitez céder. Notre équipe l&apos;étudie et le présente de façon sélective aux clients pour qui il est pertinent.
                 </p>
-              </div>
-            </AnimateIn>
+              </AnimateIn>
+            </div>
 
-            <AnimateIn delay={150}>
+            <AnimateIn variant="fade-left" delay={150}>
               <div className="bg-white rounded-lg p-7 shadow-sm">
                 <h4 className="text-[16px] font-semibold mb-5">Formulaire de soumission</h4>
                 <form className="space-y-4">
@@ -366,8 +474,9 @@ export default function ProduitsPage() {
       {/* CTA */}
       <section className="py-16 bg-cream-deep border-t border-ink/[0.06]">
         <div className="max-w-[1200px] mx-auto px-7 text-center">
-          <AnimateIn>
-            <h2 className="text-[27px] font-semibold mx-auto max-w-[680px]">
+          <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
+          <AnimateIn variant="scale-in">
+            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
               Une solution retient votre attention ?
             </h2>
             <Link

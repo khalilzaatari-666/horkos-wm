@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { SplitHeading } from "@/components/ui/split-heading";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { DrawLine } from "@/components/ui/draw-line";
+import { StackCards } from "@/components/ui/stack-cards";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const besoins = [
   { title: "Structurer mon patrimoine", desc: "Organiser des actifs dispersés dans une logique cohérente." },
@@ -33,25 +41,178 @@ const faqs = [
   { q: "Horkos gère-t-il mon argent directement ?", a: "Non. Horkos formule des recommandations, vous restez seul décisionnaire." },
 ];
 
+function BesoinCard({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="bg-cream border border-cream-deep p-5 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+      <h4 className="text-[14px] font-semibold text-ink mb-1.5">{title}</h4>
+      <p className="text-[12.5px] text-warm-grey leading-[1.5]">{desc}</p>
+    </div>
+  );
+}
+
+function TrustCard({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="bg-white p-[26px] border border-cream-deep h-full rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+      <h4 className="text-[16.5px] font-semibold mb-2">{title}</h4>
+      <p className="text-[13px] text-warm-grey leading-[1.6]">{desc}</p>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const besoinsGridRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mm = gsap.matchMedia();
+
+    mm.add(
+      {
+        isMobile: "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
+        isDesktop: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+      },
+      (context) => {
+        const { isMobile } = context.conditions as { isMobile: boolean; isDesktop: boolean };
+
+        // Hero parallax — desktop only, it reads as jank on touch scrolling.
+        if (!isMobile && heroRef.current) {
+          gsap.to(heroRef.current, {
+            yPercent: 20,
+            ease: "none",
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        }
+
+        // Besoins: 3D card fan on desktop. Mobile uses the StackCards deck.
+        if (!isMobile && besoinsGridRef.current) {
+          gsap.fromTo(
+            gsap.utils.toArray<HTMLElement>("[data-besoin-card]", besoinsGridRef.current),
+            { opacity: 0, scale: 0.8, rotateY: 8 },
+            {
+              opacity: 1,
+              scale: 1,
+              rotateY: 0,
+              duration: 0.6,
+              stagger: 0.07,
+              ease: "power3.out",
+              scrollTrigger: {
+                trigger: besoinsGridRef.current,
+                start: "top 80%",
+                toggleActions: "play none none none",
+              },
+            }
+          );
+        }
+
+        // Méthode: timeline rail draws down the left on mobile, cards land per waypoint.
+        if (stepsRef.current) {
+          const items = gsap.utils.toArray<HTMLElement>("[data-step-item]", stepsRef.current);
+
+          if (isMobile) {
+            if (railRef.current) {
+              gsap.fromTo(
+                railRef.current,
+                { scaleY: 0 },
+                {
+                  scaleY: 1,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: stepsRef.current,
+                    start: "top 75%",
+                    end: "bottom 75%",
+                    scrub: true,
+                  },
+                }
+              );
+            }
+
+            items.forEach((item) => {
+              const dot = item.querySelector("[data-step-dot]");
+              gsap.fromTo(
+                item,
+                { opacity: 0, x: 28 },
+                {
+                  opacity: 1,
+                  x: 0,
+                  duration: 0.55,
+                  ease: "power3.out",
+                  scrollTrigger: { trigger: item, start: "top 88%", toggleActions: "play none none none" },
+                }
+              );
+              if (dot) {
+                gsap.fromTo(
+                  dot,
+                  { scale: 0 },
+                  {
+                    scale: 1,
+                    duration: 0.4,
+                    ease: "back.out(3)",
+                    scrollTrigger: { trigger: item, start: "top 88%", toggleActions: "play none none none" },
+                  }
+                );
+              }
+            });
+          } else {
+            gsap.fromTo(
+              items,
+              { opacity: 0, y: 60, scale: 0.95 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: stepsRef.current,
+                  start: "top 82%",
+                  toggleActions: "play none none none",
+                },
+              }
+            );
+          }
+        }
+      }
+    );
+
+    // Reduced motion: nothing animates, so make sure nothing stays hidden.
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      gsap.set("[data-besoin-card], [data-step-item], [data-step-dot]", { opacity: 1, scale: 1 });
+    });
+
+    return () => mm.revert();
+  }, []);
 
   return (
     <>
       {/* Hero */}
-      <section className="bg-ink text-cream py-[90px] pb-[70px]">
-        <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+      <section className="bg-ink text-cream py-[90px] pb-[70px] overflow-hidden relative">
+        <div ref={heroRef} className="max-w-[1200px] mx-auto px-7">
+          <AnimateIn variant="blur-in" duration={0.6}>
             <span className="inline-block text-bronze-light text-xs font-semibold tracking-[2px] uppercase mb-[22px]">
               Votre patrimoine, notre engagement
             </span>
-            <div className="w-[44px] h-px bg-bronze mb-6" />
-            <h1 className="text-[40px] leading-[1.22] font-medium text-cream max-w-[680px]">
-              Le conseil qui structure l&apos;ensemble de votre patrimoine.
-            </h1>
+          </AnimateIn>
+          <DrawLine className="w-[44px] h-px bg-bronze mb-6" delay={200} />
+          <SplitHeading
+            text="Le conseil qui structure l'ensemble de votre patrimoine."
+            className="text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.22] font-medium text-cream max-w-[680px]"
+            delay={300}
+          />
+          <AnimateIn variant="fade-up" delay={500} duration={0.7}>
             <p className="text-[16px] text-[#D8CDBC] max-w-[560px] mt-5 mb-[30px] leading-[1.75]">
               Horkos centralise vos besoins patrimoniaux et s&apos;appuie sur un réseau de professionnels pour construire une stratégie d&apos;investissement cohérente.
             </p>
+          </AnimateIn>
+          <AnimateIn variant="fade-up" delay={650}>
             <div className="flex gap-4 flex-wrap">
               <Link
                 href="/questionnaire"
@@ -70,31 +231,48 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Besoins */}
-      <section className="py-16">
+      {/* Besoins — `overflow-x-clip`, not `overflow-hidden`: hidden would make this
+          a scroll container and break the sticky card deck below. */}
+      <section className="py-16 overflow-x-clip">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right" mobileVariant="fade-up">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               Votre point de départ
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 max-w-[680px]">
-              Nous partons de vos besoins, jamais de nos produits.
-            </h2>
+          </AnimateIn>
+          <SplitHeading
+            text="Nous partons de vos besoins, jamais de nos produits."
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+            delay={100}
+          />
+          <AnimateIn variant="fade-up" delay={200}>
             <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-[34px] leading-[1.65]">
               Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.
             </p>
           </AnimateIn>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-            {besoins.map((b, i) => (
-              <AnimateIn key={b.title} delay={i * 80}>
-                <div className="bg-cream border border-cream-deep p-5 rounded-lg hover:shadow-md transition-shadow">
-                  <h4 className="text-[14px] font-semibold text-ink mb-1.5">{b.title}</h4>
-                  <p className="text-[12.5px] text-warm-grey leading-[1.5]">{b.desc}</p>
-                </div>
-              </AnimateIn>
+          {/* Desktop: grid */}
+          <div
+            ref={besoinsGridRef}
+            className="hidden md:grid grid-cols-3 gap-3.5"
+            style={{ perspective: "800px" }}
+          >
+            {besoins.map((b) => (
+              <div key={b.title} data-besoin-card style={{ opacity: 0 }}>
+                <BesoinCard title={b.title} desc={b.desc} />
+              </div>
             ))}
           </div>
-          <AnimateIn delay={200}>
+
+          {/* Mobile: card deck. Seven cards, so a tighter step keeps the drift small. */}
+          <StackCards
+            className="md:hidden"
+            step={8}
+            items={besoins.map((b) => (
+              <BesoinCard key={b.title} title={b.title} desc={b.desc} />
+            ))}
+          />
+          <AnimateIn variant="fade-up" delay={400}>
             <div className="mt-[26px]">
               <Link
                 href="/questionnaire"
@@ -108,48 +286,77 @@ export default function HomePage() {
       </section>
 
       {/* Comment ça marche */}
-      <section className="py-16 bg-cream-deep">
+      <section className="py-16 bg-cream-deep overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right" mobileVariant="fade-up">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               Comment ça marche
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 max-w-[680px]">
-              Trois étapes, un seul objectif : que vous compreniez avant de décider
-            </h2>
           </AnimateIn>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            {steps.map((s, i) => (
-              <AnimateIn key={s.n} delay={i * 120}>
-                <div className="bg-white border border-cream-deep p-[26px] rounded-lg h-full">
-                  <div className="font-heading text-[28px] text-bronze font-medium mb-3">{s.n}</div>
-                  <h3 className="text-[16px] font-semibold mb-2">{s.title}</h3>
-                  <p className="text-[13.5px] text-warm-grey leading-[1.6]">{s.desc}</p>
+          <SplitHeading
+            text="Trois étapes, un seul objectif : que vous compreniez avant de décider"
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+            delay={100}
+          />
+
+          <div ref={stepsRef} className="relative mt-8">
+            {/* Mobile-only timeline rail */}
+            <div
+              ref={railRef}
+              className="md:hidden absolute left-[9px] top-3 bottom-3 w-px bg-bronze/40 origin-top"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pl-8 md:pl-0">
+              {steps.map((s, i) => (
+                <div key={s.n} data-step-item className="relative" style={{ opacity: 0 }}>
+                  <span
+                    data-step-dot
+                    className="md:hidden absolute -left-[29px] top-3.5 w-[13px] h-[13px] rounded-full bg-bronze ring-4 ring-cream-deep"
+                  />
+                  <div className="bg-white border border-cream-deep p-[26px] rounded-lg h-full hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <AnimatedCounter
+                      value={s.n}
+                      className="font-heading text-[28px] text-bronze font-medium mb-3 block"
+                      delay={i * 150 + 300}
+                    />
+                    <h3 className="text-[16px] font-semibold mb-2">{s.title}</h3>
+                    <p className="text-[13.5px] text-warm-grey leading-[1.6]">{s.desc}</p>
+                  </div>
                 </div>
-              </AnimateIn>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Relation / Fondateur */}
-      <section className="py-16 bg-ink text-cream">
+      <section className="py-16 bg-ink text-cream overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[60px] items-center">
-          <AnimateIn>
-            <span className="text-bronze-light text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              L&apos;équipe
-            </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 text-cream max-w-[680px]">
-              Vous ne créez pas un espace client, vous créez une relation de confiance.
-            </h2>
-            <p className="text-[#D8CDBC] text-[15px] leading-[1.75] max-w-[480px]">
-              Ce qui fait la différence, ce n&apos;est pas un algorithme ni un catalogue de produits. C&apos;est la personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à vos côtés.
-            </p>
-            <div className="mt-6 max-w-[480px] bg-cream/[0.06] border-l-2 border-bronze-light px-[26px] py-[22px] font-heading italic text-[19px] text-cream leading-[1.5]">
-              &quot;La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.&quot;
-            </div>
-          </AnimateIn>
-          <AnimateIn delay={150}>
+          <div>
+            <AnimateIn variant="fade-right" mobileVariant="fade-up">
+              <span className="text-bronze-light text-[11.5px] font-semibold tracking-[1.8px] uppercase">
+                L&apos;équipe
+              </span>
+            </AnimateIn>
+            <SplitHeading
+              text="Vous ne créez pas un espace client, vous créez une relation de confiance."
+              as="h2"
+              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 text-cream max-w-[680px]"
+              delay={100}
+            />
+            <AnimateIn variant="fade-up" delay={300}>
+              <p className="text-[#D8CDBC] text-[15px] leading-[1.75] max-w-[480px]">
+                Ce qui fait la différence, ce n&apos;est pas un algorithme ni un catalogue de produits. C&apos;est la personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à vos côtés.
+              </p>
+            </AnimateIn>
+            <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={450}>
+              <div className="mt-6 max-w-[480px] bg-cream/[0.06] border-l-2 border-bronze-light px-[26px] py-[22px] font-heading italic text-[19px] text-cream leading-[1.5]">
+                &quot;La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.&quot;
+              </div>
+            </AnimateIn>
+          </div>
+          <AnimateIn variant="scale-in" mobileVariant="reveal-up" delay={200}>
             <div className="bg-cream/[0.06] border border-cream/[0.14] p-8 rounded-lg">
               <div className="flex items-center gap-3 mb-1">
                 <Image
@@ -184,26 +391,35 @@ export default function HomePage() {
       </section>
 
       {/* MRE - Double regard */}
-      <section className="py-16">
+      <section className="py-16 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
-          <AnimateIn>
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Marocains résidant à l&apos;étranger
-            </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 max-w-[680px]">
-              Un double regard, Maroc et France.
-            </h2>
-            <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
-              Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent - et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
-            </p>
-            <Link
-              href="/questionnaire"
-              className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-            >
-              Prendre rendez-vous depuis l&apos;étranger →
-            </Link>
-          </AnimateIn>
-          <AnimateIn delay={150}>
+          <div>
+            <AnimateIn variant="fade-right" mobileVariant="fade-up">
+              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
+                Marocains résidant à l&apos;étranger
+              </span>
+            </AnimateIn>
+            <SplitHeading
+              text="Un double regard, Maroc et France."
+              as="h2"
+              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              delay={100}
+            />
+            <AnimateIn variant="fade-up" delay={250}>
+              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+                Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent - et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
+              </p>
+            </AnimateIn>
+            <AnimateIn variant="fade-up" delay={350}>
+              <Link
+                href="/questionnaire"
+                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
+              >
+                Prendre rendez-vous depuis l&apos;étranger →
+              </Link>
+            </AnimateIn>
+          </div>
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="text-cream text-[18px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
@@ -215,26 +431,35 @@ export default function HomePage() {
       </section>
 
       {/* Nos solutions */}
-      <section className="py-16">
+      <section className="py-16 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
-          <AnimateIn>
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Nos solutions
-            </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 max-w-[680px]">
-              Des produits, une seule logique : votre stratégie globale.
-            </h2>
-            <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
-              Une fois votre besoin identifié, nous mobilisons les solutions adaptées - placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
-            </p>
-            <Link
-              href="/cabinet/produits"
-              className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-            >
-              Découvrir nos produits →
-            </Link>
-          </AnimateIn>
-          <AnimateIn delay={150}>
+          <div>
+            <AnimateIn variant="fade-right" mobileVariant="fade-up">
+              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
+                Nos solutions
+              </span>
+            </AnimateIn>
+            <SplitHeading
+              text="Des produits, une seule logique : votre stratégie globale."
+              as="h2"
+              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              delay={100}
+            />
+            <AnimateIn variant="fade-up" delay={250}>
+              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+                Une fois votre besoin identifié, nous mobilisons les solutions adaptées - placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
+              </p>
+            </AnimateIn>
+            <AnimateIn variant="fade-up" delay={350}>
+              <Link
+                href="/cabinet/produits"
+                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
+              >
+                Découvrir nos produits →
+              </Link>
+            </AnimateIn>
+          </div>
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="text-cream text-[18px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
@@ -249,26 +474,35 @@ export default function HomePage() {
       </section>
 
       {/* Structuration patrimoniale */}
-      <section className="py-16">
+      <section className="py-16 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
-          <AnimateIn>
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Structuration patrimoniale
-            </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-2.5 max-w-[680px]">
-              Structurer, pas seulement placer.
-            </h2>
-            <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
-              Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée - un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
-            </p>
-            <Link
-              href="/conseil/structuration"
-              className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-            >
-              Découvrir la structuration →
-            </Link>
-          </AnimateIn>
-          <AnimateIn delay={150}>
+          <div>
+            <AnimateIn variant="fade-right" mobileVariant="fade-up">
+              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
+                Structuration patrimoniale
+              </span>
+            </AnimateIn>
+            <SplitHeading
+              text="Structurer, pas seulement placer."
+              as="h2"
+              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              delay={100}
+            />
+            <AnimateIn variant="fade-up" delay={250}>
+              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+                Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée - un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
+              </p>
+            </AnimateIn>
+            <AnimateIn variant="fade-up" delay={350}>
+              <Link
+                href="/conseil/structuration"
+                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
+              >
+                Découvrir la structuration →
+              </Link>
+            </AnimateIn>
+          </div>
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="text-cream text-[18px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
@@ -285,41 +519,54 @@ export default function HomePage() {
       {/* Trust */}
       <section className="py-16 bg-cream-deep">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right" mobileVariant="fade-up">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               Confiance &amp; confidentialité
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-6 max-w-[680px]">
-              Un conseil indépendant, une pédagogie exigeante
-            </h2>
           </AnimateIn>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-[22px]">
+          <SplitHeading
+            text="Un conseil indépendant, une pédagogie exigeante"
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
+            delay={100}
+          />
+
+          {/* Desktop: grid */}
+          <div className="hidden md:grid grid-cols-3 gap-[22px]">
             {trustCards.map((t, i) => (
-              <AnimateIn key={t.title} delay={i * 100}>
-                <div className="bg-white p-[26px] border border-cream-deep h-full rounded-lg">
-                  <h4 className="text-[16.5px] font-semibold mb-2">{t.title}</h4>
-                  <p className="text-[13px] text-warm-grey leading-[1.6]">{t.desc}</p>
-                </div>
+              <AnimateIn key={t.title} variant="rotate-in" delay={i * 120}>
+                <TrustCard title={t.title} desc={t.desc} />
               </AnimateIn>
             ))}
           </div>
+
+          {/* Mobile: card deck that stacks as you scroll */}
+          <StackCards
+            className="md:hidden"
+            items={trustCards.map((t) => (
+              <TrustCard key={t.title} title={t.title} desc={t.desc} />
+            ))}
+          />
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="py-16">
+      <section className="py-16 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="fade-right" mobileVariant="fade-up">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
               FAQ
             </span>
-            <h2 className="text-[27px] font-semibold mt-2.5 mb-6 max-w-[680px]">
-              Vos questions, nos réponses
-            </h2>
           </AnimateIn>
+          <SplitHeading
+            text="Vos questions, nos réponses"
+            as="h2"
+            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
+            delay={100}
+          />
           <div>
             {faqs.map((faq, i) => (
-              <AnimateIn key={i} delay={i * 80}>
+              <AnimateIn key={i} variant="fade-up" mobileVariant="fade-left" delay={i * 100}>
                 <div className="border-t border-cream-deep last:border-b">
                   <button
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}

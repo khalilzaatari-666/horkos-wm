@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { SplitHeading } from "@/components/ui/split-heading";
+import { DrawLine } from "@/components/ui/draw-line";
+import { StackCards } from "@/components/ui/stack-cards";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface CaseDetail {
   label: string;
@@ -53,62 +60,97 @@ const cases: UseCase[] = [
   },
 ];
 
-function CaseCard({ useCase, delay }: { useCase: UseCase; delay: number }) {
+function CaseCard({ useCase }: { useCase: UseCase }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <AnimateIn delay={delay}>
+    <div
+      className="bg-cream rounded-lg p-7 border border-cream-deep shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full flex flex-col"
+      onClick={() => setOpen(!open)}
+    >
+      <div className="w-10 h-10 rounded-full bg-ink text-cream flex items-center justify-center font-heading text-[18px] font-semibold mb-4">
+        {useCase.icon}
+      </div>
+      <span className="inline-block bg-bronze/10 text-bronze text-[11px] font-semibold tracking-[1px] uppercase px-2.5 py-1 rounded-md mb-3">
+        {useCase.tag}
+      </span>
+      <h3 className="text-[18px] font-semibold mb-2 leading-[1.35]">{useCase.title}</h3>
+      <p className="text-[14px] text-warm-grey italic leading-[1.6] mb-4 flex-1">{useCase.punch}</p>
+
+      <span className="text-[13px] text-bronze-dark font-medium flex items-center gap-1.5">
+        Voir le détail
+        <span className={`transition-transform duration-300 ${open ? "rotate-90" : ""}`}>▸</span>
+      </span>
+
       <div
-        className="bg-cream rounded-lg p-7 border border-cream-deep cursor-pointer transition-all duration-300 hover:shadow-md h-full flex flex-col"
-        onClick={() => setOpen(!open)}
+        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
       >
-        <div className="w-10 h-10 rounded-full bg-ink text-cream flex items-center justify-center font-heading text-[18px] font-semibold mb-4">
-          {useCase.icon}
-        </div>
-        <span className="inline-block bg-bronze/10 text-bronze text-[11px] font-semibold tracking-[1px] uppercase px-2.5 py-1 rounded-md mb-3">
-          {useCase.tag}
-        </span>
-        <h3 className="text-[18px] font-semibold mb-2 leading-[1.35]">{useCase.title}</h3>
-        <p className="text-[14px] text-warm-grey italic leading-[1.6] mb-4 flex-1">{useCase.punch}</p>
-
-        <span className="text-[13px] text-bronze-dark font-medium flex items-center gap-1.5">
-          Voir le détail
-          <span className={`transition-transform duration-300 ${open ? "rotate-90" : ""}`}>▸</span>
-        </span>
-
-        <div
-          className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-          style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
-        >
-          <div className="overflow-hidden">
-            <div className="pt-5 mt-4 border-t border-ink/[0.08] space-y-4">
-              {useCase.details.map((d) => (
-                <div key={d.label}>
-                  <span className="text-[11.5px] font-semibold tracking-[1.2px] uppercase text-bronze-dark">{d.label}</span>
-                  <p className="text-[14px] text-warm-grey leading-[1.65] mt-1">{d.text}</p>
-                </div>
-              ))}
-            </div>
+        <div className="overflow-hidden">
+          <div className="pt-5 mt-4 border-t border-ink/[0.08] space-y-4">
+            {useCase.details.map((d) => (
+              <div key={d.label}>
+                <span className="text-[11.5px] font-semibold tracking-[1.2px] uppercase text-bronze-dark">{d.label}</span>
+                <p className="text-[14px] text-warm-grey leading-[1.65] mt-1">{d.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    </AnimateIn>
+    </div>
   );
 }
 
 export default function CasUsagePage() {
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mm = gsap.matchMedia();
+
+    // Desktop only — mobile uses the StackCards deck below.
+    mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
+      const grid = cardsRef.current;
+      if (!grid) return;
+
+      gsap.fromTo(
+        gsap.utils.toArray<HTMLElement>("[data-case-card]", grid),
+        { opacity: 0, y: 50, rotateZ: -1.5, scale: 0.92 },
+        {
+          opacity: 1,
+          y: 0,
+          rotateZ: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.12,
+          ease: "power3.out",
+          scrollTrigger: { trigger: grid, start: "top 80%", toggleActions: "play none none none" },
+        }
+      );
+    });
+
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      gsap.set("[data-case-card]", { opacity: 1 });
+    });
+
+    return () => mm.revert();
+  }, []);
+
   return (
     <>
       {/* Hero */}
-      <section className="bg-ink text-cream pt-[50px] pb-[36px]">
+      <section className="bg-ink text-cream pt-[50px] pb-[36px] overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn>
+          <AnimateIn variant="blur-in" duration={0.5}>
             <span className="inline-block bg-cream/[0.08] border border-cream/[0.18] text-bronze-light text-[11px] font-semibold tracking-[1.5px] uppercase px-3.5 py-1.5 mb-4">
               Nos cas d&apos;usage
             </span>
-            <h1 className="text-[30px] font-medium text-cream max-w-[660px] leading-[1.3]">
-              Trois situations, trois stratégies sur-mesure.
-            </h1>
+          </AnimateIn>
+          <SplitHeading
+            text="Trois situations, trois stratégies sur-mesure."
+            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            delay={200}
+          />
+          <AnimateIn variant="fade-up" delay={400}>
             <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
               Chaque client a un objectif différent. Cliquez sur une situation pour voir comment nous l&apos;avons accompagnée.
             </p>
@@ -119,19 +161,31 @@ export default function CasUsagePage() {
       {/* Cases */}
       <section className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
-          <div className="grid md:grid-cols-3 gap-6">
-            {cases.map((c, i) => (
-              <CaseCard key={c.icon} useCase={c} delay={i * 120} />
+          {/* Desktop: grid */}
+          <div ref={cardsRef} className="hidden md:grid md:grid-cols-3 gap-6">
+            {cases.map((c) => (
+              <div key={c.icon} data-case-card style={{ opacity: 0 }}>
+                <CaseCard useCase={c} />
+              </div>
             ))}
           </div>
+
+          {/* Mobile: card deck that stacks as you scroll */}
+          <StackCards
+            className="md:hidden"
+            items={cases.map((c) => (
+              <CaseCard key={c.icon} useCase={c} />
+            ))}
+          />
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-16 bg-cream-deep">
         <div className="max-w-[1200px] mx-auto px-7 text-center">
-          <AnimateIn>
-            <h2 className="text-[27px] font-semibold mx-auto max-w-[680px]">
+          <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
+          <AnimateIn variant="scale-in">
+            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
               Votre situation ressemble à l&apos;une de ces histoires ?
             </h2>
             <Link

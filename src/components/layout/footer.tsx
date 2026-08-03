@@ -1,13 +1,63 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function Footer() {
+  const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const mm = gsap.matchMedia();
+
+    // The footer only renders at lg and above, so there is no mobile branch.
+    mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(
+        gsap.utils.toArray<HTMLElement>("[data-footer-col]", footer),
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: footer, start: "top 90%", toggleActions: "play none none none" },
+        }
+      );
+
+      gsap.fromTo(
+        footer.querySelector("[data-footer-bottom]"),
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 0.5,
+          delay: 0.5,
+          scrollTrigger: { trigger: footer, start: "top 90%", toggleActions: "play none none none" },
+        }
+      );
+    });
+
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      gsap.set(footer.querySelectorAll("[data-footer-col], [data-footer-bottom]"), { opacity: 1 });
+    });
+
+    return () => mm.revert();
+  }, []);
+
+  // Below lg the hamburger menu carries the footer content instead.
   return (
-    <footer className="bg-ink text-white">
-      <div className="max-w-7xl mx-auto px-6 py-16">
+    <footer className="hidden lg:block bg-ink text-white">
+      <div ref={footerRef} className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
-          <div className="flex flex-col items-center md:items-start">
+          <div className="flex flex-col items-center md:items-start" data-footer-col style={{ opacity: 0 }}>
             <Image
               src="/images/logo-light.png"
               alt="Horkos Wealth Management"
@@ -22,7 +72,7 @@ export function Footer() {
           </div>
 
           {/* Le cabinet */}
-          <div>
+          <div data-footer-col style={{ opacity: 0 }}>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-bronze-light mb-4">
               Le cabinet
             </h4>
@@ -46,7 +96,7 @@ export function Footer() {
           </div>
 
           {/* Conseil */}
-          <div>
+          <div data-footer-col style={{ opacity: 0 }}>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-bronze-light mb-4">
               Conseil
             </h4>
@@ -70,7 +120,7 @@ export function Footer() {
           </div>
 
           {/* Contact */}
-          <div>
+          <div data-footer-col style={{ opacity: 0 }}>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-bronze-light mb-4">
               Contact
             </h4>
@@ -99,7 +149,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div
+          className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
+          data-footer-bottom
+          style={{ opacity: 0 }}
+        >
           <p className="text-xs text-gray-500">
             &copy; {new Date().getFullYear()} Horkos Wealth Management. Tous droits réservés.
           </p>
