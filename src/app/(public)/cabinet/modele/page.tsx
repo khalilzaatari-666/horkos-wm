@@ -17,7 +17,7 @@ const etapes = [
     n: "1",
     badge: "Gratuit",
     title: "Diagnostic patrimonial",
-    desc: "Premier rendez-vous d'exploration : nous comprenons votre situation et vos objectifs. Aucun engagement, aucun frais — pour tout le monde, à chaque fois.",
+    desc: "Premier rendez-vous d'exploration : nous comprenons votre situation et vos objectifs. Aucun engagement, aucun frais - pour tout le monde, à chaque fois.",
   },
   {
     n: "2",
@@ -103,7 +103,7 @@ export default function ModelePage() {
           />
           <AnimateIn variant="fade-up" delay={400}>
             <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
-              Le premier rendez-vous est toujours gratuit. Ce qui se passe ensuite dépend uniquement de ce que vous décidez — jamais de frais cachés, jamais deux catégories de frais à la fois.
+              Le premier rendez-vous est toujours gratuit. Ce qui se passe ensuite dépend uniquement de ce que vous décidez - jamais de frais cachés, jamais deux catégories de frais à la fois.
             </p>
           </AnimateIn>
         </div>
@@ -166,7 +166,7 @@ export default function ModelePage() {
           <AnimateIn variant="scale-in" delay={350}>
             <div className="bg-cream/[0.06] border border-cream/[0.12] rounded-lg p-7 max-w-[700px] mx-auto text-left text-[14.5px] leading-[1.7] text-[#D8CDBC]">
               <strong className="text-cream">Le diagnostic patrimonial est toujours gratuit.</strong><br />
-              Selon la recommandation qui en découle, vous êtes facturés soit en commission sur vos opérations d&apos;investissement, soit en honoraires de conseil en structuration — jamais les deux sur le même besoin.
+              Selon la recommandation qui en découle, vous êtes facturés soit en commission sur vos opérations d&apos;investissement, soit en honoraires de conseil en structuration - jamais les deux sur le même besoin.
             </div>
           </AnimateIn>
         </div>

@@ -12,17 +12,17 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const principes = [
-  { n: "01", title: "Partir de votre besoin" },
-  { n: "02", title: "Expliquer, sans raccourci" },
-  { n: "03", title: "Sélectionner ce qui sert l'objectif" },
-  { n: "04", title: "Décider ensemble" },
-  { n: "05", title: "Rester dans la durée" },
+  { n: "1", title: "Partir de votre besoin" },
+  { n: "2", title: "Expliquer, sans raccourci" },
+  { n: "3", title: "Sélectionner ce qui sert l'objectif" },
+  { n: "4", title: "Décider ensemble" },
+  { n: "5", title: "Rester dans la durée" },
 ];
 
 const philosophie = [
-  { n: "01", title: "Nous partons de votre objectif", desc: "Aucune recommandation n'est faite avant d'avoir clarifié ce que vous cherchez réellement à accomplir." },
-  { n: "02", title: "Nous coordonnons, jamais seuls", desc: "Chaque structuration mobilise des métiers spécialisés - nous les orchestrons pour vous." },
-  { n: "03", title: "Nous restons impliqués après la décision", desc: "Notre rôle ne s'arrête pas à la signature." },
+  { n: "1", title: "Nous partons de votre objectif", desc: "Aucune recommandation n'est faite avant d'avoir clarifié ce que vous cherchez réellement à accomplir." },
+  { n: "2", title: "Nous coordonnons, jamais seuls", desc: "Chaque structuration mobilise des métiers spécialisés - nous les orchestrons pour vous." },
+  { n: "3", title: "Nous restons impliqués après la décision", desc: "Notre rôle ne s'arrête pas à la signature." },
 ];
 
 export default function ApprochePage() {

@@ -271,7 +271,7 @@ export function Header() {
             Espace client
           </Link>
           <Link
-            href="/questionnaire"
+            href="/rendez-vous"
             className="inline-block px-[26px] py-[13px] text-[13.5px] font-medium tracking-[0.2px] bg-ink text-cream hover:bg-ink/90 transition-colors"
           >
             Prendre rendez‑vous
@@ -354,7 +354,7 @@ export function Header() {
                 Espace client
               </Link>
               <Link
-                href="/questionnaire"
+                href="/rendez-vous"
                 className="text-center px-[26px] py-[13px] text-[13.5px] font-medium bg-ink text-cream rounded-lg"
                 onClick={closeMenu}
               >

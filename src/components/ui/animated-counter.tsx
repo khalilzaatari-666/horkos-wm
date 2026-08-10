@@ -27,9 +27,11 @@ export function AnimatedCounter({ value, className = "", delay = 0 }: AnimatedCo
     }
 
     const numericValue = parseInt(value, 10);
-    const isNumeric = !isNaN(numericValue);
+    // Counting up to a single digit spends most of its run showing "0", so only
+    // roll numbers that actually have somewhere to travel. Anything else pops in.
+    const shouldCount = !isNaN(numericValue) && numericValue >= 10;
 
-    if (isNumeric) {
+    if (shouldCount) {
       const obj = { val: 0 };
       gsap.to(obj, {
         val: numericValue,

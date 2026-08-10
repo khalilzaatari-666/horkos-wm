@@ -39,10 +39,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Protected routes: /admin/* requires admin or conseiller role
+  // Protected routes: /admin/* requires admin or conseiller role.
+  // Staff sign in with a password, so send them to their own page.
   if (pathname.startsWith("/admin") && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/connexion";
+    url.pathname = "/connexion/equipe";
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }

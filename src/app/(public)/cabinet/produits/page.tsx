@@ -6,8 +6,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { SplitHeading } from "@/components/ui/split-heading";
 import { DrawLine } from "@/components/ui/draw-line";
 import { SwipeRow } from "@/components/ui/swipe-row";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AssetForm } from "@/components/public/asset-form";
 
 interface Product {
   title: string;
@@ -32,12 +31,12 @@ const individuelles: Category[] = [
         detail: "Contrat combinant un fonds en dirhams à capital garanti et des unités de compte plus dynamiques. Utile pour se constituer une épargne, préparer une transmission (le capital sort hors succession) ou lisser une fiscalité dans la durée. Horizon recommandé : 5 ans et plus.",
       },
       {
-        title: "PER — Plan d'Épargne Retraite",
+        title: "PER - Plan d'Épargne Retraite",
         oneline: "Épargne bloquée jusqu'à la retraite, avantage fiscal à l'entrée.",
         detail: "Les versements réduisent votre revenu imposable chaque année. En contrepartie, l'épargne reste bloquée jusqu'au départ à la retraite (sauf cas de déblocage anticipé : achat de résidence principale, invalidité...). Adapté aux revenus élevés qui veulent lisser leur fiscalité sur le long terme.",
       },
       {
-        title: "PEA — Plan d'Épargne en Actions",
+        title: "PEA - Plan d'Épargne en Actions",
         oneline: "Enveloppe actions avec fiscalité allégée après quelques années.",
         detail: "Permet d'investir en actions (marocaines ou éligibles) avec une fiscalité avantageuse sur les plus-values passé un certain délai de détention. Adapté à un profil qui accepte la volatilité des marchés actions pour viser une performance supérieure sur le long terme.",
       },
@@ -53,7 +52,7 @@ const individuelles: Category[] = [
     count: "4 solutions",
     products: [
       {
-        title: "Locaux commerciaux — rendement locatif",
+        title: "Locaux commerciaux - rendement locatif",
         oneline: "Acquisition de commerces loués pour un revenu régulier.",
         detail: "Investissement dans des locaux commerciaux déjà loués ou à louer (boutiques, bureaux), générant un loyer mensuel. Nous sélectionnons l'emplacement, le locataire et structurons l'acquisition (nom propre ou société) avec notre réseau de professionnels.",
       },
@@ -70,7 +69,7 @@ const individuelles: Category[] = [
       {
         title: "Promotion immobilière",
         oneline: "Financement de programmes immobiliers en développement.",
-        detail: "Participation au financement d'un programme immobilier porté par un promoteur partenaire — résidentiel ou mixte. Rendement potentiellement plus élevé, en contrepartie d'un risque projet (délais, commercialisation) propre à la promotion.",
+        detail: "Participation au financement d'un programme immobilier porté par un promoteur partenaire - résidentiel ou mixte. Rendement potentiellement plus élevé, en contrepartie d'un risque projet (délais, commercialisation) propre à la promotion.",
       },
     ],
   },
@@ -92,7 +91,7 @@ const individuelles: Category[] = [
       {
         title: "Investissement dans des startups",
         oneline: "Tickets d'investissement dans de jeunes entreprises innovantes.",
-        detail: "Participation à des levées de fonds de startups marocaines ou régionales sélectionnées avec des fonds VC partenaires. Risque élevé, horizon long, rendement potentiel important mais non garanti — réservé à une part limitée du patrimoine.",
+        detail: "Participation à des levées de fonds de startups marocaines ou régionales sélectionnées avec des fonds VC partenaires. Risque élevé, horizon long, rendement potentiel important mais non garanti - réservé à une part limitée du patrimoine.",
       },
     ],
   },
@@ -103,7 +102,7 @@ const individuelles: Category[] = [
       {
         title: "Acquisition d'œuvres d'art",
         oneline: "Diversification patrimoniale par l'acquisition d'œuvres sélectionnées.",
-        detail: "Accompagnement dans l'acquisition d'œuvres d'artistes marocains et internationaux, en lien avec des experts et galeries partenaires — authentification, valorisation et conservation. Diversification hors marchés financiers, plaisir patrimonial autant que placement.",
+        detail: "Accompagnement dans l'acquisition d'œuvres d'artistes marocains et internationaux, en lien avec des experts et galeries partenaires - authentification, valorisation et conservation. Diversification hors marchés financiers, plaisir patrimonial autant que placement.",
       },
     ],
   },
@@ -115,14 +114,14 @@ const entreprises: Category[] = [
     count: "2 solutions",
     products: [
       {
-        title: "PER Collectif — allocation selon profil de risque",
+        title: "PER Collectif - allocation selon profil de risque",
         oneline: "Un PER d'entreprise géré selon le profil de chaque collaborateur.",
-        detail: "Nous mettons en place un Plan d'Épargne Retraite collectif pour vos salariés, avec une allocation ajustée au profil de risque de chacun plutôt qu'une gestion uniforme — pour améliorer le rendement de leur épargne sans complexifier votre gestion RH. Un outil de fidélisation concret, au-delà du salaire.",
+        detail: "Nous mettons en place un Plan d'Épargne Retraite collectif pour vos salariés, avec une allocation ajustée au profil de risque de chacun plutôt qu'une gestion uniforme - pour améliorer le rendement de leur épargne sans complexifier votre gestion RH. Un outil de fidélisation concret, au-delà du salaire.",
       },
       {
         title: "Accompagnement et pédagogie collaborateurs",
         oneline: "Des sessions dédiées pour que vos équipes comprennent leur épargne.",
-        detail: "Nous organisons des sessions d'explication pour vos collaborateurs — comment fonctionne leur PER, comment choisir leur allocation, quels avantages fiscaux. Une épargne bien comprise est une épargne qui fidélise davantage.",
+        detail: "Nous organisons des sessions d'explication pour vos collaborateurs - comment fonctionne leur PER, comment choisir leur allocation, quels avantages fiscaux. Une épargne bien comprise est une épargne qui fidélise davantage.",
       },
     ],
   },
@@ -381,91 +380,7 @@ export default function ProduitsPage() {
             </div>
 
             <AnimateIn variant="fade-left" delay={150}>
-              <div className="bg-white rounded-lg p-7 shadow-sm">
-                <h4 className="text-[16px] font-semibold mb-5">Formulaire de soumission</h4>
-                <form className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label>Type d&apos;actif à céder</Label>
-                    <select className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" required defaultValue="">
-                      <option value="" disabled>Sélectionnez un type</option>
-                      <optgroup label="Immobilier">
-                        <option>Résidence (principale ou secondaire)</option>
-                        <option>Bien locatif résidentiel</option>
-                        <option>Local commercial</option>
-                        <option>Immeuble de rapport</option>
-                        <option>Terrain</option>
-                        <option>Actif hôtelier / parahôtelier</option>
-                        <option>Programme immobilier en développement</option>
-                      </optgroup>
-                      <optgroup label="Entreprise & participations">
-                        <option>Entreprise — cession totale</option>
-                        <option>Participation minoritaire</option>
-                        <option>Part de SCI / société patrimoniale</option>
-                        <option>Participation dans un fonds ou club deal</option>
-                      </optgroup>
-                      <optgroup label="Actifs financiers">
-                        <option>Portefeuille de valeurs mobilières</option>
-                        <option>Contrat d&apos;assurance-vie existant</option>
-                      </optgroup>
-                      <optgroup label="Autres">
-                        <option>Œuvre d&apos;art</option>
-                        <option>Autre actif</option>
-                      </optgroup>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Motif de la cession</Label>
-                    <select className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" required defaultValue="">
-                      <option value="" disabled>Sélectionnez un motif</option>
-                      <option>Succession / transmission en cours</option>
-                      <option>Besoin de liquidités</option>
-                      <option>Réorientation de la stratégie patrimoniale</option>
-                      <option>Départ à la retraite</option>
-                      <option>Divorce / séparation</option>
-                      <option>Simplification du patrimoine</option>
-                      <option>Opportunité de marché</option>
-                      <option>Autre raison</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label>Nom / Société</Label>
-                      <Input type="text" placeholder="Votre nom ou société" className="h-11 rounded-lg" required pattern="[a-zA-ZÀ-ÿ\s'\-]+" title="Lettres uniquement" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Téléphone</Label>
-                      <Input type="tel" placeholder="+212 6XX XXX XXX" className="h-11 rounded-lg" required pattern="[\+]?[0-9\s\-]{7,15}" title="Numéro de téléphone valide" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Email</Label>
-                    <Input type="email" placeholder="votre@email.com" className="h-11 rounded-lg" required />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label>Valeur estimée (MAD)</Label>
-                      <Input type="number" placeholder="Ex: 5000000" className="h-11 rounded-lg" required min={0} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Horizon souhaité</Label>
-                      <Input type="text" placeholder="Ex: 6 mois" className="h-11 rounded-lg" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Description de l&apos;actif</Label>
-                    <textarea placeholder="Décrivez l'actif que vous souhaitez céder..." rows={3} className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none" />
-                  </div>
-
-                  <button type="submit" className="w-full bg-bronze text-white h-11 font-medium text-[13.5px] tracking-[0.2px] hover:bg-bronze-dark transition-colors rounded-lg">
-                    Soumettre mon dossier
-                  </button>
-                </form>
-              </div>
+              <AssetForm />
             </AnimateIn>
           </div>
         </div>

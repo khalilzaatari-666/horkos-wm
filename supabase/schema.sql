@@ -19,6 +19,42 @@ create table public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- Role tests live in SECURITY DEFINER functions on purpose. Inlining
+-- `select ... from profiles` into a policy ON profiles makes Postgres
+-- re-evaluate that same policy forever (42P17), and because every other
+-- table's staff policy also reads profiles, the recursion spreads to the
+-- whole schema. Running the lookup as the function owner breaks the loop.
+create or replace function public.is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role in ('admin', 'conseiller')
+  );
+$$;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+revoke execute on function public.is_staff() from public;
+revoke execute on function public.is_admin() from public;
+grant execute on function public.is_staff() to authenticated, anon;
+grant execute on function public.is_admin() to authenticated, anon;
+
 -- Users can read their own profile
 create policy "Users can view own profile"
   on public.profiles for select
@@ -32,22 +68,12 @@ create policy "Users can update own profile"
 -- Admins and conseillers can view all profiles
 create policy "Staff can view all profiles"
   on public.profiles for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- Admins can update any profile
 create policy "Admins can update all profiles"
   on public.profiles for update
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
@@ -61,6 +87,13 @@ begin
     new.raw_user_meta_data->>'last_name',
     coalesce(new.raw_user_meta_data->>'role', 'client')
   );
+
+  -- Rattache la demande de rendez-vous déposée avant l'inscription.
+  update public.appointment_requests
+     set client_id = new.id
+   where client_id is null
+     and lower(email) = lower(new.email);
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -92,12 +125,7 @@ create policy "Clients see own appointments"
 
 create policy "Staff see all appointments"
   on public.appointments for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- AUDITS
@@ -121,12 +149,7 @@ create policy "Clients see own audits"
 
 create policy "Staff manage audits"
   on public.audits for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- ASSETS
@@ -149,12 +172,7 @@ create policy "Clients see own assets"
 
 create policy "Staff manage assets"
   on public.assets for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- RECOMMENDATIONS
@@ -177,12 +195,7 @@ create policy "Anyone can view active recommendations"
 
 create policy "Staff manage recommendations"
   on public.recommendations for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- CLIENT RECOMMENDATIONS
@@ -205,12 +218,7 @@ create policy "Clients see own recommendations"
 
 create policy "Staff manage client recommendations"
   on public.client_recommendations for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- DOCUMENTS (coffre-fort)
@@ -234,12 +242,7 @@ create policy "Clients see own documents"
 
 create policy "Staff manage documents"
   on public.documents for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- MESSAGES (chat)
@@ -265,12 +268,7 @@ create policy "Users can send messages"
 
 create policy "Staff see all messages"
   on public.messages for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- LEADS
@@ -291,12 +289,7 @@ alter table public.leads enable row level security;
 
 create policy "Staff manage leads"
   on public.leads for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- CONTACTS (form submissions)
@@ -320,12 +313,7 @@ create policy "Anyone can insert contacts"
 
 create policy "Staff manage contacts"
   on public.contacts for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- ASSET SUBMISSIONS (cession requests)
@@ -354,12 +342,7 @@ create policy "Clients can submit"
 
 create policy "Staff manage submissions"
   on public.asset_submissions for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- PARTNER SUBMISSIONS
@@ -384,12 +367,7 @@ create policy "Anyone can submit partner form"
 
 create policy "Staff manage partner submissions"
   on public.partner_submissions for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- ARTICLES (CMS)
@@ -417,12 +395,7 @@ create policy "Anyone can view published articles"
 
 create policy "Staff manage articles"
   on public.articles for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- GUIDES
@@ -446,12 +419,7 @@ create policy "Anyone can view published guides"
 
 create policy "Staff manage guides"
   on public.guides for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- GUIDE DOWNLOADS
@@ -471,12 +439,7 @@ create policy "Anyone can request guide"
 
 create policy "Staff see downloads"
   on public.guide_downloads for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- EVENTS
@@ -499,12 +462,7 @@ create policy "Anyone can view published events"
 
 create policy "Staff manage events"
   on public.events for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- FAQS
@@ -526,12 +484,7 @@ create policy "Anyone can view published FAQs"
 
 create policy "Staff manage FAQs"
   on public.faqs for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'conseiller')
-    )
-  );
+  using (public.is_staff());
 
 -- ============================================
 -- AUDIT LOG (traçabilité AMMC)
@@ -551,12 +504,7 @@ alter table public.audit_logs enable row level security;
 
 create policy "Only admins can view audit logs"
   on public.audit_logs for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 create policy "System can insert audit logs"
   on public.audit_logs for insert
@@ -565,6 +513,71 @@ create policy "System can insert audit logs"
 -- Index for fast queries by user and date
 create index idx_audit_logs_user on public.audit_logs(user_id, created_at desc);
 create index idx_audit_logs_entity on public.audit_logs(entity_type, entity_id);
+
+-- ============================================
+-- APPOINTMENT REQUESTS (demandes de RDV visiteurs)
+-- ============================================
+-- Un visiteur n'a pas de profil et aucune date n'est encore fixée : c'est le
+-- conseiller qui rappelle pour convenir du créneau. On stocke donc la date de
+-- la DEMANDE (created_at), et on rattache l'appointment une fois planifié.
+create table public.appointment_requests (
+  id uuid default gen_random_uuid() primary key,
+  first_name text not null,
+  last_name text not null,
+  email text not null,
+  phone text,
+  besoins text[] not null default '{}',
+  -- Rempli quand besoins[] contient 'Autre besoin'.
+  besoin_autre text,
+  patrimoine text,
+  investissement text,
+  message text,
+  status text not null default 'nouveau'
+    check (status in ('nouveau', 'contacte', 'planifie', 'annule')),
+  assigned_to uuid references public.profiles(id),
+  notes text,
+  client_id uuid references public.profiles(id),
+  appointment_id uuid references public.appointments(id),
+  created_at timestamptz not null default now()
+);
+
+create index appointment_requests_status_idx
+  on public.appointment_requests (status, created_at desc);
+create index appointment_requests_email_idx
+  on public.appointment_requests (lower(email));
+
+alter table public.appointment_requests enable row level security;
+
+-- Une policy par commande : une policy "for all" sans "with check" réutilise
+-- son "using" comme contrôle d'insertion et brouille le INSERT anonyme.
+grant insert on public.appointment_requests to anon;
+grant select, insert, update, delete on public.appointment_requests to authenticated;
+
+create policy "Anyone can request an appointment"
+  on public.appointment_requests for insert
+  to anon, authenticated
+  with check (true);
+
+create policy "Clients see own requests"
+  on public.appointment_requests for select
+  to authenticated
+  using (auth.uid() = client_id);
+
+create policy "Staff read appointment requests"
+  on public.appointment_requests for select
+  to authenticated
+  using (public.is_staff());
+
+create policy "Staff update appointment requests"
+  on public.appointment_requests for update
+  to authenticated
+  using (public.is_staff())
+  with check (public.is_staff());
+
+create policy "Staff delete appointment requests"
+  on public.appointment_requests for delete
+  to authenticated
+  using (public.is_staff());
 
 -- ============================================
 -- Enable realtime for messages

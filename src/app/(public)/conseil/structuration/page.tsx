@@ -14,17 +14,17 @@ gsap.registerPlugin(ScrollTrigger);
 
 const processSteps = [
   {
-    n: "01",
+    n: "1",
     title: "Conseil en structuration",
-    desc: "Nous analysons votre situation et concevons le montage le plus adapté — société, apport, régime fiscal.",
+    desc: "Nous analysons votre situation et concevons le montage le plus adapté - société, apport, régime fiscal.",
   },
   {
-    n: "02",
+    n: "2",
     title: "Orientation vers le réseau",
     desc: "Nous vous mettons en relation avec l'expert-comptable, le notaire ou l'avocat fiscaliste adapté à votre dossier.",
   },
   {
-    n: "03",
+    n: "3",
     title: "Implémentation & suivi",
     desc: "Le professionnel met en œuvre, nous restons impliqués dans le suivi et la gouvernance (étape R2).",
   },

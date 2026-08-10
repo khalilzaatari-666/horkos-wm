@@ -82,7 +82,7 @@ function CategoryFields({ cat }: { cat: PartnerCategory }) {
             <select className={selectClass} required defaultValue="">
               <option value="" disabled>Sélectionnez un type</option>
               <option>Assurance-vie multisupport</option>
-              <option>PER — Plan d&apos;Épargne Retraite</option>
+              <option>PER - Plan d&apos;Épargne Retraite</option>
               <option>Prévoyance patrimoniale</option>
               <option>Autre produit d&apos;assurance</option>
             </select>
@@ -322,7 +322,7 @@ export default function ReseauPage() {
                 Vous êtes un acteur spécialisé ? Proposez vos opportunités.
               </h2>
               <p className="text-[14.5px] text-warm-grey leading-[1.7]">
-                Société de gestion, assureur, agent immobilier, fonds Private Equity / Venture Capital ou porteur d&apos;un partenariat business — sélectionnez votre catégorie, nous étudions et présentons de façon sélective à nos clients.
+                Société de gestion, assureur, agent immobilier, fonds Private Equity / Venture Capital ou porteur d&apos;un partenariat business - sélectionnez votre catégorie, nous étudions et présentons de façon sélective à nos clients.
               </p>
             </div>
           </AnimateIn>
