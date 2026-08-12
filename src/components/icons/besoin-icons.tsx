@@ -14,7 +14,8 @@ export type BesoinIconName =
   | "patrimoine"
   | "societe"
   | "collaborateurs"
-  | "tresorerie";
+  | "tresorerie"
+  | "ceder";
 
 interface IconGeometry {
   stroke: React.ReactNode;
@@ -135,6 +136,20 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
         <path d="M3.7 6v10.4c0 1.3 2.5 2.4 5.5 2.4s5.5-1.1 5.5-2.4V6" />
         <path d="M3.7 11.2c0 1.3 2.5 2.4 5.5 2.4s5.5-1.1 5.5-2.4" />
         <path d="M19.4 20.4V9.6m0 0-2.3 2.3m2.3-2.3 2.3 2.3" />
+      </>
+    ),
+  },
+
+  // A deed handed from one side to the other — l'actif qui change de mains.
+  ceder: {
+    fill: <path d="M8.4 2.8h5.1L17 6.3v8.4H8.4z" />,
+    stroke: (
+      <>
+        <path d="M8.4 2.8h5.1L17 6.3v8.4H8.4z" />
+        <path d="M13.5 2.8v3.5H17" />
+        <path d="M10.4 8.6h4.2m-4.2 2.8h4.2" />
+        <path d="M3.2 18.4h4.1l2.6 1.9h4.3l5.6-3.4" />
+        <path d="M6.6 21.2H3.2" />
       </>
     ),
   },

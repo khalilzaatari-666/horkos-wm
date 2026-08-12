@@ -19,7 +19,7 @@ export function PageHero({ tag, title, subtitle }: PageHeroProps) {
         </AnimateIn>
         <SplitHeading
           text={title}
-          className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+          className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
           delay={200}
         />
         <AnimateIn variant="fade-up" delay={400}>

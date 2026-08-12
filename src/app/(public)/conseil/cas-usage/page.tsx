@@ -74,7 +74,7 @@ function CaseCard({ useCase }: { useCase: UseCase }) {
       <span className="inline-block bg-bronze/10 text-bronze text-[11px] font-semibold tracking-[1px] uppercase px-2.5 py-1 rounded-md mb-3">
         {useCase.tag}
       </span>
-      <h3 className="text-[18px] font-semibold mb-2 leading-[1.35]">{useCase.title}</h3>
+      <h3 className="text-[20px] font-semibold mb-2 leading-[1.3]">{useCase.title}</h3>
       <p className="text-[14px] text-warm-grey italic leading-[1.6] mb-4 flex-1">{useCase.punch}</p>
 
       <span className="text-[13px] text-bronze-dark font-medium flex items-center gap-1.5">
@@ -147,7 +147,7 @@ export default function CasUsagePage() {
           </AnimateIn>
           <SplitHeading
             text="Trois situations, trois stratégies sur-mesure."
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
@@ -185,7 +185,7 @@ export default function CasUsagePage() {
         <div className="max-w-[1200px] mx-auto px-7 text-center">
           <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
           <AnimateIn variant="scale-in">
-            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
+            <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mx-auto max-w-[680px]">
               Votre situation ressemble à l&apos;une de ces histoires ?
             </h2>
             <Link

@@ -7,6 +7,7 @@ import { SplitHeading } from "@/components/ui/split-heading";
 import { DrawLine } from "@/components/ui/draw-line";
 import { SwipeRow } from "@/components/ui/swipe-row";
 import { AssetForm } from "@/components/public/asset-form";
+import { HashScroll } from "@/components/ui/hash-scroll";
 
 interface Product {
   title: string;
@@ -270,6 +271,8 @@ function CategorySwipe({ categories, variant }: { categories: Category[]; varian
 export default function ProduitsPage() {
   return (
     <>
+      <HashScroll id="ceder" />
+
       {/* Hero */}
       <section className="bg-ink text-cream pt-[50px] pb-[36px] overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
@@ -280,7 +283,7 @@ export default function ProduitsPage() {
           </AnimateIn>
           <SplitHeading
             text="Des produits, présentés clairement."
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
@@ -302,7 +305,7 @@ export default function ProduitsPage() {
           <SplitHeading
             text="Solutions individuelles"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-8"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-8"
             delay={100}
           />
 
@@ -329,7 +332,7 @@ export default function ProduitsPage() {
           <SplitHeading
             text="Solutions entreprises"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-4"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-4"
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
@@ -357,7 +360,7 @@ export default function ProduitsPage() {
       </section>
 
       {/* Céder un actif */}
-      <section className="py-16 bg-white overflow-hidden">
+      <section id="ceder" className="py-16 bg-white overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -369,7 +372,7 @@ export default function ProduitsPage() {
               <SplitHeading
                 text="Un actif à céder ?"
                 as="h2"
-                className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-4"
+                className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-4"
                 delay={100}
               />
               <AnimateIn variant="fade-up" delay={250}>
@@ -391,7 +394,7 @@ export default function ProduitsPage() {
         <div className="max-w-[1200px] mx-auto px-7 text-center">
           <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
           <AnimateIn variant="scale-in">
-            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
+            <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mx-auto max-w-[680px]">
               Une solution retient votre attention ?
             </h2>
             <Link

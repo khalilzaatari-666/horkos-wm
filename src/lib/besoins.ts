@@ -1,4 +1,5 @@
 import type { BesoinIconName } from "@/components/icons/besoin-icons";
+import type { BesoinOption } from "@/lib/rdv-options";
 
 export interface Besoin {
   icon: BesoinIconName;
@@ -10,9 +11,17 @@ export interface Besoin {
    * agrandie sur une plaque bronze - un rendu volontaire, pas un trou.
    */
   image?: string;
+  /** Renseigné uniquement pour les besoins qui mènent à un formulaire dédié. */
+  href?: string;
 }
 
-export const besoinsParticuliers: Besoin[] = [
+/**
+ * Ces besoins-là doivent tous figurer dans la question 1 du questionnaire, à
+ * l'identique : le titre est contraint sur `BesoinOption`, donc renommer une
+ * carte sans renommer l'option ne compile pas. Les besoins entreprise plus bas
+ * n'ont pas cette contrainte, ils ne sont pas proposés au questionnaire.
+ */
+export const besoinsParticuliers: (Besoin & { title: BesoinOption })[] = [
   {
     icon: "diversifier",
     image: "/images/besoins/diversifier.svg",
@@ -46,8 +55,15 @@ export const besoinsParticuliers: Besoin[] = [
   {
     icon: "societe",
     image: "/images/besoins/societe.svg",
-    title: "Structurer une société",
+    title: "Structurer une société patrimoniale",
     desc: "Créer ou réorganiser une société patrimoniale ou d'exploitation.",
+  },
+  {
+    icon: "ceder",
+    image: "/images/besoins/ceder.svg",
+    title: "Céder un actif",
+    desc: "Vendre un bien, des parts ou un portefeuille dans de bonnes conditions.",
+    href: "/cabinet/produits#ceder",
   },
 ];
 

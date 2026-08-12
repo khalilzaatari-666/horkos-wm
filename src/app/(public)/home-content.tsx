@@ -34,9 +34,12 @@ const faqs = [
   { q: "Horkos gère-t-il mon argent directement ?", a: "Non. Horkos formule des recommandations, vous restez seul décisionnaire." },
 ];
 
-function BesoinCard({ icon, title, desc, image }: Besoin) {
-  return (
-    <div className="group h-full flex flex-col bg-white border border-cream-deep rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+function BesoinCard({ icon, title, desc, image, href }: Besoin) {
+  const shell =
+    "group h-full flex flex-col bg-white border border-cream-deep rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
+
+  const body = (
+    <>
       <div className="relative aspect-[4/3] bg-cream-deep overflow-hidden">
         {/* The plate is what the cut-out illustration sits on; without it a
             transparent PNG/SVG would float on a flat swatch. */}
@@ -71,27 +74,43 @@ function BesoinCard({ icon, title, desc, image }: Besoin) {
       </div>
 
       <div className="flex-1 p-5">
-        <h4 className="text-[14.5px] font-semibold text-ink leading-[1.35] min-h-[2.7em]">
-          {title}
-        </h4>
+        {/* Pas de hauteur minimale ici : elle réservait deux lignes pour tous les
+            titres et creusait un blanc sous ceux qui n'en prennent qu'une. Les
+            cartes gardent la même hauteur par l'étirement du flex. */}
+        <h4 className="text-[14.5px] font-semibold text-ink leading-[1.35]">{title}</h4>
         <p className="text-[12.5px] text-warm-grey leading-[1.55] mt-1.5">{desc}</p>
       </div>
-    </div>
+    </>
+  );
+
+  // Seule la carte qui mène quelque part devient un lien. Les autres restent de
+  // la présentation : rien à survoler au curseur main, rien dans la tabulation.
+  if (!href) return <div className={shell}>{body}</div>;
+
+  return (
+    <Link
+      href={href}
+      // Vers une ancre, Next saute à la section dès l'arrivée ; `HashScroll` s'en
+      // charge à sa place, en descendant en douceur depuis le haut de la page.
+      scroll={!href.includes("#")}
+      className={`${shell} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze`}
+    >
+      {body}
+    </Link>
   );
 }
 
+/** Intitulé de rangée centré entre deux filets, qui prennent le reste. */
 function RowLabel({
   children,
-  centered = false,
   className = "",
 }: {
   children: React.ReactNode;
-  centered?: boolean;
   className?: string;
 }) {
   return (
     <div className={`flex items-center gap-3 mb-3 ${className}`}>
-      {centered && <span className="flex-1 h-px bg-cream-deep" />}
+      <span className="flex-1 h-px bg-cream-deep" />
       <span className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase">
         {children}
       </span>
@@ -259,9 +278,8 @@ export function HomeContent() {
         </div>
       </section>
 
-      {/* Besoins - `overflow-x-clip`, not `overflow-hidden`: the marquee rows
-          bleed past the container padding and must not raise a scrollbar. */}
-      <section className="py-16 overflow-x-clip">
+      {/* Besoins */}
+      <section className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
           <AnimateIn variant="fade-right" mobileVariant="fade-up">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -271,7 +289,7 @@ export function HomeContent() {
           <SplitHeading
             text="Nous partons de vos besoins, jamais de nos produits."
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
@@ -282,22 +300,21 @@ export function HomeContent() {
           <AnimateIn variant="fade-up" delay={250}>
             <RowLabel>Pour vous</RowLabel>
           </AnimateIn>
-        </div>
 
-        {/* Outside the container on purpose: the row runs the full viewport
-            width, and the component masks both ends rather than cutting them. */}
-        <MarqueeRow
-          direction="left"
-          items={besoinsParticuliers.map((b) => (
-            <BesoinCard key={b.title} {...b} />
-          ))}
-        />
-
-        <div className="max-w-[1200px] mx-auto px-7">
+          {/* Dans le conteneur, pas en pleine largeur : au-delà, un grand écran
+              affiche les six besoins d'un coup et la rangée n'a plus rien à
+              faire défiler. Bornée à 1200px, quatre cartes sont visibles et les
+              deux autres restent à découvrir. */}
+          <MarqueeRow
+            direction="left"
+            items={besoinsParticuliers.map((b) => (
+              <BesoinCard key={b.title} {...b} />
+            ))}
+          />
           {/* Only two cards here, so a marquee would be more motion than content.
               They sit centred instead. */}
           <AnimateIn variant="fade-up" delay={100}>
-            <RowLabel centered className="mt-12">
+            <RowLabel className="mt-12">
               Pour votre entreprise
             </RowLabel>
           </AnimateIn>
@@ -338,7 +355,7 @@ export function HomeContent() {
           <SplitHeading
             text="Trois étapes, un seul objectif : que vous compreniez avant de décider"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
             delay={100}
           />
 
@@ -384,7 +401,7 @@ export function HomeContent() {
             <SplitHeading
               text="Vous ne créez pas un espace client, vous créez une relation de confiance."
               as="h2"
-              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 text-cream max-w-[680px]"
+              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 text-cream max-w-[680px]"
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={300}>
@@ -444,7 +461,7 @@ export function HomeContent() {
             <SplitHeading
               text="Un double regard, Maroc et France."
               as="h2"
-              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
@@ -484,7 +501,7 @@ export function HomeContent() {
             <SplitHeading
               text="Des produits, une seule logique : votre stratégie globale."
               as="h2"
-              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
@@ -527,7 +544,7 @@ export function HomeContent() {
             <SplitHeading
               text="Structurer, pas seulement placer."
               as="h2"
-              className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
+              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
@@ -569,7 +586,7 @@ export function HomeContent() {
           <SplitHeading
             text="Un conseil indépendant, une pédagogie exigeante"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
             delay={100}
           />
 
@@ -603,7 +620,7 @@ export function HomeContent() {
           <SplitHeading
             text="Vos questions, nos réponses"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
             delay={100}
           />
           <div>

@@ -57,7 +57,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </AnimateIn>
           <SplitHeading
             text={article.title}
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream leading-[1.3]"
             delay={200}
           />
           {article.excerpt && (

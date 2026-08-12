@@ -15,7 +15,7 @@ export function CtaBand({ title, label, href = "/rendez-vous" }: CtaBandProps) {
         <SplitHeading
           text={title}
           as="h2"
-          className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mb-6"
+          className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mb-6"
         />
         <AnimateIn variant="fade-up" delay={200}>
           <Link

@@ -53,7 +53,7 @@ function ProcessCard({ step, counterDelay = 0 }: { step: (typeof processSteps)[n
         className="font-heading text-[28px] text-bronze font-semibold mb-3 block"
         delay={counterDelay}
       />
-      <h3 className="text-[16.5px] font-semibold mb-2">{step.title}</h3>
+      <h3 className="text-[20px] font-semibold leading-[1.3] mb-2">{step.title}</h3>
       <p className="text-[14px] text-warm-grey leading-[1.65]">{step.desc}</p>
     </div>
   );
@@ -148,7 +148,7 @@ export default function StructurationPage() {
           </AnimateIn>
           <SplitHeading
             text="Structurer votre patrimoine, pas seulement le placer."
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
@@ -170,7 +170,7 @@ export default function StructurationPage() {
           <SplitHeading
             text="D'abord le conseil, ensuite l'implémentation"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-3"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-3"
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
@@ -209,7 +209,7 @@ export default function StructurationPage() {
           <SplitHeading
             text="Quatre briques de structuration"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-8"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-8"
             delay={100}
           />
 
@@ -245,7 +245,7 @@ export default function StructurationPage() {
               <SplitHeading
                 text="Intégrer un bien immobilier dans une société"
                 as="h2"
-                className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 text-cream"
+                className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 text-cream"
                 delay={100}
               />
               <ul ref={stepsRef} className="space-y-3">
@@ -282,7 +282,7 @@ export default function StructurationPage() {
         <div className="max-w-[1200px] mx-auto px-7 text-center">
           <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
           <AnimateIn variant="scale-in">
-            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
+            <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mx-auto max-w-[680px]">
               Une situation à structurer ?
             </h2>
             <Link

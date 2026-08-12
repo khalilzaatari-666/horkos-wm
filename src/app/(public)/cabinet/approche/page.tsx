@@ -71,7 +71,7 @@ export default function ApprochePage() {
           </AnimateIn>
           <SplitHeading
             text="Comprendre. Structurer. Décider avec clarté."
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
@@ -128,7 +128,7 @@ export default function ApprochePage() {
           <SplitHeading
             text="On ne vend pas de produits. On structure un patrimoine."
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
             delay={100}
           />
           <div>
@@ -157,7 +157,7 @@ export default function ApprochePage() {
         <div className="max-w-[1200px] mx-auto px-7 text-center">
           <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
           <AnimateIn variant="scale-in">
-            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
+            <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mx-auto max-w-[680px]">
               Voir cette méthode appliquée à des cas réels
             </h2>
             <Link

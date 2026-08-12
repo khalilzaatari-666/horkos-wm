@@ -251,7 +251,7 @@ export default function ReseauPage() {
           </AnimateIn>
           <SplitHeading
             text="Les partenaires qui nous apportent des opportunités d'investissement."
-            className="text-[clamp(1.6rem,4vw,1.875rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
+            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream max-w-[660px] leading-[1.3]"
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
@@ -279,7 +279,7 @@ export default function ReseauPage() {
           <SplitHeading
             text="Cinq réseaux, mobilisés selon la classe d'actifs"
             as="h2"
-            className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-8"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-8"
             delay={100}
           />
 
@@ -318,7 +318,7 @@ export default function ReseauPage() {
               <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
                 Pour les partenaires
               </span>
-              <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mt-2.5 mb-3">
+              <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-3">
                 Vous êtes un acteur spécialisé ? Proposez vos opportunités.
               </h2>
               <p className="text-[14.5px] text-warm-grey leading-[1.7]">
@@ -397,7 +397,7 @@ export default function ReseauPage() {
         <div className="max-w-[1200px] mx-auto px-7 text-center">
           <DrawLine className="w-16 h-px bg-bronze mx-auto mb-6" direction="center" />
           <AnimateIn variant="scale-in">
-            <h2 className="text-[clamp(1.4rem,3.5vw,1.7rem)] font-semibold mx-auto max-w-[680px]">
+            <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mx-auto max-w-[680px]">
               Une opportunité qui correspond à votre profil ?
             </h2>
             <Link

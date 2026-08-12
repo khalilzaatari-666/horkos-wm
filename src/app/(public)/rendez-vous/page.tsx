@@ -22,7 +22,7 @@ export default function RendezVousPage() {
           <SplitHeading
             text="Faisons connaissance en quelques questions."
             as="h1"
-            className="text-[clamp(1.5rem,4vw,1.7rem)] font-semibold text-ink mt-2.5 leading-[1.3]"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold text-ink mt-2.5 leading-[1.3]"
             delay={150}
           />
           <AnimateIn variant="fade-up" delay={350}>
