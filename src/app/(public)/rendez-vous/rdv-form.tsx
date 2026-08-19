@@ -17,10 +17,12 @@ import {
   BESOIN_AUTRE_MAX,
 } from "@/lib/validation";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { CreneauPicker } from "@/components/booking/creneau-picker";
+import { ModeSelector, type RdvMode } from "@/components/booking/mode-selector";
 import { DEFAULT_ISO, getCountry, nationalLengths } from "@/lib/countries";
 
 const initialState: RdvState = { status: "idle" };
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const AUTRE_BESOIN = "Autre besoin";
 
 function Option({
@@ -188,6 +190,14 @@ export function RdvForm() {
   const [phone, setPhone] = useState("");
   const [phoneIso, setPhoneIso] = useState(DEFAULT_ISO);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  // Le créneau tenu par le CreneauPicker. `slotStart` retombe à null si le
+  // hold expire pendant que l'utilisateur est encore sur cette étape.
+  const [slotStart, setSlotStart] = useState<string | null>(null);
+  const [holdToken, setHoldToken] = useState<string | null>(null);
+  const [mode, setMode] = useState<RdvMode | null>(null);
+  // Grille entièrement vide (pas encore de conseiller, tout complet) : l'étape
+  // du créneau laisse passer, sinon le questionnaire serait sans issue.
+  const [noSlots, setNoSlots] = useState(false);
 
   const [state, formAction, pending] = useActionState(submitAppointmentRequest, initialState);
 
@@ -214,7 +224,16 @@ export function RdvForm() {
   // The request is already saved at this point. Creating an account is optional
   // and never blocks the conseiller from seeing the demande.
   if (state.status === "success") {
-    return <RequestSent firstName={firstName} lastName={lastName} email={email} />;
+    return (
+      <RequestSent
+        firstName={firstName}
+        lastName={lastName}
+        email={email}
+        bookedSlot={state.bookedSlot ?? null}
+        bookedMode={mode}
+        requestedSlot={slotStart !== null}
+      />
+    );
   }
 
   const toggleBesoin = (label: string) =>
@@ -227,7 +246,8 @@ export function RdvForm() {
       besoins.length > 0 &&
       (!autreSelected || validateBesoinAutre(besoinAutre) === null)) ||
     (step === 1 && patrimoine !== "") ||
-    (step === 2 && investissement !== "");
+    (step === 2 && investissement !== "") ||
+    (step === 3 && (noSlots || (slotStart !== null && mode !== null)));
 
   return (
     <form action={formAction} className="bg-cream border border-cream-deep rounded-lg p-6 sm:p-8">
@@ -239,6 +259,13 @@ export function RdvForm() {
       <input type="hidden" name="patrimoine" value={patrimoine} />
       <input type="hidden" name="phone" value={composePhone(getCountry(phoneIso).dial, phone)} />
       <input type="hidden" name="investissement" value={investissement} />
+      {slotStart && holdToken && mode && (
+        <>
+          <input type="hidden" name="slotStart" value={slotStart} />
+          <input type="hidden" name="holdToken" value={holdToken} />
+          <input type="hidden" name="mode" value={mode} />
+        </>
+      )}
 
       <div className="flex gap-1.5 mb-7">
         {Array.from({ length: TOTAL_STEPS }, (_, i) => (
@@ -330,7 +357,23 @@ export function RdvForm() {
 
           {step === 3 && (
             <>
-              <StepHeading index={4} question="Vos coordonnées" />
+              <StepHeading index={4} question="Quand souhaitez-vous nous rencontrer ?" />
+              <div className="mb-4">
+                <ModeSelector value={mode} onChange={setMode} />
+              </div>
+              <CreneauPicker
+                onSelect={(slot, token) => {
+                  setSlotStart(slot);
+                  setHoldToken(token);
+                }}
+                onEmptyChange={setNoSlots}
+              />
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <StepHeading index={5} question="Vos coordonnées" />
               <p className="text-[12.5px] text-warm-grey -mt-3 mb-4">
                 Les champs suivis de{" "}
                 <span className="text-bronze font-semibold">*</span> sont obligatoires.

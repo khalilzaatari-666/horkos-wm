@@ -264,8 +264,12 @@ export function Header() {
 
         {/* CTA group */}
         <div className="hidden lg:flex items-center gap-2.5">
+          {/* Vers /espace, pas /connexion : le proxy laisse passer une session
+              active et renvoie sinon vers la connexion avec le retour prévu.
+              Un lien codé sur /connexion ramenait au login des clients déjà
+              connectés. */}
           <Link
-            href="/connexion"
+            href="/espace"
             className="inline-block px-[26px] py-[13px] text-[13.5px] font-medium tracking-[0.2px] text-ink border border-ink bg-transparent hover:bg-ink hover:text-cream transition-colors"
           >
             Espace client
@@ -347,7 +351,7 @@ export function Header() {
               data-mobile-ctas
             >
               <Link
-                href="/connexion"
+                href="/espace"
                 className="text-center px-[26px] py-[13px] text-[13.5px] font-medium text-ink border border-ink rounded-lg"
                 onClick={closeMenu}
               >

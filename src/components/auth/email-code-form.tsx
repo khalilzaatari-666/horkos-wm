@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CodeInput, CODE_LENGTH } from "@/components/auth/code-input";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { formatNameInput, validateName, validateEmail, NAME_MAX } from "@/lib/validation";
+import { landingFor, DEFAULT_LANDING } from "@/lib/landing";
 
 const RESEND_COOLDOWN = 60;
 
@@ -149,7 +150,26 @@ export function EmailCodeForm({
     }
 
     verifiedRef.current = true;
-    router.push(redirectTo);
+
+    // Une page précise demandée avant la connexion l'emporte ; sinon le rôle
+    // décide, pour qu'un conseiller n'atterrisse pas dans l'espace client sans
+    // rien menant au back-office.
+    let destination = redirectTo;
+    if (!redirectTo || redirectTo === DEFAULT_LANDING) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        destination = landingFor(profile?.role);
+      }
+    }
+
+    router.push(destination);
     router.refresh();
   }
 

@@ -46,13 +46,44 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function AssetForm() {
+/**
+ * Carte du formulaire, ou rien en mode `bare` — l'espace client fournit alors la
+ * sienne, pour que le formulaire s'accorde à ses autres panneaux sans que la
+ * page publique ne change d'apparence.
+ *
+ * Déclarée ici et non dans le rendu : un composant recréé à chaque rendu
+ * démonte tout son sous-arbre, et le champ en cours de saisie perdrait le focus
+ * à chaque frappe.
+ */
+function Shell({ bare, children }: { bare: boolean; children: React.ReactNode }) {
+  if (bare) return <>{children}</>;
+  return <div className="bg-white rounded-lg p-7 shadow-sm">{children}</div>;
+}
+
+export interface AssetFormDefaults {
+  contactName?: string;
+  contactEmail?: string;
+  /** Numéro national, sans indicatif : c'est ce que le champ attend. */
+  phone?: string;
+  phoneIso?: string;
+}
+
+/**
+ * Le même formulaire sert au visiteur anonyme sur `/cabinet/produits` et au
+ * client connecté sur `/espace/ceder`, où ses coordonnées sont pré-remplies.
+ * Deux copies divergeraient — c'est déjà arrivé avec les listes de besoins.
+ */
+export function AssetForm({
+  defaults,
+  /** Rend le formulaire nu : ni carte ni titre, l'appelant s'en charge. */
+  bare = false,
+}: { defaults?: AssetFormDefaults; bare?: boolean } = {}) {
   const [state, formAction, pending] = useActionState(submitAsset, initialState);
 
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [phoneIso, setPhoneIso] = useState(DEFAULT_ISO);
+  const [contactName, setContactName] = useState(defaults?.contactName ?? "");
+  const [contactEmail, setContactEmail] = useState(defaults?.contactEmail ?? "");
+  const [phone, setPhone] = useState(defaults?.phone ?? "");
+  const [phoneIso, setPhoneIso] = useState(defaults?.phoneIso ?? DEFAULT_ISO);
   const [assetType, setAssetType] = useState("");
   const [reason, setReason] = useState("");
   const [estimatedValue, setEstimatedValue] = useState("");
@@ -76,7 +107,7 @@ export function AssetForm() {
 
   if (state.status === "success") {
     return (
-      <div className="bg-white rounded-lg p-7 shadow-sm">
+      <Shell bare={bare}>
         <div className="flex items-center gap-2.5 mb-2.5">
           <span className="w-9 h-9 rounded-full bg-bronze/15 text-bronze-dark flex items-center justify-center shrink-0">
             <Check className="w-4.5 h-4.5" />
@@ -89,13 +120,13 @@ export function AssetForm() {
           Notre équipe étudie votre actif et revient vers vous sous 48 heures ouvrées. Rien
           n&apos;est présenté à un client sans votre accord préalable.
         </p>
-      </div>
+      </Shell>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg p-7 shadow-sm">
-      <h4 className="text-[16px] font-semibold mb-1.5">Formulaire de soumission</h4>
+    <Shell bare={bare}>
+      {!bare && <h4 className="text-[16px] font-semibold mb-1.5">Formulaire de soumission</h4>}
       <p className="text-[12.5px] text-warm-grey mb-5">
         Les champs suivis de <span className="text-bronze font-semibold">*</span> sont
         obligatoires.
@@ -284,6 +315,6 @@ export function AssetForm() {
           sans votre accord préalable.
         </p>
       </form>
-    </div>
+    </Shell>
   );
 }

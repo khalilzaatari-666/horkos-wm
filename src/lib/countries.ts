@@ -150,6 +150,44 @@ export function getCountry(iso: string): Country {
   return BY_ISO.get(iso) ?? BY_ISO.get(DEFAULT_ISO)!;
 }
 
+/**
+ * Découpe un numéro stocké (« +212 612345678 ») en pays et numéro national,
+ * l'inverse de `composePhone`.
+ *
+ * L'indicatif le plus long l'emporte : +1 et +212 commencent tous deux par « 1 »
+ * ou « 2 », et retenir la première correspondance rattacherait des numéros au
+ * mauvais pays. Quand plusieurs pays partagent l'indicatif (+1), on prend celui
+ * des pays suggérés s'il y figure — le cabinet est marocain, ses clients
+ * canadiens sont plus probables que ceux d'une petite île des Caraïbes.
+ */
+export function splitPhone(stored: string | null | undefined): {
+  iso: string;
+  national: string;
+} {
+  const value = (stored ?? "").trim();
+  if (!value.startsWith("+")) return { iso: DEFAULT_ISO, national: "" };
+
+  const digits = value.slice(1).replace(/\D/g, "");
+  let best: Country | null = null;
+
+  for (const country of COUNTRIES) {
+    const dial = country.dial.replace(/\D/g, "");
+    if (!dial || !digits.startsWith(dial)) continue;
+    if (best && dial.length <= best.dial.replace(/\D/g, "").length) {
+      const isBetter = SUGGESTED_ISO.includes(country.iso) && !SUGGESTED_ISO.includes(best.iso);
+      if (!isBetter) continue;
+    }
+    best = country;
+  }
+
+  if (!best) return { iso: DEFAULT_ISO, national: digits };
+
+  return {
+    iso: best.iso,
+    national: digits.slice(best.dial.replace(/\D/g, "").length),
+  };
+}
+
 /** "MA" -> 🇲🇦 : each letter maps to its regional indicator symbol. */
 export function flagOf(iso: string): string {
   return String.fromCodePoint(

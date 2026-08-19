@@ -1,0 +1,107 @@
+<!--
+  Horkos WM - Gabarit d'invitation d'un membre de l'équipe.
+
+  À coller dans Supabase → Authentication → Emails → Templates, gabarit
+  "Invite user". C'est celui qu'envoie `inviteUserByEmail`, appelé depuis
+  /admin/utilisateurs.
+
+  Objet suggéré :
+    Votre accès au back-office Horkos
+
+  {{ .ConfirmationURL }} conduit vers /auth/callback, qui échange le code contre
+  une session puis dépose l'invité sur /bienvenue pour qu'il choisisse son mot
+  de passe. Ne pas remplacer ce jeton par une URL écrite à la main : le lien
+  porte le jeton d'invitation, sans lui le compte reste inaccessible.
+
+  {{ .Data.first_name }} vient des métadonnées passées à l'invitation. Si elles
+  manquent, la ligne s'affiche sans prénom - d'où la formule qui reste correcte
+  dans les deux cas.
+
+  LOGO : les emails ne peuvent pas afficher un fichier local, l'image doit être
+  servie en HTTPS. L'URL ci-dessous pointe vers le site ; tant qu'il n'est pas
+  déployé, et chez les destinataires qui bloquent les images, c'est le texte
+  alternatif qui s'affiche - d'où sa mise en forme soignée.
+
+  Contraintes email : tableaux et styles inline uniquement, aucune police
+  externe. La typographie du site n'est pas chargeable ici.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background-color:#F8F4EC;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #EFE7D8;border-radius:10px;overflow:hidden;">
+
+        <tr>
+          <td align="center" style="background-color:#0B1A2E;padding:28px 32px;">
+            <img
+              src="https://horkos-wm.com/images/logo-light.png"
+              alt="Horkos Wealth Management"
+              width="170"
+              style="display:block;width:170px;max-width:70%;height:auto;border:0;outline:none;text-decoration:none;font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:2px;color:#F8F4EC;"
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:32px;">
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:600;color:#0B1A2E;">
+              Bienvenue au sein de l&rsquo;équipe Horkos
+            </div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#7A7468;padding-top:10px;">
+              Bonjour {{ .Data.first_name }}, un compte vient d&rsquo;être créé pour vous sur le
+              back-office Horkos. Il ne reste qu&rsquo;à choisir votre mot de passe.
+            </div>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:26px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                    <tr>
+                      <td align="center" style="background-color:#A9784F;border-radius:8px;">
+                        <a
+                          href="{{ .ConfirmationURL }}"
+                          style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;"
+                        >
+                          Définir mon mot de passe
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.6;color:#7A7468;">
+              Le bouton ne fonctionne pas ? Copiez cette adresse dans votre navigateur :
+              <br />
+              <span style="word-break:break-all;color:#A9784F;">{{ .ConfirmationURL }}</span>
+            </div>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:26px;">
+              <tr>
+                <td style="border-top:1px solid #EFE7D8;padding-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.6;color:#7A7468;">
+                  <strong style="color:#0B1A2E;">Ensuite&nbsp;:</strong> connectez-vous sur
+                  <span style="color:#0B1A2E;">horkos-wm.com/connexion/equipe</span> avec votre
+                  email et ce mot de passe.
+                  <br /><br />
+                  Ce lien est à usage unique et expire. S&rsquo;il ne fonctionne plus, demandez une
+                  nouvelle invitation à l&rsquo;administrateur qui vous a inscrit. Vous
+                  n&rsquo;attendiez pas cet email&nbsp;? Ignorez-le, aucun accès ne sera ouvert
+                  tant que le mot de passe n&rsquo;est pas défini.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="background-color:#EFE7D8;padding:18px 32px;font-family:Arial,Helvetica,sans-serif;font-size:11.5px;line-height:1.6;color:#7A7468;">
+            Horkos Conseil - cabinet de conseil en gestion de patrimoine, Maroc.
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>

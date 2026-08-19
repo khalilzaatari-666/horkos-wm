@@ -12,3 +12,12 @@ export const SITE_DESCRIPTION =
 export function absoluteUrl(path = "/"): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+export const CABINET_EMAIL = "bonjour@horkos-wm.com";
+
+/**
+ * TODO(client) : adresse complète du cabinet. Elle part telle quelle dans les
+ * emails de confirmation des rendez-vous présentiels et dans l'invitation
+ * calendrier — seul le quartier figure aujourd'hui dans la maquette.
+ */
+export const CABINET_ADDRESS = "Cabinet Horkos, Casablanca - Racine, Maroc";
