@@ -32,8 +32,15 @@ export function RoleSelect({
           e.preventDefault();
           return;
         }
-        const label = ROLE_LABELS[(next ?? "client") as Role];
-        if (!confirm(`Attribuer le rôle « ${label} » à ce compte ?`)) e.preventDefault();
+        const role = (next ?? "client") as Role;
+        const label = ROLE_LABELS[role];
+        // Prévenir de l'email : l'admin doit savoir que le compte va être
+        // sollicité, pas le découvrir parce que la personne le rappelle.
+        const suite =
+          role === "client"
+            ? ""
+            : "\n\nUn email lui sera envoyé pour définir son mot de passe d'accès au back-office.";
+        if (!confirm(`Attribuer le rôle « ${label} » à ce compte ?${suite}`)) e.preventDefault();
       }}
     >
       <input type="hidden" name="id" value={id} />
@@ -68,6 +75,11 @@ export function RoleSelect({
       )}
       {state.status === "error" && (
         <p className="text-[11.5px] text-red-600 mt-1 leading-[1.45] max-w-[240px]">
+          {state.message}
+        </p>
+      )}
+      {state.status === "success" && state.message && (
+        <p className="text-[11.5px] text-emerald-700 mt-1 leading-[1.45] max-w-[240px]">
           {state.message}
         </p>
       )}

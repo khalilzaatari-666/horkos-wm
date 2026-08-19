@@ -1,0 +1,115 @@
+<!--
+  Horkos WM - Gabarit d'accès équipe pour un compte déjà inscrit.
+
+  À coller dans Supabase → Authentication → Emails → Templates, gabarit
+  "Reset password". C'est celui qu'envoie `resetPasswordForEmail`, appelé depuis
+  /admin/utilisateurs quand un compte existant reçoit le rôle conseiller ou
+  administrateur.
+
+  Objet suggéré :
+    Votre accès au back-office Horkos
+
+  Pourquoi ce gabarit et pas "Invite user" : `inviteUserByEmail` échoue sur un
+  compte déjà inscrit. Or c'est exactement la situation ici - la personne s'est
+  inscrite comme cliente, puis on la promeut. Le lien de récupération, lui,
+  fonctionne sur un compte existant.
+
+  Conséquence à connaître : ce gabarit sert AUSSI aux réinitialisations de mot
+  de passe ordinaires. Dans ce projet les clients se connectent par code email
+  et n'ont pas de mot de passe, donc en pratique il ne part que par la
+  promotion ci-dessus. Si un jour les clients obtiennent un mot de passe, il
+  faudra reformuler ce texte pour couvrir les deux cas.
+
+  {{ .ConfirmationURL }} conduit vers /auth/callback, qui échange le code contre
+  une session puis dépose l'arrivant sur /bienvenue. Ne pas remplacer ce jeton
+  par une URL écrite à la main : sans lui, la page renvoie vers la connexion.
+
+  LOGO : les emails ne peuvent pas afficher un fichier local, l'image doit être
+  servie en HTTPS. Tant que le site n'est pas déployé, et chez les
+  destinataires qui bloquent les images, c'est le texte alternatif qui
+  s'affiche - d'où sa mise en forme soignée.
+
+  Contraintes email : tableaux et styles inline uniquement, aucune police
+  externe.
+-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background-color:#F8F4EC;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #EFE7D8;border-radius:10px;overflow:hidden;">
+
+        <tr>
+          <td align="center" style="background-color:#0B1A2E;padding:28px 32px;">
+            <img
+              src="https://horkos-wm.com/images/logo-light.png"
+              alt="Horkos Wealth Management"
+              width="170"
+              style="display:block;width:170px;max-width:70%;height:auto;border:0;outline:none;text-decoration:none;font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:2px;color:#F8F4EC;"
+            />
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:32px;">
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:600;color:#0B1A2E;">
+              Votre accès au back-office
+            </div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.65;color:#7A7468;padding-top:10px;">
+              Bonjour, votre compte Horkos vient de recevoir un rôle au sein de l&rsquo;équipe.
+              Le back-office se déverrouille avec un mot de passe&nbsp;: il ne reste
+              qu&rsquo;à choisir le vôtre.
+            </div>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:26px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                    <tr>
+                      <td align="center" style="background-color:#A9784F;border-radius:8px;">
+                        <a
+                          href="{{ .ConfirmationURL }}"
+                          style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;"
+                        >
+                          Définir mon mot de passe
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.6;color:#7A7468;">
+              Le bouton ne fonctionne pas&nbsp;? Copiez cette adresse dans votre navigateur&nbsp;:
+              <br />
+              <span style="word-break:break-all;color:#A9784F;">{{ .ConfirmationURL }}</span>
+            </div>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:26px;">
+              <tr>
+                <td style="border-top:1px solid #EFE7D8;padding-top:18px;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.6;color:#7A7468;">
+                  <strong style="color:#0B1A2E;">Ensuite&nbsp;:</strong> connectez-vous sur
+                  <span style="color:#0B1A2E;">horkos-wm.com/connexion/equipe</span> avec votre
+                  email et ce mot de passe. Votre espace client reste accessible comme avant.
+                  <br /><br />
+                  Ce lien est à usage unique et expire. S&rsquo;il ne fonctionne plus, demandez à
+                  l&rsquo;administrateur de vous réattribuer le rôle&nbsp;: un nouveau lien
+                  partira. Vous n&rsquo;attendiez pas cet email&nbsp;? Ignorez-le, aucun mot de
+                  passe ne sera défini sans cette confirmation.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td align="center" style="background-color:#EFE7D8;padding:18px 32px;font-family:Arial,Helvetica,sans-serif;font-size:11.5px;line-height:1.6;color:#7A7468;">
+            Horkos Conseil - cabinet de conseil en gestion de patrimoine, Maroc.
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>

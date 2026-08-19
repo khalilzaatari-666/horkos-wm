@@ -18,6 +18,34 @@ export interface RoleState {
   message?: string;
 }
 
+/** Rôles qui ouvrent le back-office, donc qui exigent un mot de passe. */
+const STAFF_ROLES: readonly string[] = ["conseiller", "admin"];
+
+/**
+ * Envoie à un compte déjà inscrit le lien qui lui fera choisir un mot de passe.
+ *
+ * Pas `inviteUserByEmail` : elle échoue sur un compte existant, or c'est
+ * précisément le cas ici — la personne s'est inscrite comme cliente, puis on la
+ * promeut. Le lien de récupération, lui, fonctionne sur un compte existant et
+ * aboutit au même endroit : /auth/callback échange le code contre une session
+ * et dépose l'arrivant sur /bienvenue.
+ *
+ * La clé de service est préférée quand elle est là, pour n'envoyer cette
+ * requête sur aucun client porteur des cookies de l'admin. À défaut, l'endpoint
+ * de récupération se contente de la clé publique — l'envoi marche quand même.
+ */
+async function sendSetPasswordLink(email: string): Promise<boolean> {
+  const client = createAdminClient() ?? (await createClient());
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: `${SITE_URL}/auth/callback?next=/bienvenue`,
+  });
+  if (error) {
+    console.error("[admin] lien de mot de passe non envoyé:", error.message);
+    return false;
+  }
+  return true;
+}
+
 /**
  * Change le rôle d'un compte.
  *
@@ -58,6 +86,21 @@ export async function updateUserRole(
     };
   }
 
+  // L'état actuel se lit avant l'écriture : c'est ce qui permet de distinguer
+  // « rôle inchangé » d'un refus de la base, et de récupérer l'email vers
+  // lequel partira le lien de mot de passe.
+  const { data: cible } = await supabase
+    .from("profiles")
+    .select("role, email")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+
+  if (!cible) return { status: "error", message: "Compte introuvable." };
+
+  if (cible.role === parsed.data.role) {
+    return { status: "success", message: "Ce compte porte déjà ce rôle." };
+  }
+
   // `.select()` n'est pas décoratif : une écriture bloquée par la RLS ne
   // renvoie AUCUNE erreur, elle met simplement à jour zéro ligne. Sans lire ce
   // qui a été touché, l'action annonçait un succès alors que rien n'avait
@@ -85,7 +128,37 @@ export async function updateUserRole(
 
   revalidatePath("/admin/utilisateurs");
   revalidatePath("/admin");
-  return { status: "success" };
+
+  // Entrer dans l'équipe, c'est avoir besoin d'un mot de passe : le
+  // back-office ne se déverrouille pas par code email. Un compte déjà inscrit
+  // n'en a pas — d'où l'envoi automatique, sans qu'un admin ait à y penser.
+  //
+  // L'échec de l'envoi ne remet pas le rôle en cause : la promotion est faite
+  // et le reste se rattrape à la main. On le dit, plutôt que de laisser croire
+  // qu'un email est parti.
+  if (!STAFF_ROLES.includes(parsed.data.role)) {
+    return { status: "success", message: "Rôle mis à jour." };
+  }
+
+  if (!cible.email) {
+    return {
+      status: "error",
+      message:
+        "Rôle mis à jour, mais ce compte n'a pas d'email : impossible d'envoyer le lien de mot de passe.",
+    };
+  }
+
+  const envoye = await sendSetPasswordLink(cible.email);
+  return envoye
+    ? {
+        status: "success",
+        message: `Rôle mis à jour. Un lien de définition du mot de passe a été envoyé à ${cible.email}.`,
+      }
+    : {
+        status: "error",
+        message:
+          "Rôle mis à jour, mais l'email de définition du mot de passe n'est pas parti. Vérifiez la configuration email de Supabase — la limite d'envoi est souvent en cause.",
+      };
 }
 
 // ============================================================
