@@ -38,7 +38,7 @@ export async function sendContactNotification(input: ContactEmailInput): Promise
       to,
       // Permet de répondre directement à l'expéditeur depuis l'alerte.
       replyTo: input.email,
-      subject: `Contact — ${escapeHtml(input.subject)} — ${escapeHtml(input.name)}`,
+      subject: `Contact - ${escapeHtml(input.subject)} - ${escapeHtml(input.name)}`,
       html: emailHtml({
         title: "Nouveau message de contact",
         intro: `${escapeHtml(input.name)} vous a écrit depuis le formulaire de contact.`,

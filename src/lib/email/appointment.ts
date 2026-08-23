@@ -88,15 +88,15 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
     ? [
         "Format",
         input.meetingUrl
-          ? `En visioconférence — <a href="${escapeHtml(input.meetingUrl)}" style="color:#A9784F;">rejoindre la réunion</a>`
-          : "En visioconférence — le lien vous sera envoyé avant le rendez-vous",
+          ? `En visioconférence - <a href="${escapeHtml(input.meetingUrl)}" style="color:#A9784F;">rejoindre la réunion</a>`
+          : "En visioconférence - le lien vous sera envoyé avant le rendez-vous",
       ]
-    : ["Format", `Au cabinet — ${escapeHtml(CABINET_ADDRESS)}`];
+    : ["Format", `Au cabinet - ${escapeHtml(CABINET_ADDRESS)}`];
 
   const clientEmail = resend.emails.send({
     from: `${SITE_NAME} <${CABINET_EMAIL}>`,
     to: input.client.email,
-    subject: `Votre rendez-vous Horkos — ${when}`,
+    subject: `Votre rendez-vous Horkos - ${when}`,
     html: emailHtml({
       title: "Votre rendez-vous est confirmé",
       intro: `Bonjour ${escapeHtml(input.client.name)}, votre rendez-vous avec notre cabinet est confirmé. L'invitation jointe l'ajoute à votre calendrier.`,
@@ -117,7 +117,7 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
     ? resend.emails.send({
         from: `${SITE_NAME} <${CABINET_EMAIL}>`,
         to: input.advisor.email,
-        subject: `Nouveau rendez-vous — ${escapeHtml(input.client.name)} — ${when}`,
+        subject: `Nouveau rendez-vous - ${escapeHtml(input.client.name)} - ${when}`,
         html: emailHtml({
           title: "Nouveau rendez-vous réservé",
           intro: `${escapeHtml(input.client.name)} vient de réserver un créneau avec vous.`,

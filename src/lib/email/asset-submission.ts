@@ -64,7 +64,7 @@ export async function sendAssetSubmissionNotification(
       to,
       // Permet de répondre directement au prospect depuis l'alerte.
       replyTo: input.contact.email,
-      subject: `Nouveau dossier de cession — ${escapeHtml(input.contact.name)}`,
+      subject: `Nouveau dossier de cession - ${escapeHtml(input.contact.name)}`,
       html: emailHtml({
         title: "Nouveau dossier de cession",
         intro: `${escapeHtml(input.contact.name)} vient de soumettre un actif à céder.`,
