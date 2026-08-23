@@ -3,7 +3,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td } from "@/components/admin/ui";
-import { formatDateTime } from "@/lib/dates";
 import { RendezVousFilters, type ConseillerOption } from "./filters";
 import {
   RDV_STATUTS,
@@ -20,6 +19,35 @@ import {
 
 export const metadata: Metadata = { title: "Rendez-vous" };
 
+/** Au-delà, la colonne des besoins devient un mur de pastilles ; le reste passe en « +N ». */
+const BESOINS_VISIBLES = 3;
+
+/** L'heure du rendez-vous s'affiche dans le fuseau du cabinet, pas celui du serveur. */
+const rdvFmt = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Africa/Casablanca",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+interface Personne {
+  first_name: string | null;
+  last_name: string | null;
+  email?: string | null;
+  phone?: string | null;
+}
+
+interface Demande extends Personne {
+  besoins: string[] | null;
+  besoin_autre: string | null;
+  patrimoine: string | null;
+  investissement: string | null;
+  message: string | null;
+}
+
 interface Row {
   id: string;
   type: string;
@@ -27,8 +55,11 @@ interface Row {
   date: string;
   mode: string | null;
   meeting_url: string | null;
-  client: { first_name: string | null; last_name: string | null; email: string | null } | null;
+  /** Compte client rattaché (null tant que le visiteur n'en a pas créé). */
+  client: Personne | null;
   advisor: { first_name: string | null; last_name: string | null } | null;
+  /** Questionnaire de prise de rendez-vous rattaché — la source du contexte. */
+  demande: Demande | null;
 }
 
 /** PostgREST rend une relation en objet ou en tableau selon la cardinalité inférée. */
@@ -91,6 +122,17 @@ function TriHeader({
   );
 }
 
+/** Une ligne « libellé : valeur » du profil, quand la valeur existe. */
+function Ligne({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-baseline gap-1.5 text-[12px] whitespace-nowrap">
+      <span className="text-warm-grey">{label}</span>
+      <span className="text-charcoal font-medium">{value}</span>
+    </div>
+  );
+}
+
 export default async function AdminRendezVousPage({
   searchParams,
 }: {
@@ -128,10 +170,17 @@ export default async function AdminRendezVousPage({
   // Le tri par date part à Postgres ; celui par nom se fait en mémoire, car il
   // porte sur une table jointe. À ce volume la différence est nulle, et une
   // règle simple vaut mieux qu'un tri à moitié délégué.
+  //
+  // `demande` est la relation inverse (appointment_requests.appointment_id) :
+  // elle porte le questionnaire, seule source du nom d'un visiteur sans compte
+  // et du contexte (besoins, patrimoine, message).
   const base = supabase
     .from("appointments")
     .select(
-      "id, type, status, date, mode, meeting_url, client:client_id(first_name, last_name, email), advisor:advisor_id(first_name, last_name)"
+      "id, type, status, date, mode, meeting_url, " +
+        "client:client_id(first_name, last_name, email, phone), " +
+        "advisor:advisor_id(first_name, last_name), " +
+        "demande:appointment_requests!appointment_id(first_name, last_name, email, phone, besoins, besoin_autre, patrimoine, investissement, message)"
     )
     .match(egalites)
     .order("date", { ascending: periode === "passes" ? false : sens === "asc" })
@@ -154,22 +203,25 @@ export default async function AdminRendezVousPage({
       .order("last_name", { ascending: true }),
   ]);
 
-  const rows: Row[] = ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+  const rows: Row[] = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
     id: r.id as string,
     type: r.type as string,
     status: r.status as string,
     date: r.date as string,
     mode: (r.mode as string) ?? null,
     meeting_url: (r.meeting_url as string) ?? null,
-    client: one(r.client as Row["client"]),
+    client: one(r.client as Personne),
     advisor: one(r.advisor as Row["advisor"]),
+    demande: one(r.demande as Demande),
   }));
 
   const collator = new Intl.Collator("fr", { sensitivity: "base" });
+  // Le nom affiché vient du compte s'il existe, sinon du questionnaire.
+  const nomAffiche = (r: Row) => fullName(r.client) || fullName(r.demande);
   const sorted = [...rows].sort((a, b) => {
     let diff = 0;
     if (tri === "date") diff = a.date.localeCompare(b.date);
-    else if (tri === "client") diff = collator.compare(fullName(a.client), fullName(b.client));
+    else if (tri === "client") diff = collator.compare(nomAffiche(a), nomAffiche(b));
     else if (tri === "conseiller")
       diff = collator.compare(fullName(a.advisor), fullName(b.advisor));
     else if (tri === "statut") diff = collator.compare(a.status, b.status);
@@ -195,7 +247,7 @@ export default async function AdminRendezVousPage({
     <AdminPanel>
       <AdminHead
         title="Rendez-vous"
-        desc="Les créneaux réservés, tous conseillers confondus. Un rendez-vous sans client rattaché vient d'un visiteur qui n'a pas encore créé son espace."
+        desc="Les créneaux réservés, tous conseillers confondus. Chaque ligne porte le contexte du questionnaire ; « visiteur » signale un rendez-vous pris sans compte client."
       />
 
       <AnimateIn variant="fade-up" delay={40}>
@@ -207,13 +259,12 @@ export default async function AdminRendezVousPage({
           headers={[
             <TriHeader
               key="date"
-              label="Date"
+              label="Rendez-vous"
               colonne="date"
               triActuel={tri}
               sensActuel={sens}
               params={triParams}
             />,
-            "Type",
             <TriHeader
               key="client"
               label="Client"
@@ -222,6 +273,7 @@ export default async function AdminRendezVousPage({
               sensActuel={sens}
               params={triParams}
             />,
+            "Contexte",
             <TriHeader
               key="conseiller"
               label="Conseiller"
@@ -230,7 +282,6 @@ export default async function AdminRendezVousPage({
               sensActuel={sens}
               params={triParams}
             />,
-            "Format",
             <TriHeader
               key="statut"
               label="Statut"
@@ -246,61 +297,131 @@ export default async function AdminRendezVousPage({
           {sorted.map((r) => {
             const style =
               RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
-            const nomClient = fullName(r.client);
+            const nom = nomAffiche(r);
+            const email = r.client?.email || r.demande?.email || null;
+            const phone = r.client?.phone || r.demande?.phone || null;
+            const sansCompte = !r.client;
+            const d = r.demande;
+            const besoins = d?.besoins ?? [];
+            const visibles = besoins.slice(0, BESOINS_VISIBLES);
+            const reste = besoins.length - visibles.length;
+            const heure = (() => {
+              const s = rdvFmt.format(new Date(r.date));
+              return s.charAt(0).toUpperCase() + s.slice(1);
+            })();
 
             return (
-              <tr key={r.id} className="hover:bg-cream/40 transition-colors">
-                <Td className="whitespace-nowrap font-medium text-ink">
-                  {formatDateTime(r.date)}
-                </Td>
-
+              <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
+                {/* Rendez-vous : quand, quel type, quel format. */}
                 <Td className="whitespace-nowrap">
-                  <span className="inline-block text-[11.5px] font-semibold text-charcoal bg-cream border border-cream-deep px-2 py-0.5 rounded-md">
-                    {r.type}
-                  </span>
+                  <div className="font-medium text-ink">{heure}</div>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="inline-block text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded">
+                      {r.type}
+                    </span>
+                    {r.mode === "visio" ? (
+                      r.meeting_url ? (
+                        <a
+                          href={r.meeting_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[12px] text-bronze-dark hover:text-bronze transition-colors"
+                        >
+                          Visio — rejoindre
+                        </a>
+                      ) : (
+                        <span className="text-[12px] text-warm-grey">Visio — lien à envoyer</span>
+                      )
+                    ) : (
+                      <span className="text-[12px] text-charcoal">Au cabinet</span>
+                    )}
+                  </div>
                 </Td>
 
+                {/* Client : compte rattaché, ou coordonnées du questionnaire. */}
                 <Td>
-                  {nomClient ? (
+                  {nom ? (
                     <>
-                      <div className="text-ink font-medium">{nomClient}</div>
-                      {r.client?.email && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-ink font-medium">{nom}</span>
+                        {sansCompte && (
+                          <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.6px] text-bronze-dark bg-bronze/12 px-1.5 py-0.5 rounded">
+                            Visiteur
+                          </span>
+                        )}
+                      </div>
+                      {email && (
                         <a
-                          href={`mailto:${r.client.email}`}
-                          className="block text-[12px] text-bronze-dark hover:text-bronze transition-colors truncate max-w-[200px]"
+                          href={`mailto:${email}`}
+                          className="block text-[12px] text-bronze-dark hover:text-bronze transition-colors truncate max-w-[220px]"
                         >
-                          {r.client.email}
+                          {email}
+                        </a>
+                      )}
+                      {phone && (
+                        <a
+                          href={`tel:${phone}`}
+                          className="block text-[12px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                        >
+                          {phone}
                         </a>
                       )}
                     </>
                   ) : (
-                    <span className="text-[12px] text-warm-grey italic">
-                      Visiteur sans compte
-                    </span>
+                    <span className="text-[12px] text-warm-grey italic">Visiteur sans compte</span>
                   )}
+                </Td>
+
+                {/* Contexte : ce que le visiteur a dit de sa situation. */}
+                <Td className="max-w-[320px]">
+                  {besoins.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {visibles.map((b) => (
+                        <span
+                          key={b}
+                          className="inline-block text-[11.5px] text-charcoal bg-cream border border-cream-deep px-2 py-0.5 rounded-md"
+                        >
+                          {b}
+                        </span>
+                      ))}
+                      {reste > 0 && (
+                        <span
+                          title={besoins.slice(BESOINS_VISIBLES).join(", ")}
+                          className="inline-block text-[11.5px] font-semibold text-warm-grey bg-cream/60 border border-cream-deep px-2 py-0.5 rounded-md cursor-default"
+                        >
+                          +{reste}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {d?.besoin_autre && (
+                    <p className="text-[12px] text-charcoal leading-[1.5] mt-2 pl-2.5 border-l-2 border-bronze/40 italic">
+                      {d.besoin_autre}
+                    </p>
+                  )}
+
+                  {(d?.patrimoine || d?.investissement) && (
+                    <div className="space-y-0.5 mt-2">
+                      <Ligne label="Patrimoine" value={d?.patrimoine ?? null} />
+                      <Ligne label="À investir" value={d?.investissement ?? null} />
+                    </div>
+                  )}
+
+                  {d?.message && (
+                    <p
+                      title={d.message}
+                      className="text-[12px] text-warm-grey leading-[1.5] mt-2 line-clamp-2"
+                    >
+                      {d.message}
+                    </p>
+                  )}
+
+                  {!d && <span className="text-warm-grey">—</span>}
                 </Td>
 
                 <Td className="whitespace-nowrap">
                   {fullName(r.advisor) || <span className="text-warm-grey">—</span>}
-                </Td>
-
-                <Td className="whitespace-nowrap">
-                  {r.mode === "visio" ? (
-                    r.meeting_url ? (
-                      <a
-                        href={r.meeting_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-bronze-dark hover:text-bronze transition-colors"
-                      >
-                        Visio — rejoindre
-                      </a>
-                    ) : (
-                      <span className="text-warm-grey">Visio — lien à envoyer</span>
-                    )
-                  ) : (
-                    <span className="text-charcoal">Au cabinet</span>
-                  )}
                 </Td>
 
                 <Td>

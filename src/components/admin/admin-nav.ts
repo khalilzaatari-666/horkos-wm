@@ -2,7 +2,7 @@
  * Sections du back-office, dans l'ordre de la maquette.
  *
  * `adminOnly` marque celles qui touchent aux rôles : un conseiller consulte les
- * demandes et les dossiers, mais ne se promeut pas lui-même. La barre les
+ * rendez-vous et les dossiers, mais ne se promeut pas lui-même. La barre les
  * masque, et chaque page revérifie côté serveur — un menu caché n'est pas un
  * contrôle d'accès.
  */
@@ -14,7 +14,6 @@ export interface AdminSection {
 
 export const adminSections: AdminSection[] = [
   { href: "/admin", label: "Tableau de bord" },
-  { href: "/admin/demandes", label: "Demandes de rendez-vous" },
   { href: "/admin/rendez-vous", label: "Rendez-vous" },
   { href: "/admin/soumissions", label: "Soumissions d'actifs" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", adminOnly: true },
