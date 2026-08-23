@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { sendAssetSubmissionNotification } from "@/lib/email/asset-submission";
 import {
   assetTypeOptions,
   cessionReasonOptions,
@@ -90,6 +91,17 @@ export async function submitAsset(
     };
   }
 
-  // TODO: notifier l'équipe par email (Resend) une fois le SMTP opérationnel.
+  // Alerte l'équipe. Le dossier est déjà en base : un envoi raté est journalisé
+  // dans sendAssetSubmissionNotification, jamais remonté au visiteur.
+  await sendAssetSubmissionNotification({
+    assetType: d.assetType,
+    reason: d.reason,
+    estimatedValue: d.estimatedValue,
+    horizon: d.horizon || null,
+    description: d.description || null,
+    contact: { name: d.contactName, email: d.contactEmail, phone: d.contactPhone },
+    fromClient: user !== null,
+  });
+
   return { status: "success" };
 }

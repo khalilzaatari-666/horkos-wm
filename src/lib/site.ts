@@ -16,6 +16,12 @@ export function absoluteUrl(path = "/"): string {
 export const CABINET_EMAIL = "bonjour@horkos-wm.com";
 
 /**
+ * Destinataire des notifications internes (nouvelles soumissions, demandes).
+ * Surchargeable par `TEAM_NOTIFICATION_EMAIL` ; à défaut, la boîte du cabinet.
+ */
+export const TEAM_EMAIL = process.env.TEAM_NOTIFICATION_EMAIL ?? CABINET_EMAIL;
+
+/**
  * TODO(client) : adresse complète du cabinet. Elle part telle quelle dans les
  * emails de confirmation des rendez-vous présentiels et dans l'invitation
  * calendrier — seul le quartier figure aujourd'hui dans la maquette.
