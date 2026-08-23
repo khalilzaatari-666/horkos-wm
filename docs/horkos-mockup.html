@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><script>(function () {
+  if (window.__hostHtmlSandboxCompat) return;
+  window.__hostHtmlSandboxCompat = true;
+
+  // A minimal in-memory implementation of the Web Storage interface.
+  function memStore() {
+    var m = Object.create(null);
+    return {
+      getItem: function (k) { return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
+      setItem: function (k, v) { m[k] = String(v); },
+      removeItem: function (k) { delete m[k]; },
+      clear: function () { for (var k in m) delete m[k]; },
+      key: function (i) { var ks = Object.keys(m); return i < ks.length ? ks[i] : null; },
+      get length() { return Object.keys(m).length; }
+    };
+  }
+
+  // Only replace a store if touching it actually throws (opaque-origin sandbox).
+  // On a normal origin this is a no-op, so nothing changes outside the sandbox.
+  function guardStorage(name) {
+    try {
+      window[name].getItem("__hh_probe__");
+    } catch (e) {
+      try {
+        Object.defineProperty(window, name, { value: memStore(), configurable: true });
+      } catch (_) {}
+    }
+  }
+  try { guardStorage("localStorage"); } catch (_) {}
+  try { guardStorage("sessionStorage"); } catch (_) {}
+
+  // history.pushState/replaceState throw when passed a URL on an opaque origin;
+  // wrap them so hash/section navigation that updates the URL can't abort a
+  // handler. The scroll/visual effect (scrollIntoView etc.) still runs.
+  try {
+    ["pushState", "replaceState"].forEach(function (m) {
+      var orig = window.history && window.history[m];
+      if (typeof orig !== "function") return;
+      window.history[m] = function () {
+        try { return orig.apply(window.history, arguments); }
+        catch (e) { /* URL update blocked in sandbox — ignore, keep going */ }
+      };
+    });
+  } catch (_) {}
+})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horkos Wealth Management - Base applicative</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1A2E; --navy800:#142B47;
+    --bronze:#A9784F; --bronze-light:#C9A06C; --bronze-dark:#8A5F3C;
+    --cream:#F8F4EC; --cream-deep:#EFE7D8; --white:#FFFFFF;
+    --charcoal:#3B3A36; --warm-grey:#7A7468;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;color:var(--charcoal);background:var(--cream);padding-top:44px;}
+  h1,h2,h3{font-family:'Cormorant Garamond',serif;color:var(--ink);}
+  a{text-decoration:none;color:inherit;cursor:pointer;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px;}
+  .btn{display:inline-block;padding:13px 26px;font-weight:500;font-size:13.5px;letter-spacing:0.2px;cursor:pointer;border:none;}
+  .btn-bronze{background:var(--bronze);color:#fff;}
+  .btn-bronze:hover{background:var(--bronze-dark);}
+  .btn-outline{background:transparent;color:var(--cream);border:1px solid rgba(248,244,236,0.4);}
+  .btn-ink{background:var(--ink);color:var(--cream);}
+  .btn-outline-ink{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+
+  /* Edit toolbar */
+  #editToolbar{position:fixed;top:0;left:0;right:0;z-index:200;background:#1c1c1c;color:#f0f0f0;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:12.5px;}
+  #editToolbar button{background:var(--bronze);color:#fff;border:none;padding:8px 16px;font-size:12px;font-weight:500;cursor:pointer;}
+  #exportPanel{position:fixed;top:44px;left:0;right:0;z-index:199;background:#fff;border-bottom:2px solid var(--bronze);padding:16px 20px;display:none;max-height:40vh;overflow:auto;}
+  #exportPanel textarea{width:100%;min-height:120px;font-family:monospace;font-size:12px;padding:10px;border:1px solid var(--cream-deep);}
+  #exportPanel .close{float:right;cursor:pointer;font-size:13px;color:var(--warm-grey);}
+  [contenteditable="true"]:hover{outline:1px dashed var(--bronze-light);outline-offset:2px;}
+  [contenteditable="true"]:focus{outline:2px solid var(--bronze);outline-offset:2px;background:rgba(169,120,79,0.06);}
+  .block{position:relative;}
+  .block-ctrl{position:absolute;top:-14px;right:0;display:none;gap:4px;z-index:10;}
+  .block:hover .block-ctrl{display:flex;}
+  .block-ctrl button{background:var(--ink);color:#fff;border:none;width:24px;height:24px;font-size:12px;cursor:pointer;line-height:1;}
+  .block-ctrl button:hover{background:var(--bronze);}
+
+  /* Nav */
+  header{background:var(--white);border-bottom:1px solid var(--cream-deep);position:sticky;top:44px;z-index:50;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:1200px;margin:0 auto;}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:20px;color:var(--ink);letter-spacing:3px;cursor:pointer;}
+  .navlinks{display:flex;gap:4px;list-style:none;position:relative;align-items:center;}
+  .navlinks>li{position:relative;}
+  .navlinks>li>span{display:flex;align-items:center;gap:5px;padding:10px 14px;font-size:13.5px;font-weight:500;color:var(--charcoal);cursor:pointer;border-radius:3px;}
+  .navlinks>li:hover>span{background:var(--cream);color:var(--ink);}
+  .navlinks>li:hover .dropdown{display:block;}
+  .dropdown{display:none;position:absolute;top:100%;left:0;background:var(--white);border:1px solid var(--cream-deep);min-width:260px;box-shadow:0 12px 28px rgba(11,26,46,0.08);padding:8px;z-index:60;}
+  .dropdown a{display:block;padding:11px 12px;font-size:13px;border-radius:2px;}
+  .dropdown a:hover{background:var(--cream);}
+  .nav-cta-group{display:flex;gap:10px;align-items:center;}
+
+  /* Shared section chrome */
+  section{padding:64px 0;}
+  .eyebrow{color:var(--bronze-dark);font-size:11.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;}
+  .section-title{font-size:27px;font-weight:600;margin:10px 0 10px;max-width:680px;}
+  .section-sub{color:var(--warm-grey);font-size:14.5px;max-width:640px;margin-bottom:34px;line-height:1.65;}
+  .crumb{font-size:12px;color:var(--warm-grey);padding:12px 0;}
+  .crumb a{color:var(--bronze-dark);}
+
+  /* Hero (home) */
+  .hero{background:var(--ink);color:var(--cream);padding:90px 0 70px;}
+  .hero .tag{display:inline-block;color:var(--bronze-light);font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;}
+  .hero .rule{width:44px;height:1px;background:var(--bronze);margin-bottom:24px;}
+  .hero h1{font-size:40px;line-height:1.22;font-weight:500;color:var(--cream);max-width:680px;}
+  .hero p.lead{font-size:16px;color:#D8CDBC;max-width:560px;margin:20px 0 30px;line-height:1.75;}
+  .hero .cta-row{display:flex;gap:16px;flex-wrap:wrap;}
+
+  /* Generic hero for sub-views */
+  .pagehero{background:var(--ink);color:var(--cream);padding:50px 0 40px;}
+  .pagehero .tag{display:inline-block;background:rgba(248,244,236,0.08);border:1px solid rgba(248,244,236,0.18);color:var(--bronze-light);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;margin-bottom:16px;}
+  .pagehero h1{font-size:30px;font-weight:500;color:var(--cream);max-width:660px;line-height:1.3;}
+  .pagehero p{color:#D8CDBC;max-width:560px;margin-top:14px;font-size:14.5px;line-height:1.7;}
+  .stat-row{display:flex;gap:30px;margin-top:22px;flex-wrap:wrap;}
+  .stat .v{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--bronze-light);}
+  .stat .l{font-size:11px;color:#B9AF9E;text-transform:uppercase;letter-spacing:0.6px;}
+
+  /* Conseil / réseau */
+  .conseil-top{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;margin-bottom:48px;}
+  .conseil-callout{background:var(--cream);border-left:2px solid var(--bronze);padding:22px 26px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--navy800);line-height:1.5;}
+  .metiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .metier-card{background:var(--cream);border:1px solid var(--cream-deep);padding:20px 18px;}
+  .metier-card h4{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+  .metier-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.5;}
+
+  /* Conseiller / relation */
+  .relation{background:var(--ink);color:var(--cream);}
+  .relation .grid2{display:grid;grid-template-columns:1.1fr 0.9fr;gap:60px;align-items:center;}
+  .founder{background:rgba(248,244,236,0.06);border:1px solid rgba(248,244,236,0.14);padding:32px;}
+  .founder .avatar{width:52px;height:52px;border-radius:50%;background:var(--bronze);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;margin-bottom:16px;}
+  .founder h4{font-family:'Cormorant Garamond',serif;color:var(--cream);font-size:19px;}
+  .founder .role{color:var(--bronze-light);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
+  .founder p{font-size:14px;color:#D8CDBC;margin-top:14px;line-height:1.65;}
+
+  /* Steps / cards generic */
+  .steps3, .process-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .step-card, .ps-card{background:var(--white);border:1px solid var(--cream-deep);padding:26px 22px;}
+  .step-card .n, .ps-card .n{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--bronze);font-weight:500;margin-bottom:12px;}
+  .step-card h3, .ps-card h4{font-size:16px;margin-bottom:8px;}
+  .step-card p, .ps-card p{font-size:13.5px;color:var(--warm-grey);line-height:1.6;}
+
+  .comment{background:var(--cream-deep);}
+
+  /* Teasers (structuration / deals) */
+  .st-grid, .dt-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+  .st-card{background:var(--navy800);color:var(--cream);padding:30px;}
+  .st-card h4{color:var(--cream);font-size:18px;margin-bottom:10px;}
+  .st-card p{font-size:13.5px;color:#D8CDBC;line-height:1.6;}
+
+  /* Méthode */
+  .methode-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:6px;}
+  .methode-strip div{border-top:2px solid var(--bronze);padding-top:14px;}
+  .methode-strip .n{font-family:'Cormorant Garamond',serif;color:var(--bronze);font-size:20px;font-weight:600;}
+  .methode-strip h4{font-size:13px;margin-top:6px;line-height:1.35;}
+
+  /* Philosophie */
+  .philosophie{background:var(--cream-deep);}
+  .philo-row{display:grid;grid-template-columns:56px 1fr;gap:26px;padding:24px 0;border-top:1px solid rgba(11,26,46,0.08);}
+  .philo-row:last-child{border-bottom:1px solid rgba(11,26,46,0.08);}
+  .philo-row .num{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--bronze);font-weight:500;}
+  .philo-row h3{font-size:16.5px;margin-bottom:6px;}
+  .philo-row p{font-size:14px;color:var(--warm-grey);max-width:560px;line-height:1.6;}
+
+  /* Trust / FAQ */
+  .trust{background:var(--cream-deep);}
+  .trust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .trust-card{background:var(--white);padding:26px;border:1px solid var(--cream-deep);}
+  .trust-card h4{font-size:16.5px;margin-bottom:8px;}
+  .trust-card p{font-size:13px;color:var(--warm-grey);line-height:1.6;}
+  .faq-item{border-top:1px solid var(--cream-deep);padding:22px 0;}
+  .faq-item:last-child{border-bottom:1px solid var(--cream-deep);}
+  .faq-item .q{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+  .faq-item .a{font-size:13.5px;color:var(--warm-grey);line-height:1.6;max-width:680px;}
+
+  /* Step nav (R0/R1/R2) */
+  .step-nav-wrap{background:var(--white);border:1px solid var(--cream-deep);padding:26px 20px 12px;margin-bottom:26px;}
+  .step-nav{display:flex;justify-content:space-between;position:relative;max-width:520px;margin:0 auto;padding:0 10px;}
+  .step-nav::before{content:"";position:absolute;top:6px;left:6%;right:6%;height:1px;background:var(--cream-deep);z-index:0;}
+  .step-nav-item{position:relative;text-align:center;flex:1;z-index:1;cursor:pointer;}
+  .step-nav-item .arrow-tag{display:none;position:absolute;top:-28px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:600;color:var(--bronze-dark);}
+  .step-nav-item.viewing .arrow-tag{display:block;}
+  .step-explain-box{margin-top:24px;text-align:center;}
+  .step-explain{display:none;max-width:640px;margin:0 auto;}
+  .step-explain.active{display:block;}
+  .step-explain .se-intro{text-align:center;margin-bottom:22px;}
+  .step-explain b{display:block;font-size:12.5px;color:var(--charcoal);font-weight:600;margin-bottom:6px;}
+  .step-explain p{font-size:12px;color:var(--warm-grey);line-height:1.65;margin:0;}
+  .step-explain .se-body{text-align:left;}
+  .step-explain .se-body .esp-card,.step-explain .se-body .audit-card,.step-explain .se-body .doc-cat{margin-bottom:0;}
+  .step-nav-item .dot{width:14px;height:14px;border-radius:50%;background:var(--white);border:2px solid var(--cream-deep);display:inline-block;margin-bottom:8px;}
+  .step-nav-item .lbl{display:block;font-size:11.5px;color:var(--warm-grey);font-weight:500;}
+  .step-nav-item.done .dot{border-color:var(--bronze);background:var(--bronze);}
+  .step-nav-item.active .dot{border-color:var(--bronze);background:var(--cream);box-shadow:0 0 0 5px rgba(169,120,79,0.22), 0 0 16px 4px rgba(169,120,79,0.4);}
+  .step-nav-item.active .lbl{color:var(--ink);font-weight:600;}
+
+
+  /* Booking (R0) */
+  .booking{background:var(--white);border:1px solid var(--cream-deep);padding:30px;}
+  .booking-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+  .duration-opt{padding:10px 18px;border:1px solid var(--cream-deep);font-size:13px;color:var(--charcoal);cursor:pointer;}
+  .duration-opt.selected{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+  .cat-opt{padding:12px 14px;border:1px solid var(--cream-deep);font-size:12.5px;color:var(--charcoal);cursor:pointer;text-align:center;}
+  .cat-opt.selected{background:var(--cream-deep);border-color:var(--bronze);color:var(--ink);font-weight:600;}
+  .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+  .slot{padding:10px;border:1px solid var(--cream-deep);font-size:12.5px;text-align:center;cursor:pointer;color:var(--charcoal);}
+  .slot.selected{background:var(--bronze);color:#fff;border-color:var(--bronze);}
+  .field-label{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--bronze-dark);font-weight:600;margin-bottom:10px;}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .why-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px;}
+  .why-card h4{font-size:14.5px;color:var(--ink);margin-bottom:8px;}
+  .why-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;}
+
+  /* R1 stratégie sur-mesure : audit + conseiller + reco */
+  .audit-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;}
+  .audit-card{background:var(--white);border:1px solid var(--cream-deep);padding:30px;}
+  .audit-card .label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--bronze-dark);font-weight:600;margin-bottom:10px;}
+  .audit-card h3{font-size:20px;margin-bottom:6px;}
+  .audit-card .meta{font-size:12.5px;color:var(--warm-grey);margin-bottom:20px;}
+  .audit-rows{border-top:1px solid var(--cream-deep);}
+  .audit-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--cream-deep);font-size:13px;}
+  .audit-row span:first-child{color:var(--warm-grey);}
+  .audit-row span:last-child{color:var(--ink);font-weight:500;}
+  .audit-side{background:var(--navy800);color:var(--cream);padding:26px;}
+  .audit-side h4{font-family:'Cormorant Garamond',serif;color:var(--cream);font-size:16px;margin-bottom:10px;}
+  .audit-side p{font-size:12.5px;color:#D8CDBC;line-height:1.6;margin-bottom:6px;}
+  .lockline{font-size:11px;color:var(--bronze-light);font-style:italic;margin-top:10px;}
+  .row-btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .row-btns span{font-size:11.5px;padding:8px 13px;background:var(--bronze);color:#fff;font-weight:500;cursor:pointer;}
+
+  .conseiller-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px;}
+  .chat-card{background:var(--cream);border:1px solid var(--cream-deep);padding:22px;}
+  .chat-card h4{font-size:14.5px;color:var(--ink);margin-bottom:14px;}
+  .bubble{max-width:80%;padding:10px 14px;font-size:12.5px;margin-bottom:10px;line-height:1.5;}
+  .bubble.them{background:var(--white);color:var(--charcoal);border-radius:0 8px 8px 8px;}
+  .bubble.me{background:var(--ink);color:var(--cream);border-radius:8px 0 8px 8px;margin-left:auto;}
+  .rdv-mini{background:var(--cream);border:1px solid var(--cream-deep);padding:22px;}
+  .rdv-mini h4{font-size:14.5px;color:var(--ink);margin-bottom:14px;}
+  .rdv-item{display:flex;justify-content:space-between;align-items:center;background:var(--white);padding:12px 14px;font-size:12.5px;margin-bottom:8px;}
+  .rdv-item .rstatus{font-size:10.5px;padding:3px 8px;background:var(--bronze);color:#fff;}
+
+  .reco-tabs{display:flex;gap:10px;margin:26px 0 24px;flex-wrap:wrap;}
+  .reco-tab{padding:9px 16px;font-size:12.5px;font-weight:500;border:1px solid var(--cream-deep);color:var(--charcoal);cursor:pointer;}
+  .reco-tab.active{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .rm-item{display:grid;grid-template-columns:120px 1fr auto;gap:20px;align-items:center;background:var(--cream);border:1px solid var(--cream-deep);padding:20px 22px;margin-bottom:12px;}
+  .rm-item .rm-status{font-size:11px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;padding:6px 10px;text-align:center;}
+  .rm-item .rm-status.etude{background:var(--cream-deep);color:var(--warm-grey);}
+  .rm-item .rm-status.reco{background:var(--bronze);color:#fff;}
+  .rm-item .rm-status.cours{background:var(--navy800);color:var(--cream);}
+  .rm-item h4{font-size:15px;color:var(--ink);margin-bottom:4px;}
+  .rm-item p{font-size:12.5px;color:var(--warm-grey);}
+  .rm-item .rm-cta{font-size:12.5px;color:var(--ink);font-weight:500;white-space:nowrap;cursor:pointer;}
+
+  /* R2 gouvernance */
+  .gov-timeline{border-left:2px solid var(--cream-deep);padding-left:26px;}
+  .gov-item{position:relative;padding-bottom:28px;}
+  .gov-item::before{content:"";position:absolute;left:-32px;top:2px;width:11px;height:11px;border-radius:50%;background:var(--bronze);}
+  .gov-item .gdate{font-size:11.5px;color:var(--bronze-dark);font-weight:600;letter-spacing:0.5px;margin-bottom:4px;}
+  .gov-item h4{font-size:15px;color:var(--ink);margin-bottom:5px;}
+  .gov-item p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;}
+  .suivi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .suivi-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px;}
+  .suivi-card h4{font-size:14.5px;color:var(--ink);margin-bottom:8px;}
+  .suivi-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;}
+
+  /* Docs collaboratifs */
+  .docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px;}
+  .doc-cat{background:var(--white);border:1px solid var(--cream-deep);padding:20px;}
+  .doc-cat h4{font-size:14px;color:var(--ink);margin-bottom:12px;}
+  .doc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-deep);font-size:12px;}
+  .doc-row:last-child{border-bottom:none;}
+  .doc-row .ddl{color:var(--bronze-dark);font-weight:600;cursor:pointer;}
+
+  /* Réseau band */
+  .metiers-band{background:var(--navy800);color:var(--cream);}
+  .metiers-band .section-sub{color:#D8CDBC;}
+  .mb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .mb-card{background:rgba(248,244,236,0.05);border:1px solid rgba(248,244,236,0.14);padding:18px;}
+  .mb-card h4{color:var(--cream);font-size:14px;margin-bottom:5px;}
+  .mb-card p{color:#B9AF9E;font-size:12px;line-height:1.5;}
+
+  /* Recommandations hub */
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .r-card{background:var(--white);border:1px solid var(--cream-deep);padding:20px;}
+  .r-card:hover{border-color:var(--bronze);}
+  .r-card .cat{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--bronze-dark);font-weight:600;}
+  .r-card h4{font-size:15.5px;color:var(--ink);margin:8px 0 8px;}
+  .r-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;margin-bottom:14px;}
+  .r-card .go{font-size:12px;color:var(--ink);font-weight:500;}
+  .r-card.soon{opacity:0.55;}
+
+  /* Produit fiche */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .feat-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px;}
+  .feat-card h4{font-size:14.5px;color:var(--ink);margin-bottom:8px;}
+  .feat-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;}
+  .pro-card{background:var(--navy800);color:var(--cream);padding:26px;display:flex;gap:18px;align-items:flex-start;}
+  .pro-card .av{width:48px;height:48px;border-radius:50%;background:var(--bronze);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:19px;flex-shrink:0;}
+  .pro-card h4{color:var(--cream);font-size:16px;margin-bottom:3px;}
+  .pro-card .role{color:var(--bronze-light);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .pro-card p{color:#D8CDBC;font-size:13px;line-height:1.6;}
+  .fees-note{background:var(--cream-deep);border-left:2px solid var(--bronze);padding:20px 22px;font-size:13px;color:var(--warm-grey);line-height:1.65;}
+  .fees-note b{color:var(--ink);}
+  .cta-band{background:var(--cream-deep);text-align:center;}
+  .cta-band .section-title, .cta-band .section-sub{margin-left:auto;margin-right:auto;}
+  .cta-band .btn{margin-top:4px;}
+
+  /* Frais */
+  .fee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;text-align:left;}
+  .fee-card{background:var(--white);border:1px solid var(--cream-deep);padding:24px;}
+  .fee-card .pct{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--bronze);margin-bottom:8px;}
+  .fee-card h4{font-size:15px;color:var(--ink);margin-bottom:8px;}
+  .fee-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;}
+  .honoraires{background:var(--ink);color:var(--cream);border-bottom:1px solid rgba(201,160,108,0.3);}
+  .hon-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .hon-card{background:rgba(248,244,236,0.05);border:1px solid rgba(248,244,236,0.14);padding:24px;}
+  .hon-card h4{color:var(--cream);font-size:15px;margin-bottom:8px;}
+  .hon-card p{color:#D8CDBC;font-size:13px;line-height:1.6;}
+  .principle-box{background:var(--white);border-left:2px solid var(--bronze);padding:22px 26px;font-size:14px;color:var(--charcoal);line-height:1.7;}
+  .principle-box b{color:var(--ink);}
+  .fee-card .step-num{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--bronze);line-height:1;}
+  .fee-card .fee-badge{font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--warm-grey);font-weight:600;margin:4px 0 10px;}
+  .fee-equation{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-top:30px;}
+  .eq-line1{color:var(--warm-grey);font-size:14px;}
+  .eq-or{color:var(--warm-grey);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin:0 8px;}
+  .eq-line2{color:var(--warm-grey);font-size:15.5px;font-weight:600;letter-spacing:0.3px;}
+  .fee-caveat{font-size:12px;color:var(--warm-grey);font-style:italic;text-align:center;margin-top:18px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.6;}
+
+  /* Types deals / services structuration */
+  .types-grid, .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .type-card, .service-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px 20px;}
+  .type-card h4, .service-card h4{font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .type-card p, .service-card p{font-size:12.5px;color:var(--warm-grey);line-height:1.5;}
+  .apport-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;}
+  .apport-list{list-style:none;}
+  .apport-list li{position:relative;padding:12px 0 12px 24px;font-size:14px;color:#D8CDBC;border-bottom:1px solid rgba(248,244,236,0.12);}
+  .apport-list li::before{content:"-";position:absolute;left:0;color:var(--bronze-light);}
+  .apport-card{background:rgba(248,244,236,0.06);border:1px solid rgba(248,244,236,0.14);padding:30px;}
+  .apport-card h4{color:var(--cream);font-size:18px;margin-bottom:10px;}
+  .apport-card p{color:#D8CDBC;font-size:13.5px;line-height:1.65;}
+
+  /* Form fields (deals) */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;}
+  .form-card{background:var(--white);border:1px solid var(--cream-deep);padding:30px;}
+  .form-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .form-fields .f{background:var(--cream);padding:12px 14px;font-size:12.5px;color:var(--warm-grey);border:1px solid var(--cream-deep);}
+  .form-fields .f.full{grid-column:1/-1;}
+  .form-fields select.f, .form-fields input.f, .form-fields textarea.f{background:var(--white);color:var(--charcoal);font-family:inherit;width:100%;cursor:pointer;outline:none;}
+  .form-fields input.f, .form-fields textarea.f{cursor:text;}
+  .form-fields textarea.f{resize:vertical;min-height:70px;}
+  .form-fields select.f:invalid{color:var(--warm-grey);}
+  .partner-cat-fields{display:none;}
+  .partner-cat-fields.active{display:contents;}
+  .note-box{background:var(--white);border-left:2px solid var(--bronze);padding:20px 22px;font-size:13px;color:var(--warm-grey);line-height:1.7;}
+  .note-box b{color:var(--ink);}
+
+  /* Questionnaire */
+  .qwrap{max-width:640px;margin:0 auto;padding:30px 28px 60px;}
+  .progress{display:flex;gap:6px;margin-bottom:26px;}
+  .progress span{flex:1;height:3px;background:var(--cream-deep);}
+  .progress span.done{background:var(--bronze);}
+  .qstep{background:var(--white);border:1px solid var(--cream-deep);padding:26px;margin-bottom:14px;}
+  .qstep .qn{font-size:11px;color:var(--bronze-dark);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+  .qstep h3{font-size:17px;margin-bottom:16px;}
+  .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .opt{padding:12px 16px;border:1px solid var(--cream-deep);font-size:13px;cursor:pointer;text-align:center;}
+  .opt.selected{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .opt.full{grid-column:1/-1;}
+
+  /* Produits (catalogue public) */
+  .prod-cat-block{margin-bottom:50px;}
+  .prod-cat-block:last-child{margin-bottom:0;}
+  .prod-cat-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;}
+  .prod-cat-head h3{font-size:20px;}
+  .prod-cat-head .cnt{font-size:12px;color:var(--warm-grey);}
+  .prod-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .prod-card{background:var(--white);border:1px solid var(--cream-deep);padding:20px 22px;cursor:pointer;transition:border-color .15s;}
+  .prod-card:hover{border-color:var(--bronze);}
+  .prod-card h4{font-size:15px;color:var(--ink);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+  .prod-card h4 .chev{font-size:12px;color:var(--bronze-dark);transition:transform .15s;}
+  .prod-card.expanded h4 .chev{transform:rotate(90deg);}
+  .prod-card .oneline{font-size:12.5px;color:var(--warm-grey);line-height:1.5;}
+  .prod-card .detail{max-height:0;overflow:hidden;transition:max-height .2s ease;}
+  .prod-card.expanded .detail{max-height:400px;margin-top:12px;padding-top:12px;border-top:1px solid var(--cream-deep);}
+  .prod-card .detail p{font-size:12.5px;color:var(--charcoal);line-height:1.65;}
+
+  /* Cas d'usage */
+  .case-card{background:var(--white);border:1px solid var(--cream-deep);padding:30px;margin-bottom:22px;}
+  .case-card .case-tag{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--bronze-dark);margin-bottom:10px;}
+  .case-card h3{font-size:19px;margin-bottom:14px;}
+  .case-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .case-cols .cc-label{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--warm-grey);font-weight:600;margin-bottom:6px;}
+  .case-cols p{font-size:13px;color:var(--charcoal);line-height:1.6;}
+
+  footer{background:var(--ink);color:#9C917E;padding:44px 0 30px;font-size:11.5px;}
+  footer a{color:#D8CDBC;}
+  .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:26px;margin-bottom:26px;}
+  .footer-grid h5{color:var(--cream);font-size:12px;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:14px;font-weight:600;}
+  .footer-grid ul{list-style:none;}
+  .footer-grid li{margin-bottom:9px;font-size:12.5px;}
+  .footer-bottom{border-top:1px solid rgba(248,244,236,0.1);padding-top:18px;text-align:center;}
+
+  .view{display:none;}
+  .view.visible{display:block;}
+
+  @media (max-width:900px){
+    .conseil-top, .relation .grid2, .st-grid, .dt-grid, .audit-grid, .conseiller-grid, .form-grid, .apport-grid{grid-template-columns:1fr;}
+    .metiers-grid, .steps3, .trust-grid, .why-grid, .docs-grid, .feat-grid, .card-grid, .process-steps, .fee-grid, .hon-grid, .types-grid, .services-grid, .suivi-grid, .cat-grid, .opt-grid, .prod-grid{grid-template-columns:1fr 1fr;}
+    .methode-strip{grid-template-columns:1fr 1fr;}
+    .rm-item{grid-template-columns:1fr;}
+    .case-cols{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .navlinks{display:none;}
+  }
+
+  /* Cas d'usage - version allégée */
+  .case-light-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .case-light{background:var(--white);border:1px solid var(--cream-deep);padding:26px 22px;text-align:center;cursor:pointer;}
+  .case-light .icon-circle{width:44px;height:44px;border-radius:50%;background:var(--bronze);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:17px;margin:0 auto 14px;}
+  .case-light .case-tag2{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--bronze-dark);font-weight:600;}
+  .case-light h3{font-size:16.5px;margin:8px 0 10px;line-height:1.35;}
+  .case-light .punch{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--navy800);font-size:14.5px;line-height:1.5;}
+  .case-light .case-toggle{display:inline-block;margin-top:14px;font-size:11.5px;color:var(--bronze-dark);font-weight:600;}
+  .case-light .case-toggle .chev{display:inline-block;transition:transform .15s;margin-left:3px;}
+  .case-light.expanded .case-toggle .chev{transform:rotate(90deg);}
+  .case-light .case-detail{max-height:0;overflow:hidden;transition:max-height .2s ease;text-align:left;}
+  .case-light.expanded .case-detail{max-height:600px;margin-top:16px;padding-top:16px;border-top:1px solid var(--cream-deep);}
+  .case-detail .cd-row{margin-bottom:12px;}
+  .case-detail .cd-label{font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;color:var(--warm-grey);font-weight:600;margin-bottom:4px;}
+  .case-detail p{font-size:12.5px;color:var(--charcoal);line-height:1.6;}
+
+  /* Espace client - pillars (Rockfi-inspired) */
+  .step-desc-row{display:flex;justify-content:space-between;max-width:520px;margin:0 auto;padding:0 10px;gap:10px;}
+  .step-desc-row div{flex:1;text-align:center;font-size:11.5px;color:var(--warm-grey);line-height:1.4;}
+
+  /* Ressources - articles */
+  .article-row{display:grid;grid-template-columns:100px 1fr;gap:22px;padding:24px 0;border-top:1px solid var(--cream-deep);cursor:pointer;}
+  .article-row:last-child{border-bottom:1px solid var(--cream-deep);}
+  .article-row .a-date{font-size:11px;color:var(--bronze-dark);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+  .article-row h4{font-size:15.5px;color:var(--ink);margin:6px 0;}
+  .article-row p{font-size:13px;color:var(--warm-grey);line-height:1.55;}
+  .article-row .a-cat{font-size:10.5px;color:var(--warm-grey);text-transform:uppercase;letter-spacing:0.5px;}
+
+  /* Ressources - guides / livres blancs */
+  .guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .guide-card{background:var(--white);border:1px solid var(--cream-deep);}
+  .guide-cover{height:120px;background:linear-gradient(135deg,var(--navy800),var(--ink));display:flex;align-items:center;justify-content:center;color:var(--bronze-light);font-family:'Cormorant Garamond',serif;font-size:15px;text-align:center;padding:14px;line-height:1.3;}
+  .guide-body{padding:20px;}
+  .guide-partner{font-size:10.5px;color:var(--bronze-dark);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:8px;}
+  .guide-body h4{font-size:14.5px;color:var(--ink);margin-bottom:8px;line-height:1.3;}
+  .guide-body p{font-size:12.5px;color:var(--warm-grey);line-height:1.55;margin-bottom:14px;}
+  .guide-cta{font-size:12px;color:#fff;background:var(--bronze);padding:9px 14px;display:inline-block;cursor:pointer;font-weight:500;}
+  .guide-form{display:none;margin-top:14px;gap:8px;}
+  .guide-form.open{display:flex;}
+  .guide-form input{flex:1;padding:9px 11px;border:1px solid var(--cream-deep);font-size:12.5px;}
+  .guide-form button{background:var(--ink);color:#fff;border:none;padding:9px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;}
+  .guide-note{font-size:11px;color:var(--warm-grey);margin-top:8px;font-style:italic;}
+
+  /* Ressources - événements */
+  .event-row{display:grid;grid-template-columns:90px 1fr auto;gap:22px;align-items:center;background:var(--cream);border:1px solid var(--cream-deep);padding:20px 22px;margin-bottom:12px;}
+  .event-date{text-align:center;background:var(--white);border:1px solid var(--cream-deep);padding:10px 4px;}
+  .event-date .day{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink);font-weight:600;line-height:1;}
+  .event-date .month{font-size:10px;color:var(--bronze-dark);text-transform:uppercase;letter-spacing:0.5px;}
+  .event-row h4{font-size:15px;color:var(--ink);margin-bottom:4px;}
+  .event-row p{font-size:12.5px;color:var(--warm-grey);}
+  .event-row .e-status{font-size:11px;font-weight:600;padding:6px 12px;white-space:nowrap;}
+  .event-row .e-status.upcoming{background:var(--bronze);color:#fff;}
+  .event-row .e-status.past{background:var(--cream-deep);color:var(--warm-grey);}
+
+  @media (max-width:900px){
+    .case-light-grid, .guide-grid{grid-template-columns:1fr 1fr;}
+    .article-row, .event-row{grid-template-columns:1fr;}
+    .step-desc-row{display:none;}
+  }
+
+  /* Espace client - sidebar app */
+  #view-espace{background:var(--cream);}
+  .espace-shell{display:flex;align-items:flex-start;}
+  .espace-sidebar{width:230px;flex-shrink:0;background:var(--white);border-right:1px solid var(--cream-deep);min-height:calc(100vh - 44px);padding:26px 0;position:sticky;top:44px;}
+  .espace-sidebar .es-user{display:flex;align-items:center;gap:10px;padding:0 22px 20px;border-bottom:1px solid var(--cream-deep);margin-bottom:14px;}
+  .espace-sidebar .es-user .av-mini{width:34px;height:34px;border-radius:50%;background:var(--bronze);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;color:#fff;font-size:14px;flex-shrink:0;}
+  .espace-sidebar .es-user .es-name{font-size:13px;font-weight:600;color:var(--ink);}
+  .espace-sidebar .es-user .es-sub{font-size:10.5px;color:var(--warm-grey);}
+  .espace-navlabel{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--warm-grey);padding:0 22px;margin:16px 0 6px;}
+  .espace-nav-item{display:flex;align-items:center;gap:10px;padding:11px 22px;font-size:13.5px;color:var(--charcoal);cursor:pointer;border-left:3px solid transparent;}
+  .espace-nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--warm-grey);flex-shrink:0;}
+  .espace-nav-item:hover{background:var(--cream);}
+  .espace-nav-item.active{background:var(--cream);border-left-color:var(--bronze);color:var(--ink);font-weight:600;}
+  .espace-nav-item.active .dot{background:var(--bronze);}
+
+  .espace-main{flex:1;min-width:0;padding:36px 40px 60px;}
+  .espace-tabpanel{display:none;}
+  .espace-tabpanel.active{display:block;}
+  .espace-panel-head{margin-bottom:26px;}
+  .espace-panel-head h2{font-size:22px;}
+  .espace-panel-head p{color:var(--warm-grey);font-size:13px;margin-top:4px;}
+
+  .esp-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+  .esp-kpi-card{background:var(--white);border:1px solid var(--cream-deep);padding:18px 20px;}
+  .esp-kpi-card .k-label{font-size:10.5px;color:var(--warm-grey);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .esp-kpi-card .k-value{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--ink);font-weight:600;}
+  .esp-kpi-card .k-note{font-size:10.5px;color:var(--bronze-dark);margin-top:4px;}
+
+  .esp-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px;margin-bottom:18px;}
+  .esp-card h4{font-size:14.5px;color:var(--ink);margin-bottom:14px;}
+  .esp-2col{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+
+  .esp-bar-row{margin-bottom:14px;}
+  .esp-bar-row:last-child{margin-bottom:0;}
+  .esp-bar-row .bar-label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--charcoal);margin-bottom:5px;}
+  .esp-bar-track{height:6px;background:var(--cream-deep);}
+  .esp-bar-fill{height:100%;background:var(--bronze);}
+
+  .rdv-panel-box{background:var(--white);border:1px solid var(--cream-deep);padding:30px;}
+  .rdv-empty{text-align:center;padding:30px 10px;color:var(--warm-grey);}
+  .rdv-empty .rdv-icon{width:44px;height:44px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:18px;color:var(--bronze-dark);}
+
+  @media (max-width:1000px){
+    .espace-sidebar{display:none;}
+    .esp-kpi-grid{grid-template-columns:1fr 1fr;}
+    .esp-2col{grid-template-columns:1fr;}
+  }
+
+  /* ===== Back-office admin ===== */
+  #view-admin{background:#F7F5F1;min-height:100vh;}
+  .admin-shell{display:flex;align-items:flex-start;}
+  .admin-sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:1px solid var(--cream-deep);min-height:100vh;padding:22px 0;position:sticky;top:0;}
+  .admin-sidebar .a-logo{display:flex;align-items:center;gap:8px;padding:0 20px 20px;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:17px;color:var(--ink);letter-spacing:1px;border-bottom:1px solid var(--cream-deep);margin-bottom:14px;}
+  .admin-sidebar .a-navlabel{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--warm-grey);padding:0 20px;margin-bottom:8px;}
+  .admin-nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:var(--charcoal);cursor:pointer;border-left:3px solid transparent;}
+  .admin-nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--warm-grey);flex-shrink:0;}
+  .admin-nav-item:hover{background:var(--cream);}
+  .admin-nav-item.active{background:var(--cream);border-left-color:var(--bronze);color:var(--ink);font-weight:600;}
+  .admin-nav-item.active .dot{background:var(--bronze);}
+
+  .admin-main{flex:1;min-width:0;}
+  .admin-topbar{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:16px 30px;border-bottom:1px solid var(--cream-deep);background:var(--white);}
+  .admin-topbar .a-icon{width:32px;height:32px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--charcoal);cursor:pointer;}
+  .admin-topbar .a-logout{font-size:12.5px;font-weight:500;color:var(--ink);border:1px solid var(--cream-deep);padding:8px 14px;cursor:pointer;}
+
+  .admin-body{padding:28px 30px 60px;}
+  .admin-crumb{font-size:11.5px;color:var(--warm-grey);margin-bottom:4px;}
+  .admin-crumb b{color:var(--bronze-dark);}
+  .admin-h1{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);margin-bottom:4px;}
+  .admin-sub{font-size:12.5px;color:var(--warm-grey);margin-bottom:24px;}
+
+  .admin-tab-panel{display:none;}
+  .admin-tab-panel.active{display:block;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi-card{background:var(--white);border:1px solid var(--cream-deep);padding:18px 20px;}
+  .kpi-card .kpi-label{font-size:11px;color:var(--warm-grey);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+  .kpi-card .kpi-value{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);font-weight:600;}
+  .kpi-card .kpi-note{font-size:11px;color:var(--bronze-dark);margin-top:4px;}
+
+  .admin-card{background:var(--white);border:1px solid var(--cream-deep);padding:22px;margin-bottom:18px;}
+  .admin-card h4{font-size:14.5px;color:var(--ink);margin-bottom:2px;}
+  .admin-card .a-cardsub{font-size:11.5px;color:var(--warm-grey);margin-bottom:16px;}
+  .admin-2col{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+
+  .funnel-row{display:flex;gap:10px;align-items:stretch;}
+  .funnel-step{flex:1;background:var(--cream);padding:16px 14px;text-align:center;position:relative;}
+  .funnel-step .fs-val{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--ink);font-weight:600;}
+  .funnel-step .fs-label{font-size:11px;color:var(--warm-grey);margin-top:4px;}
+  .funnel-arrow{align-self:center;color:var(--bronze-dark);font-size:12px;padding:0 2px;}
+
+  .admin-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .admin-table th{text-align:left;font-size:10.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--warm-grey);font-weight:600;padding:9px 10px;border-bottom:2px solid var(--cream-deep);}
+  .admin-table td{padding:11px 10px;border-bottom:1px solid var(--cream-deep);color:var(--charcoal);}
+  .admin-table tr:hover td{background:var(--cream);}
+  .badge{display:inline-block;padding:3px 9px;font-size:10.5px;font-weight:600;border-radius:2px;}
+  .badge.green{background:#E4F3E9;color:#2F7A4D;}
+  .badge.orange{background:#FBEEDD;color:var(--bronze-dark);}
+  .badge.grey{background:var(--cream-deep);color:var(--warm-grey);}
+  .badge.red{background:#FBE6E4;color:#B4453B;}
+
+  .toggle-mini{width:34px;height:18px;border-radius:10px;background:var(--cream-deep);position:relative;display:inline-block;cursor:pointer;}
+  .toggle-mini::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s;}
+  .toggle-mini.on{background:var(--bronze);}
+  .toggle-mini.on::after{left:18px;}
+
+  .admin-filterbar{display:flex;gap:14px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;}
+  .admin-filterbar .af-field{display:flex;flex-direction:column;gap:5px;}
+  .admin-filterbar label{font-size:10.5px;color:var(--warm-grey);text-transform:uppercase;letter-spacing:0.4px;}
+  .admin-filterbar input, .admin-filterbar select{padding:9px 12px;border:1px solid var(--cream-deep);font-size:12.5px;min-width:200px;}
+
+  .admin-pill-tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .admin-pill{padding:8px 15px;font-size:12px;font-weight:500;background:var(--cream);color:var(--charcoal);cursor:pointer;border-radius:2px;}
+  .admin-pill.active{background:var(--ink);color:var(--cream);}
+
+  .admin-btn{background:var(--bronze);color:#fff;border:none;padding:10px 16px;font-size:12.5px;font-weight:500;cursor:pointer;}
+  .admin-btn.outline{background:transparent;border:1px solid var(--cream-deep);color:var(--charcoal);}
+
+  .reco-card-admin{background:var(--white);border:1px solid var(--cream-deep);display:flex;gap:16px;padding:14px;margin-bottom:10px;}
+  .reco-card-admin .rc-thumb{width:100px;height:70px;background:linear-gradient(135deg,var(--navy800),var(--ink));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--bronze-light);font-family:'Cormorant Garamond',serif;font-size:11px;text-align:center;padding:6px;}
+  .reco-card-admin .rc-body{flex:1;}
+  .reco-card-admin .rc-cat{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--bronze-dark);font-weight:600;}
+  .reco-card-admin h4{font-size:14px;color:var(--ink);margin:3px 0;}
+  .reco-card-admin .rc-meta{font-size:11.5px;color:var(--warm-grey);}
+  .reco-card-admin .rc-edit{font-size:12px;color:var(--bronze-dark);font-weight:600;align-self:center;white-space:nowrap;}
+
+  .admin-detail-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px;}
+  .admin-detail-kv div{background:var(--cream);padding:14px;}
+  .admin-detail-kv .kv-label{font-size:10.5px;color:var(--warm-grey);text-transform:uppercase;margin-bottom:4px;}
+  .admin-detail-kv .kv-val{font-size:14px;color:var(--ink);font-weight:600;}
+
+  .admin-calendar{display:grid;grid-template-columns:70px repeat(7,1fr);border:1px solid var(--cream-deep);background:var(--white);}
+  .admin-calendar .cal-head{padding:10px 6px;text-align:center;font-size:11px;font-weight:600;color:var(--warm-grey);border-bottom:1px solid var(--cream-deep);}
+  .admin-calendar .cal-head.today{color:var(--bronze-dark);}
+  .admin-calendar .cal-time{padding:8px 6px;font-size:10.5px;color:var(--warm-grey);border-top:1px solid var(--cream-deep);text-align:right;}
+  .admin-calendar .cal-cell{border-top:1px solid var(--cream-deep);border-left:1px solid var(--cream-deep);min-height:30px;position:relative;}
+  .admin-calendar .cal-event{position:absolute;inset:2px;background:#FBEEDD;border-left:2px solid var(--bronze);font-size:9.5px;padding:2px 4px;color:var(--bronze-dark);font-weight:600;overflow:hidden;}
+
+  .activity-feed{list-style:none;}
+  .activity-feed li{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--cream-deep);font-size:12.5px;}
+  .activity-feed li:last-child{border-bottom:none;}
+  .activity-feed .af-dot{width:6px;height:6px;border-radius:50%;background:var(--bronze);display:inline-block;margin-right:8px;}
+  .activity-feed .af-time{color:var(--warm-grey);font-size:11px;white-space:nowrap;}
+
+  .alert-box{background:#FBEEDD;border-left:3px solid var(--bronze);padding:12px 14px;font-size:12px;color:var(--charcoal);margin-bottom:8px;}
+
+  @media (max-width:1000px){
+    .admin-sidebar{display:none;}
+    .kpi-grid, .admin-2col, .admin-detail-kv{grid-template-columns:1fr 1fr;}
+    .funnel-row{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+
+<div id="editToolbar">
+  <span><b>Mode édition</b> - cliquez sur un texte pour le modifier. Utilisez ↑ ↓ ⧉ ✕ sur les blocs.</span>
+  <button id="exportBtn">Télécharger le HTML modifié</button>
+</div>
+<div id="exportPanel">
+  <span class="close" onclick="document.getElementById('exportPanel').style.display='none';">Fermer ✕</span>
+  <p style="font-size:13px;margin-bottom:10px;color:var(--warm-grey);">Le fichier a été téléchargé - renvoyez-le pour que j'applique les changements.</p>
+  <textarea id="exportText" readonly onclick="this.select()"></textarea>
+</div>
+
+<header>
+  <nav>
+    <span class="wordmark" onclick="showView('view-home')">HORKOS</span>
+    <ul class="navlinks">
+      <li><span>Le cabinet ▾</span>
+        <div class="dropdown">
+          <a onclick="showView('view-methode')">Notre approche</a>
+          <a onclick="showView('view-frais')">Notre modèle</a>
+          <a onclick="showView('view-produits')">Nos produits</a>
+        </div>
+      </li>
+      <li><span>Le conseil ▾</span>
+        <div class="dropdown">
+          <a onclick="showView('view-structuration')">Notre structuration patrimoniale</a>
+          <a onclick="showView('view-conseil')">Notre réseau de professionnels</a>
+          <a onclick="showView('view-cas-usage')">Nos cas d'usage</a>
+        </div>
+      </li>
+      <li><span>Les ressources ▾</span>
+        <div class="dropdown">
+          <a onclick="showView('view-ressources-articles')">Nos articles</a>
+          <a onclick="showView('view-ressources-guides')">Nos guides</a>
+          <a onclick="showView('view-ressources-evenements')">Nos événements</a>
+        </div>
+      </li>
+    </ul>
+    <div class="nav-cta-group">
+      <a class="btn btn-outline-ink" onclick="showView('view-espace')">Espace client</a>
+      <a class="btn btn-ink" onclick="showView('view-questionnaire')">Prendre rendez-vous</a>
+    </div>
+  </nav>
+</header>
+<!-- ================= VIEW: HOME ================= -->
+<div id="view-home" class="view visible">
+
+<section class="hero">
+  <div class="wrap">
+    <span class="tag" contenteditable="true">Votre patrimoine, notre engagement</span>
+    <div class="rule"></div>
+    <h1 contenteditable="true">Le conseil qui structure l'ensemble de votre patrimoine.</h1>
+    <p class="lead" contenteditable="true">Horkos centralise vos besoins patrimoniaux et s'appuie sur un réseau de professionnels pour construire une stratégie d'investissement cohérente.</p>
+    <div class="cta-row">
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+      <a class="btn btn-outline" onclick="showView('view-methode')" contenteditable="true">Comprendre notre approche</a>
+    </div>
+  </div>
+</section>
+
+<section id="anchor-approche">
+  <div class="wrap">
+    <span class="eyebrow" contenteditable="true">Votre point de départ</span>
+    <h2 class="section-title" contenteditable="true">Nous partons de vos besoins, jamais de nos produits.</h2>
+    <p class="section-sub" contenteditable="true">Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.</p>
+    <div class="metiers-grid">
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Structurer mon patrimoine</h4><p contenteditable="true">Organiser des actifs dispersés dans une logique cohérente.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Préparer ma retraite</h4><p contenteditable="true">Construire un capital ou un revenu complémentaire dans la durée.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Transmettre à mes enfants</h4><p contenteditable="true">Anticiper une succession ou une donation dans de bonnes conditions.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Diversifier mes investissements</h4><p contenteditable="true">Répartir un patrimoine trop concentré sur une seule classe d'actifs.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Optimiser ma fiscalité</h4><p contenteditable="true">Choisir les enveloppes et structures adaptées à votre situation.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Structurer une société</h4><p contenteditable="true">Créer ou réorganiser une société patrimoniale ou d'exploitation.</p></div>
+      <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Fidéliser mes collaborateurs</h4><p contenteditable="true">Mettre en place une épargne salariale (PER collectif) pour mon entreprise.</p></div>
+    </div>
+    <div style="margin-top:26px;">
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Identifier mon besoin →</a>
+    </div>
+  </div>
+</section>
+
+<section class="comment">
+  <div class="wrap">
+    <span class="eyebrow" contenteditable="true">Comment ça marche</span>
+    <h2 class="section-title" contenteditable="true">Trois étapes, un seul objectif : que vous compreniez avant de décider</h2>
+    <div class="steps3">
+      <div class="step-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">01</div><h3 contenteditable="true">Comprendre votre situation</h3><p contenteditable="true">Un premier échange, puis un audit patrimonial qui sert de socle.</p></div>
+      <div class="step-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">02</div><h3 contenteditable="true">Construire votre stratégie d'investissement</h3><p contenteditable="true">Recommandations sur-mesure.</p></div>
+      <div class="step-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">03</div><h3 contenteditable="true">Suivre dans la durée</h3><p contenteditable="true">Gouvernance, reporting et ajustement continu.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="relation">
+  <div class="wrap grid2">
+    <div>
+      <span class="eyebrow" style="color:var(--bronze-light);" contenteditable="true">L'équipe</span>
+      <h2 class="section-title" style="color:var(--cream);" contenteditable="true">Vous ne créez pas un espace client, vous créez une relation de confiance.</h2>
+      <p style="color:#D8CDBC;font-size:15px;line-height:1.75;max-width:480px;" contenteditable="true">Ce qui fait la différence, ce n'est pas un algorithme ni un catalogue de produits. C'est la personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à vos côtés.</p>
+      <div class="conseil-callout" style="background:rgba(248,244,236,0.06);border-left:2px solid var(--bronze-light);color:var(--cream);margin-top:24px;max-width:480px;" contenteditable="true">"La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n'est recommandé avant d'être compris."</div>
+    </div>
+    <div class="founder">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px;">
+        <div class="avatar" style="margin-bottom:0;">OB</div>
+        <a href="#" onclick="event.preventDefault();" style="width:26px;height:26px;border-radius:4px;background:rgba(248,244,236,0.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--cream);" contenteditable="true">in</a>
+      </div>
+      <h4 contenteditable="true">Othmane Benzakour</h4>
+      <div class="role" contenteditable="true">Fondateur &amp; CEO</div>
+      <p contenteditable="true">Othmane a construit son expertise patrimoniale en France avant de fonder Horkos au Maroc - une double culture qu'il met directement au service de ses clients, ici et à l'étranger.</p>
+      <p contenteditable="true">Sa conviction : aucune recommandation avant la compréhension. Chaque client structure son patrimoine et décide en toute clarté.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap dt-grid">
+    <div>
+      <span class="eyebrow" contenteditable="true">Marocains résidant à l'étranger</span>
+      <h2 class="section-title" contenteditable="true">Un double regard, Maroc et France.</h2>
+      <p class="section-sub" style="margin-bottom:24px;" contenteditable="true">Gérer un patrimoine entre deux pays, ce n'est pas gérer deux patrimoines séparés. C'est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s'articulent - et où elles créent des opportunités ou des risques que vous ne verriez pas seul.</p>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous depuis l'étranger →</a>
+    </div>
+    <div class="st-card">
+      <h4 contenteditable="true">Pourquoi c'est notre terrain</h4>
+      <p contenteditable="true">Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc - et d'envisager, selon les cas, un accompagnement adapté à votre réalité à l'étranger.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap st-grid">
+    <div>
+      <span class="eyebrow" contenteditable="true">Nos solutions</span>
+      <h2 class="section-title" contenteditable="true">Des produits, une seule logique : votre stratégie globale.</h2>
+      <p class="section-sub" style="margin-bottom:24px;" contenteditable="true">Une fois votre besoin identifié, nous mobilisons les solutions adaptées - placements financiers, immobilier, private equity, venture capital, art. Jamais l'inverse.</p>
+      <a class="btn btn-bronze" onclick="showView('view-produits')" contenteditable="true">Découvrir nos produits →</a>
+    </div>
+    <div class="st-card">
+      <h4 contenteditable="true">Un réseau derrière chaque recommandation</h4>
+      <p contenteditable="true">Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : nous mobilisons les bons partenaires pour chaque dossier.</p>
+      <a style="display:inline-block;margin-top:16px;color:var(--bronze-light);font-size:12.5px;font-weight:500;" onclick="showView('view-conseil')" contenteditable="true">En savoir plus sur notre réseau →</a>
+    </div>
+  </div>
+</section>
+
+
+
+<section>
+  <div class="wrap st-grid">
+    <div>
+      <span class="eyebrow" contenteditable="true">Structuration patrimoniale</span>
+      <h2 class="section-title" contenteditable="true">Structurer, pas seulement placer.</h2>
+      <p class="section-sub" style="margin-bottom:24px;" contenteditable="true">Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée - un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.</p>
+      <a class="btn btn-bronze" onclick="showView('view-structuration')" contenteditable="true">Découvrir la structuration →</a>
+    </div>
+    <div class="st-card">
+      <h4 contenteditable="true">Cas d'usage fréquent</h4>
+      <p contenteditable="true">Un bien immobilier détenu en nom propre, apporté au capital d'une SARL immobilière, avec un expert-comptable dédié à sa gestion.</p>
+      <a style="display:inline-block;margin-top:16px;color:var(--bronze-light);font-size:12.5px;font-weight:500;" onclick="showView('view-cas-usage')" contenteditable="true">Voir d'autres cas d'usage →</a>
+    </div>
+  </div>
+</section>
+
+<section class="trust">
+  <div class="wrap">
+    <span class="eyebrow" contenteditable="true">Confiance &amp; confidentialité</span>
+    <h2 class="section-title" contenteditable="true">Un conseil indépendant, une pédagogie exigeante</h2>
+    <div class="trust-grid">
+      <div class="trust-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Aucune recommandation d'investissement sans compréhension</h4><p contenteditable="true">Chaque recommandation est expliquée dans le détail, jusqu'à ce que vous puissiez la reformuler avec vos propres mots.</p></div>
+      <div class="trust-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Confidentialité</h4><p contenteditable="true">Vos informations patrimoniales ne sont jamais partagées sans votre consentement.</p></div>
+      <div class="trust-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Rigueur réglementaire</h4><p contenteditable="true">Horkos Conseil structure son activité en conformité avec les cadres AMMC et ACAPS.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow" contenteditable="true">FAQ</span>
+    <h2 class="section-title" contenteditable="true">Vos questions, nos réponses</h2>
+    <div class="faq-item block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="q" contenteditable="true">Horkos, c'est quoi ?</div><div class="a" contenteditable="true">Un cabinet de conseil en gestion de patrimoine qui centralise vos besoins et s'appuie sur un réseau de professionnels spécialisés.</div></div>
+    <div class="faq-item block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="q" contenteditable="true">Est-ce que vous poussez des produits ?</div><div class="a" contenteditable="true">Non. Chaque recommandation part d'un besoin identifié avec vous.</div></div>
+    <div class="faq-item block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="q" contenteditable="true">Horkos gère-t-il mon argent directement ?</div><div class="a" contenteditable="true">Non. Horkos formule des recommandations, vous restez seul décisionnaire.</div></div>
+  </div>
+</section>
+
+</div>
+
+<div id="view-methode" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le cabinet / Notre approche</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Notre approche</span>
+      <h1 contenteditable="true">Comprendre. Structurer. Décider avec clarté.</h1>
+      <p contenteditable="true">Cinq principes qui guident chaque accompagnement, du premier échange au suivi dans la durée.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <div class="methode-strip">
+        <div class="block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">01</div><h4 contenteditable="true">Partir de votre besoin</h4></div>
+        <div class="block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">02</div><h4 contenteditable="true">Expliquer, sans raccourci</h4></div>
+        <div class="block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">03</div><h4 contenteditable="true">Sélectionner ce qui sert l'objectif</h4></div>
+        <div class="block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">04</div><h4 contenteditable="true">Décider ensemble</h4></div>
+        <div class="block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">05</div><h4 contenteditable="true">Rester dans la durée</h4></div>
+      </div>
+    </div>
+  </section>
+  <section class="philosophie">
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Notre philosophie</span>
+      <h2 class="section-title" contenteditable="true">On ne vend pas de produits. On structure un patrimoine.</h2>
+      <div class="philo-row block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="num">01</div><div><h3 contenteditable="true">Nous partons de votre objectif</h3><p contenteditable="true">Aucune recommandation n'est faite avant d'avoir clarifié ce que vous cherchez réellement à accomplir.</p></div></div>
+      <div class="philo-row block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="num">02</div><div><h3 contenteditable="true">Nous coordonnons, jamais seuls</h3><p contenteditable="true">Chaque structuration mobilise des métiers spécialisés - nous les orchestrons pour vous.</p></div></div>
+      <div class="philo-row block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="num">03</div><div><h3 contenteditable="true">Nous restons impliqués après la décision</h3><p contenteditable="true">Notre rôle ne s'arrête pas à la signature.</p></div></div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Voir cette méthode appliquée à des cas réels</h2>
+      <a class="btn btn-bronze" onclick="showView('view-cas-usage')" contenteditable="true">Consulter nos cas d'usage →</a>
+    </div>
+  </section>
+</div>
+
+<div id="view-produits" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le cabinet / Nos produits</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Notre gamme</span>
+      <h1 contenteditable="true">Des produits, présentés clairement.</h1>
+      <p contenteditable="true">Cliquez sur une solution pour comprendre à quoi elle sert, sans jargon. Chaque recommandation reste choisie pour votre situation.</p>
+    </div>
+  </section>
+
+  <section style="padding-top:36px;">
+    <div class="wrap">
+
+      <div style="margin-bottom:36px;">
+        <span class="eyebrow" contenteditable="true">Pour vous</span>
+        <h2 class="section-title" contenteditable="true">Solutions individuelles</h2>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Placements financiers</h3><span class="cnt" contenteditable="true">4 solutions</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Assurance-vie multisupport</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Épargne long terme avec fonds garanti + unités de compte.</div>
+            <div class="detail"><p contenteditable="true">Contrat combinant un fonds en dirhams à capital garanti et des unités de compte plus dynamiques. Utile pour se constituer une épargne, préparer une transmission (le capital sort hors succession) ou lisser une fiscalité dans la durée. Horizon recommandé : 5 ans et plus.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">PER - Plan d'Épargne Retraite</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Épargne bloquée jusqu'à la retraite, avantage fiscal à l'entrée.</div>
+            <div class="detail"><p contenteditable="true">Les versements réduisent votre revenu imposable chaque année. En contrepartie, l'épargne reste bloquée jusqu'au départ à la retraite (sauf cas de déblocage anticipé : achat de résidence principale, invalidité...). Adapté aux revenus élevés qui veulent lisser leur fiscalité sur le long terme.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">PEA - Plan d'Épargne en Actions</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Enveloppe actions avec fiscalité allégée après quelques années.</div>
+            <div class="detail"><p contenteditable="true">Permet d'investir en actions (marocaines ou éligibles) avec une fiscalité avantageuse sur les plus-values passé un certain délai de détention. Adapté à un profil qui accepte la volatilité des marchés actions pour viser une performance supérieure sur le long terme.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">OPCVM en détention directe</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Fonds d'investissement détenus directement, sans enveloppe.</div>
+            <div class="detail"><p contenteditable="true">Achat direct de parts de fonds actions, obligataires ou diversifiés, sans passer par un contrat d'assurance-vie. Plus de souplesse (liquidité, pas de durée minimale imposée), fiscalité standard sur les plus-values. Utile pour du placement à moyen terme sans contrainte de blocage.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Immobilier</h3><span class="cnt" contenteditable="true">4 solutions</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Locaux commerciaux - rendement locatif</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Acquisition de commerces loués pour un revenu régulier.</div>
+            <div class="detail"><p contenteditable="true">Investissement dans des locaux commerciaux déjà loués ou à louer (boutiques, bureaux), générant un loyer mensuel. Nous sélectionnons l'emplacement, le locataire et structurons l'acquisition (nom propre ou société) avec notre réseau de professionnels.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Club deals immobiliers</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Co-investissement à plusieurs sur un actif immobilier ciblé.</div>
+            <div class="detail"><p contenteditable="true">Plusieurs investisseurs mettent en commun leurs fonds pour acquérir un actif immobilier de plus grande taille (immeuble, résidence) qu'ils ne pourraient financer seuls. Ticket d'entrée réduit, gestion mutualisée, sortie généralement à moyen terme.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Hôtellerie</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Participation dans des actifs hôteliers ou parahôteliers.</div>
+            <div class="detail"><p contenteditable="true">Investissement dans des unités hôtelières ou résidences de tourisme, exploitées par un opérateur professionnel. Revenu indexé sur la performance de l'exploitation ou loyer garanti selon le montage. Horizon moyen-long terme.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Promotion immobilière</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Financement de programmes immobiliers en développement.</div>
+            <div class="detail"><p contenteditable="true">Participation au financement d'un programme immobilier porté par un promoteur partenaire - résidentiel ou mixte. Rendement potentiellement plus élevé, en contrepartie d'un risque projet (délais, commercialisation) propre à la promotion.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Private Equity</h3><span class="cnt" contenteditable="true">1 solution</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Prises de participation PE</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Investissement au capital d'entreprises non cotées en croissance.</div>
+            <div class="detail"><p contenteditable="true">Prise de participation minoritaire dans des sociétés marocaines établies, en phase de croissance ou de transmission. Horizon long (5-8 ans), liquidité réduite, rendement visé supérieur aux placements traditionnels. Réservé aux patrimoines diversifiés pouvant immobiliser une partie de leurs actifs.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Venture Capital</h3><span class="cnt" contenteditable="true">1 solution</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Investissement dans des startups</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Tickets d'investissement dans de jeunes entreprises innovantes.</div>
+            <div class="detail"><p contenteditable="true">Participation à des levées de fonds de startups marocaines ou régionales sélectionnées avec des fonds VC partenaires. Risque élevé, horizon long, rendement potentiel important mais non garanti - réservé à une part limitée du patrimoine.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Art</h3><span class="cnt" contenteditable="true">1 solution</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Acquisition d'œuvres d'art</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Diversification patrimoniale par l'acquisition d'œuvres sélectionnées.</div>
+            <div class="detail"><p contenteditable="true">Accompagnement dans l'acquisition d'œuvres d'artistes marocains et internationaux, en lien avec des experts et galeries partenaires - authentification, valorisation et conservation. Diversification hors marchés financiers, plaisir patrimonial autant que placement.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="prod-entreprises-section" style="margin:56px 0 28px;padding-top:40px;border-top:1px solid var(--cream-deep);">
+        <span class="eyebrow" contenteditable="true">Pour votre entreprise</span>
+        <h2 class="section-title" contenteditable="true">Solutions entreprises</h2>
+        <p class="section-sub" contenteditable="true">Fidéliser vos collaborateurs, faire fructifier votre trésorerie : nous accompagnons aussi les dirigeants, pas seulement les particuliers.</p>
+      </div>
+
+      <div class="conseil-callout" style="margin-bottom:28px;" contenteditable="true">"Vous êtes chef d'entreprise et cherchez à fidéliser vos équipes tout en développant le rendement de la poche fiscale PER de vos collaborateurs ? Nous avons la solution."</div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Épargne Salariale</h3><span class="cnt" contenteditable="true">2 solutions</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">PER Collectif - allocation selon profil de risque</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Un PER d'entreprise géré selon le profil de chaque collaborateur.</div>
+            <div class="detail"><p contenteditable="true">Nous mettons en place un Plan d'Épargne Retraite collectif pour vos salariés, avec une allocation ajustée au profil de risque de chacun plutôt qu'une gestion uniforme - pour améliorer le rendement de leur épargne sans complexifier votre gestion RH. Un outil de fidélisation concret, au-delà du salaire.</p></div>
+          </div>
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Accompagnement et pédagogie collaborateurs</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Des sessions dédiées pour que vos équipes comprennent leur épargne.</div>
+            <div class="detail"><p contenteditable="true">Nous organisons des sessions d'explication pour vos collaborateurs - comment fonctionne leur PER, comment choisir leur allocation, quels avantages fiscaux. Une épargne bien comprise est une épargne qui fidélise davantage.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prod-cat-block">
+        <div class="prod-cat-head"><h3 contenteditable="true">Trésorerie d'entreprise</h3><span class="cnt" contenteditable="true">1 solution</span></div>
+        <div class="prod-grid">
+          <div class="prod-card" onclick="toggleProd(this)">
+            <h4><span contenteditable="true">Placement de trésorerie excédentaire</span><span class="chev">▸</span></h4>
+            <div class="oneline" contenteditable="true">Faire fructifier une trésorerie d'entreprise sans l'immobiliser.</div>
+            <div class="detail"><p contenteditable="true">Stratégie combinant produits liquides et produits de rendement pour une trésorerie d'entreprise excédentaire, structurée selon votre besoin de disponibilité des fonds. Objectif : ne pas laisser dormir une trésorerie qui pourrait travailler, sans compromettre la capacité opérationnelle de l'entreprise.</p></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="prod-deals-section" style="background:var(--cream-deep);">
+    <div class="wrap form-grid">
+      <div>
+        <span class="eyebrow" contenteditable="true">Céder un actif</span>
+        <h2 class="section-title" contenteditable="true">Un actif à céder ?</h2>
+        <p class="section-sub" contenteditable="true">Bien immobilier, entreprise, participation, œuvre d'art... décrivez l'actif que vous souhaitez céder. Notre équipe l'étudie et le présente de façon sélective aux clients pour qui il est pertinent.</p>
+      </div>
+      <div class="form-card">
+        <h4 style="font-size:16px;margin-bottom:14px;" contenteditable="true">Formulaire de soumission</h4>
+        <div class="form-fields">
+          <select class="f full" required>
+            <option value="" disabled selected>Type d'actif à céder</option>
+            <optgroup label="Immobilier">
+              <option>Résidence (principale ou secondaire)</option>
+              <option>Bien locatif résidentiel</option>
+              <option>Local commercial</option>
+              <option>Immeuble de rapport</option>
+              <option>Terrain</option>
+              <option>Actif hôtelier / parahôtelier</option>
+              <option>Programme immobilier en développement</option>
+            </optgroup>
+            <optgroup label="Entreprise & participations">
+              <option>Entreprise - cession totale</option>
+              <option>Participation minoritaire</option>
+              <option>Part de SCI / société patrimoniale</option>
+              <option>Participation dans un fonds ou club deal</option>
+            </optgroup>
+            <optgroup label="Actifs financiers">
+              <option>Portefeuille de valeurs mobilières</option>
+              <option>Contrat d'assurance-vie existant</option>
+            </optgroup>
+            <optgroup label="Autres">
+              <option>Œuvre d'art</option>
+              <option>Autre actif</option>
+            </optgroup>
+          </select>
+          <select class="f full" required>
+            <option value="" disabled selected>Motif de la cession</option>
+            <option>Succession / transmission en cours</option>
+            <option>Besoin de liquidités</option>
+            <option>Réorientation de la stratégie patrimoniale</option>
+            <option>Départ à la retraite</option>
+            <option>Divorce / séparation</option>
+            <option>Simplification du patrimoine</option>
+            <option>Opportunité de marché</option>
+            <option>Autre raison</option>
+          </select>
+          <input class="f" type="text" placeholder="Nom / Société">
+          <input class="f" type="tel" placeholder="Téléphone">
+          <input class="f full" type="email" placeholder="Email">
+          <input class="f" type="text" placeholder="Valeur estimée (MAD)">
+          <input class="f" type="text" placeholder="Horizon souhaité">
+          <textarea class="f full" placeholder="Description de l'actif"></textarea>
+        </div>
+        <a class="btn btn-bronze" style="width:100%;text-align:center;" contenteditable="true">Soumettre mon dossier</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Une solution retient votre attention ?</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+<div id="view-conseil" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le conseil / Notre réseau de professionnels</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Le réseau qui alimente vos opportunités</span>
+      <h1 contenteditable="true">Les partenaires qui nous apportent des opportunités d'investissement.</h1>
+      <p contenteditable="true">Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : ce réseau nous permet d'accéder à des opportunités et de les sélectionner pour vous.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <div class="conseil-callout" style="margin-bottom:40px;" contenteditable="true">"Nous ne créons pas les opportunités, nous les sélectionnons. Ce réseau nourrit nos recommandations, il ne les remplace pas."</div>
+      <span class="eyebrow" contenteditable="true">Nos partenaires de sourcing</span>
+      <h2 class="section-title" contenteditable="true">Cinq réseaux, mobilisés selon la classe d'actifs</h2>
+      <div class="metiers-grid">
+        <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Sociétés de gestion</h4><p contenteditable="true">Gestion d'actifs et sélection de fonds pour vos placements financiers (OPCVM, PEA).</p></div>
+        <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Assureurs</h4><p contenteditable="true">Contrats d'assurance-vie, PER et solutions de prévoyance patrimoniale.</p></div>
+        <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Agents immobiliers</h4><p contenteditable="true">Sourcing d'opportunités locatives, commerciales et résidentielles.</p></div>
+        <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Fonds de Private Equity</h4><p contenteditable="true">Accès à des prises de participation dans des entreprises non cotées.</p></div>
+        <div class="metier-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Fonds de Venture Capital</h4><p contenteditable="true">Accès à des levées de fonds de startups marocaines et régionales sélectionnées.</p></div>
+      </div>
+      <div style="margin-top:20px;">
+        <a onclick="showView('view-structuration')" style="font-size:12.5px;color:var(--bronze-dark);font-weight:500;" contenteditable="true">Voir le réseau de mise en œuvre (structuration) →</a>
+      </div>
+    </div>
+  </section>
+  <section style="background:var(--cream-deep);padding-top:56px;">
+    <div class="wrap">
+      <div style="text-align:center;max-width:640px;margin:0 auto 36px;">
+        <span class="eyebrow" contenteditable="true">Pour les partenaires</span>
+        <h2 class="section-title" contenteditable="true">Vous êtes un acteur spécialisé ? Proposez vos opportunités.</h2>
+        <p class="section-sub" contenteditable="true">Société de gestion, assureur, agent immobilier, fonds Private Equity / Venture Capital ou porteur d'un partenariat business - sélectionnez votre catégorie, nous étudions et présentons de façon sélective à nos clients.</p>
+      </div>
+
+      <div class="form-card" style="max-width:760px;margin:0 auto;">
+        <h4 style="font-size:16px;margin-bottom:14px;" contenteditable="true">Questionnaire de partenariat</h4>
+
+        <div class="opt-grid" style="margin-bottom:20px;grid-template-columns:repeat(2,1fr);">
+          <div class="opt selected" data-cat="gestion" onclick="togglePartnerCat(this)" contenteditable="true">Société de gestion</div>
+          <div class="opt" data-cat="assureur" onclick="togglePartnerCat(this)" contenteditable="true">Assureur</div>
+          <div class="opt" data-cat="immo" onclick="togglePartnerCat(this)" contenteditable="true">Agent immobilier</div>
+          <div class="opt" data-cat="fonds" onclick="togglePartnerCat(this)" contenteditable="true">Fonds Private Equity / Venture Capital</div>
+          <div class="opt full" data-cat="club" onclick="togglePartnerCat(this)" contenteditable="true">Club deal / partenariat business</div>
+        </div>
+
+        <div class="form-fields">
+
+          <div class="partner-cat-fields active" data-cat="gestion">
+            <select class="f full">
+              <option value="" disabled selected>Type de fonds proposé</option>
+              <option>OPCVM actions</option>
+              <option>OPCVM obligataire</option>
+              <option>OPCVM diversifié</option>
+              <option>OPCVM monétaire</option>
+              <option>Autre véhicule de gestion</option>
+            </select>
+            <input class="f" type="text" placeholder="Encours sous gestion (MAD)">
+            <input class="f" type="text" placeholder="Frais de gestion (%)">
+            <textarea class="f full" placeholder="Performance / track record du fonds"></textarea>
+          </div>
+
+          <div class="partner-cat-fields" data-cat="assureur">
+            <select class="f full">
+              <option value="" disabled selected>Type de produit proposé</option>
+              <option>Assurance-vie multisupport</option>
+              <option>PER - Plan d'Épargne Retraite</option>
+              <option>Prévoyance patrimoniale</option>
+              <option>Autre produit d'assurance</option>
+            </select>
+            <input class="f" type="text" placeholder="Frais de gestion (%)">
+            <input class="f" type="text" placeholder="Fonds en dirhams disponible (oui/non)">
+            <textarea class="f full" placeholder="Spécificités du contrat"></textarea>
+          </div>
+
+          <div class="partner-cat-fields" data-cat="immo">
+            <select class="f full">
+              <option value="" disabled selected>Type de bien à proposer</option>
+              <option>Résidentiel</option>
+              <option>Local commercial</option>
+              <option>Immeuble de rapport</option>
+              <option>Terrain</option>
+              <option>Actif hôtelier / parahôtelier</option>
+              <option>Programme neuf</option>
+            </select>
+            <input class="f" type="text" placeholder="Localisation">
+            <input class="f" type="text" placeholder="Prix de vente (MAD)">
+            <input class="f full" type="text" placeholder="Rendement locatif estimé (%)">
+          </div>
+
+          <div class="partner-cat-fields" data-cat="fonds">
+            <select class="f full">
+              <option value="" disabled selected>Type de levée</option>
+              <option>Private Equity</option>
+              <option>Venture Capital</option>
+            </select>
+            <select class="f">
+              <option value="" disabled selected>Stade</option>
+              <option>Amorçage / Seed</option>
+              <option>Série A</option>
+              <option>Croissance</option>
+              <option>Transmission / LBO</option>
+            </select>
+            <input class="f" type="text" placeholder="Secteur cible">
+            <input class="f" type="text" placeholder="Montant recherché (MAD)">
+            <input class="f full" type="text" placeholder="Ticket d'entrée minimum (MAD)">
+          </div>
+
+          <div class="partner-cat-fields" data-cat="club">
+            <select class="f full">
+              <option value="" disabled selected>Nature du partenariat</option>
+              <option>Club deal immobilier</option>
+              <option>Partenariat commercial</option>
+              <option>Apport d'affaires</option>
+              <option>Autre partenariat</option>
+            </select>
+            <input class="f" type="text" placeholder="Montant à mobiliser (MAD)">
+            <input class="f full" type="text" placeholder="Nombre de co-investisseurs envisagé">
+          </div>
+
+          <input class="f" type="text" placeholder="Nom du contact">
+          <input class="f" type="text" placeholder="Société">
+          <input class="f" type="tel" placeholder="Téléphone">
+          <input class="f" type="email" placeholder="Email">
+          <textarea class="f full" placeholder="Description complémentaire"></textarea>
+        </div>
+        <a class="btn btn-bronze" style="width:100%;text-align:center;" contenteditable="true">Soumettre ma proposition</a>
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Une opportunité qui correspond à votre profil ?</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+
+<!-- ================= VIEW: STRUCTURATION ================= -->
+<div id="view-structuration" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le conseil / Notre structuration patrimoniale</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Structuration & création de sociétés</span>
+      <h1 contenteditable="true">Structurer votre patrimoine, pas seulement le placer.</h1>
+      <p contenteditable="true">Horkos crée et structure des sociétés patrimoniales pour ses clients en mobilisant les professionnels du réseau : comptables, experts valorisateurs, avocats fiscalistes, notaires.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Notre rôle</span>
+      <h2 class="section-title" contenteditable="true">D'abord le conseil, ensuite l'implémentation</h2>
+      <p class="section-sub" contenteditable="true">Nous ne sommes ni comptables, ni notaires, ni avocats. Notre rôle est de concevoir la stratégie de structuration la plus adaptée à votre situation, puis de vous orienter vers le bon professionnel du réseau pour la mettre en œuvre.</p>
+      <div class="process-steps">
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">01</div><h4 contenteditable="true">Conseil en structuration</h4><p contenteditable="true">Nous analysons votre situation et concevons le montage le plus adapté - société, apport, régime fiscal.</p></div>
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">02</div><h4 contenteditable="true">Orientation vers le réseau</h4><p contenteditable="true">Nous vous mettons en relation avec l'expert-comptable, le notaire ou l'avocat fiscaliste adapté à votre dossier.</p></div>
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">03</div><h4 contenteditable="true">Implémentation & suivi</h4><p contenteditable="true">Le professionnel met en œuvre, nous restons impliqués dans le suivi et la gouvernance (étape R2).</p></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Nos services</span>
+      <h2 class="section-title" contenteditable="true">Quatre briques de structuration</h2>
+      <div class="services-grid">
+        <div class="service-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Création de société</h4><p contenteditable="true">Holding, SCI, SARL immobilière.</p></div>
+        <div class="service-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Apport en nature</h4><p contenteditable="true">Expert valorisateur pour intégrer un bien au capital.</p></div>
+        <div class="service-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Gestion comptable déléguée</h4><p contenteditable="true">Un expert-comptable du réseau prend en charge la tenue comptable.</p></div>
+        <div class="service-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Structuration fiscale</h4><p contenteditable="true">Un avocat fiscaliste sécurise le montage.</p></div>
+      </div>
+    </div>
+  </section>
+  <section style="background:var(--navy800);color:var(--cream);">
+    <div class="wrap apport-grid">
+      <div>
+        <span class="eyebrow" style="color:var(--bronze-light);" contenteditable="true">Cas d'usage fréquent</span>
+        <h2 class="section-title" style="color:var(--cream);" contenteditable="true">Intégrer un bien immobilier dans une société</h2>
+        <ul class="apport-list">
+          <li contenteditable="true">Vous détenez un bien immobilier en nom propre</li>
+          <li contenteditable="true">Un expert valorisateur évalue le bien</li>
+          <li contenteditable="true">Le bien est apporté au capital d'une SARL immobilière</li>
+          <li contenteditable="true">Un expert-comptable gère la société</li>
+          <li contenteditable="true">Un notaire formalise l'apport</li>
+        </ul>
+      </div>
+      <div class="apport-card">
+        <h4 contenteditable="true">Pourquoi structurer plutôt que détenir en nom propre ?</h4>
+        <p contenteditable="true">La détention via société facilite la transmission par cession de parts, permet une gestion comptable rigoureuse, et ouvre des options fiscales non disponibles en direct.</p>
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Une situation à structurer ?</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous structuration</a>
+    </div>
+  </section>
+</div>
+
+<!-- ================= VIEW: CAS D'USAGE ================= -->
+<div id="view-cas-usage" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le conseil / Nos cas d'usage</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Nos cas d'usage</span>
+      <h1 contenteditable="true">Trois situations, trois stratégies sur-mesure.</h1>
+      <p contenteditable="true">Chaque client a un objectif différent. Cliquez sur une situation pour voir comment nous l'avons accompagnée.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <div class="case-light-grid">
+
+        <div class="case-light" onclick="toggleProd(this)">
+          <div class="icon-circle">T</div>
+          <div class="case-tag2" contenteditable="true">Transmission</div>
+          <h3 contenteditable="true">Intégrer un bien immobilier dans une société</h3>
+          <p class="punch" contenteditable="true">"Transmettre un immeuble à mes enfants, sans indivision."</p>
+          <span class="case-toggle">Voir le détail<span class="chev">▸</span></span>
+          <div class="case-detail">
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Objectif</div><p contenteditable="true">Un entrepreneur veut préparer la transmission d'un immeuble locatif à ses deux enfants sans indivision complexe.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Accompagnement</div><p contenteditable="true">Nous avons audité sa situation, fait évaluer le bien par un expert indépendant, puis structuré son apport au capital d'une société immobilière dont un expert-comptable du réseau tient aujourd'hui la comptabilité.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Suivi</div><p contenteditable="true">La transmission se fait désormais par simple donation de parts, et la famille suit l'évolution de la société chaque mois depuis son espace client.</p></div>
+          </div>
+        </div>
+
+        <div class="case-light" onclick="toggleProd(this)">
+          <div class="icon-circle">D</div>
+          <div class="case-tag2" contenteditable="true">Diversification</div>
+          <h3 contenteditable="true">Diversifier une trésorerie d'entreprise</h3>
+          <p class="punch" contenteditable="true">"Faire fructifier ma trésorerie sans l'immobiliser."</p>
+          <span class="case-toggle">Voir le détail<span class="chev">▸</span></span>
+          <div class="case-detail">
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Objectif</div><p contenteditable="true">Un dirigeant de PME veut faire fructifier une trésorerie excédentaire sans l'immobiliser sur le très long terme.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Accompagnement</div><p contenteditable="true">Après avoir compris ses besoins de liquidité, nous avons construit une stratégie combinant assurance-vie et fonds en détention directe, pour garder une partie des sommes mobilisable à tout moment.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Suivi</div><p contenteditable="true">Son portefeuille est aujourd'hui réparti entre une poche liquide et une poche de rendement, avec un point avec son conseiller chaque trimestre.</p></div>
+          </div>
+        </div>
+
+        <div class="case-light" onclick="toggleProd(this)">
+          <div class="icon-circle">R</div>
+          <div class="case-tag2" contenteditable="true">Retraite & fiscalité</div>
+          <h3 contenteditable="true">Préparer sa retraite en optimisant sa fiscalité</h3>
+          <p class="punch" contenteditable="true">"Réduire mes impôts aujourd'hui, préparer demain."</p>
+          <span class="case-toggle">Voir le détail<span class="chev">▸</span></span>
+          <div class="case-detail">
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Objectif</div><p contenteditable="true">Un cadre dirigeant à revenu élevé veut préparer sa retraite tout en réduisant son revenu imposable dès aujourd'hui.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Accompagnement</div><p contenteditable="true">Nous avons construit une stratégie combinant un plan d'épargne retraite et un contrat d'assurance-vie, puis mis ce client en relation avec un avocat fiscaliste du réseau pour sécuriser le montage.</p></div>
+            <div class="cd-row"><div class="cd-label" contenteditable="true">Suivi</div><p contenteditable="true">Son revenu imposable a baissé dès la première année, pendant que son épargne retraite se constitue progressivement, avec un bilan chaque année.</p></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Votre situation ressemble à l'une de ces histoires ?</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+<div id="view-frais" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Le cabinet / Notre modèle</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Transparence</span>
+      <h1 contenteditable="true">Comment Horkos est rémunéré.</h1>
+      <p contenteditable="true">Le premier rendez-vous est toujours gratuit. Ce qui se passe ensuite dépend uniquement de ce que vous décidez - jamais de frais cachés, jamais deux catégories de frais à la fois.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Trois étapes, une seule règle : jamais de cumul</span>
+      <div class="fee-grid">
+        <div class="fee-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="step-num" contenteditable="true">1</div><div class="fee-badge" contenteditable="true">Gratuit</div><h4 contenteditable="true">Diagnostic patrimonial</h4><p contenteditable="true">Premier rendez-vous d'exploration : nous comprenons votre situation et vos objectifs. Aucun engagement, aucun frais - pour tout le monde, à chaque fois.</p></div>
+        <div class="fee-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="step-num" contenteditable="true">2</div><div class="fee-badge" contenteditable="true">Commissions</div><h4 contenteditable="true">Structuration et investissement</h4><p contenteditable="true">Nous structurons votre patrimoine et vous orientons vers notre réseau de professionnels pour le mettre en œuvre, avec des solutions d'investissement. Vous payez uniquement des commissions sur les opérations réalisées.</p></div>
+        <div class="fee-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="step-num" contenteditable="true">3</div><div class="fee-badge" contenteditable="true">Honoraires</div><h4 contenteditable="true">Structuration seule (conseil)</h4><p contenteditable="true">Si votre besoin est uniquement un conseil en structuration patrimoniale, sans investissement associé, nous sommes rémunérés par des honoraires de conseil, clairement définis en amont.</p></div>
+      </div>
+
+      <div class="fee-equation">
+        <div class="eq-line1" contenteditable="true">1 + 2 <span class="eq-or">ou</span> 1 + 3</div>
+        <div class="eq-line2" contenteditable="true"><i>Jamais 1 + 2 + 3</i></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="honoraires">
+    <div class="wrap" style="text-align:center;">
+      <span class="eyebrow" style="color:var(--bronze-light);" contenteditable="true">Notre principe</span>
+      <h2 class="section-title" style="color:var(--cream);margin-left:auto;margin-right:auto;" contenteditable="true">Le client ne paie jamais deux fois</h2>
+      <div class="principle-box" style="text-align:left;" contenteditable="true"><b>Le diagnostic patrimonial est toujours gratuit.</b> <br>Selon la recommandation qui en découle, vous êtes facturés soit en commission sur vos opérations d'investissement, soit en honoraires de conseil en structuration - jamais les deux sur le même besoin.</div>
+    </div>
+  </section>
+</div>
+<div id="view-questionnaire" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Prendre rendez-vous</div>
+  <div class="qwrap">
+    <div style="text-align:center;margin-bottom:20px;">
+      <span class="eyebrow" contenteditable="true">Avant de nous rencontrer</span>
+      <h1 style="font-size:26px;margin:10px 0;" contenteditable="true">Faisons connaissance en quelques questions.</h1>
+      <p style="color:var(--warm-grey);font-size:14px;" contenteditable="true">2 minutes, rien de plus.</p>
+    </div>
+    <div class="progress"><span class="done"></span><span class="done"></span><span></span><span></span></div>
+    <div class="qstep">
+      <div class="qn" contenteditable="true">Question 1</div>
+      <h3 contenteditable="true">De quoi avez-vous besoin aujourd'hui ?</h3>
+      <div class="opt-grid">
+        <div class="opt selected" onclick="toggleMulti(this)" contenteditable="true">Structurer mon patrimoine</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Préparer ma retraite</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Transmettre à mes enfants</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Diversifier mes investissements</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Optimiser ma fiscalité</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Structurer une société</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Céder un actif</div>
+        <div class="opt" onclick="toggleMulti(this)" contenteditable="true">Autre besoin</div>
+      </div>
+    </div>
+    <div class="qstep">
+      <div class="qn" contenteditable="true">Question 2</div>
+      <h3 contenteditable="true">Quel est votre patrimoine global estimé ?</h3>
+      <div class="opt-grid">
+        <div class="opt selected" onclick="selectOne(this)" contenteditable="true">1M - 3M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">3M - 5M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">5M - 10M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">10M - 20M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">Plus de 20M MAD</div>
+      </div>
+    </div>
+    <div class="qstep">
+      <div class="qn" contenteditable="true">Question 3</div>
+      <h3 contenteditable="true">Montant d'investissement envisagé à court terme ?</h3>
+      <div class="opt-grid">
+        <div class="opt selected" onclick="selectOne(this)" contenteditable="true">1M - 3M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">3M - 5M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">5M - 10M MAD</div>
+        <div class="opt" onclick="selectOne(this)" contenteditable="true">Plus de 10M MAD</div>
+      </div>
+    </div>
+    <div class="qstep">
+      <div class="qn" contenteditable="true">Question 4</div>
+      <h3 contenteditable="true">Vos coordonnées</h3>
+      <div class="opt-grid">
+        <div class="opt full" contenteditable="true">Nom, email, téléphone (à renseigner)</div>
+      </div>
+    </div>
+    <a class="btn btn-bronze" style="width:100%;text-align:center;" contenteditable="true">Envoyer et prendre rendez-vous</a>
+  </div>
+</div>
+<div id="view-reco-hub" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-espace')">Espace client</a> / Recommandations</div>
+  <section>
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Recommandations</span>
+      <h2 class="section-title" contenteditable="true">Vos recommandations, une page dédiée pour chacune</h2>
+      <div class="card-grid">
+        <div class="r-card" onclick="showView('view-produit-av')">
+          <div class="cat" contenteditable="true">Placements financiers</div>
+          <h4 contenteditable="true">Assurance-vie multisupport</h4>
+          <p contenteditable="true">Fonds en dirhams garanti + unités de compte.</p>
+          <div class="go">Voir la fiche →</div>
+        </div>
+        <div class="r-card" onclick="showView('view-produit-struct')">
+          <div class="cat" contenteditable="true">Structuration & professionnels</div>
+          <h4 contenteditable="true">Structuration succession - notaire</h4>
+          <p contenteditable="true">Mise en relation avec un notaire du réseau.</p>
+          <div class="go">Voir la fiche →</div>
+        </div>
+        <div class="r-card soon"><div class="cat" contenteditable="true">Immobilier</div><h4 contenteditable="true">Immeuble de bureaux</h4><p contenteditable="true">Fiche à construire sur le même modèle.</p><div class="go" contenteditable="true">Bientôt disponible</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="view-produit-av" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-espace')">Ma feuille de route</a> / Assurance-vie multisupport</div>
+  <section class="pagehero" style="padding:20px 0 36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Placements financiers</span>
+      <h1 contenteditable="true">Assurance-vie multisupport</h1>
+      <p contenteditable="true">Fonds en dirhams garanti et unités de compte - recommandée pour votre horizon de transmission.</p>
+      <div class="stat-row">
+        <div class="stat"><div class="v" contenteditable="true">4,15%</div><div class="l" contenteditable="true">Taux garanti</div></div>
+        <div class="stat"><div class="v" contenteditable="true">8 ans</div><div class="l" contenteditable="true">Avantage fiscal</div></div>
+      </div>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Pourquoi cette recommandation</span>
+      <h2 class="section-title" contenteditable="true">Ce que ce placement apporte</h2>
+      <div class="feat-grid">
+        <div class="feat-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Fonds en dirhams</h4><p contenteditable="true">Capital valorisé chaque année.</p></div>
+        <div class="feat-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Unités de compte</h4><p contenteditable="true">Diversification selon votre profil de risque.</p></div>
+        <div class="feat-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><h4 contenteditable="true">Transmission optimisée</h4><p contenteditable="true">Capital transmis hors masse successorale.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Discuter de cette recommandation</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+
+<div id="view-produit-struct" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-espace')">Ma feuille de route</a> / Structuration succession</div>
+  <section class="pagehero" style="padding:20px 0 36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Structuration & professionnels</span>
+      <h1 contenteditable="true">Structuration succession - notaire partenaire</h1>
+      <p contenteditable="true">Mise en relation avec un notaire du réseau Horkos pour organiser la transmission identifiée dans votre audit.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Le déroulé</span>
+      <h2 class="section-title" contenteditable="true">Comment cette recommandation se met en œuvre</h2>
+      <div class="process-steps">
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">01</div><h4 contenteditable="true">Qualification</h4><p contenteditable="true">Identification du besoin lors de l'audit.</p></div>
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">02</div><h4 contenteditable="true">Mise en relation</h4><p contenteditable="true">Introduction auprès du notaire le plus adapté.</p></div>
+        <div class="ps-card block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div><div class="n">03</div><h4 contenteditable="true">Structuration</h4><p contenteditable="true">Le notaire rédige et formalise l'acte.</p></div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="wrap">
+      <span class="eyebrow" contenteditable="true">Transparence</span>
+      <h2 class="section-title" contenteditable="true">Frais associés</h2>
+      <div class="fees-note" contenteditable="true"><b>Aucun frais Horkos direct.</b> Horkos peut percevoir un honoraire de recommandation versé par le notaire - jamais répercuté sur vous. Détail sur la page Frais.</div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Discuter de cette structuration</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+
+<!-- ================= VIEW: ESPACE CLIENT ================= -->
+<div id="view-espace" class="view">
+  <div class="espace-shell">
+
+    <div class="espace-sidebar">
+      <div class="es-user">
+        <span class="av-mini">OB</span>
+        <div>
+          <div class="es-name">Othmane B.</div>
+          <div class="es-sub">Client Horkos</div>
+        </div>
+      </div>
+      <div class="espace-nav-item active" data-esptab="dashboard" onclick="showEspaceTab(this,'dashboard')"><span class="dot"></span>Tableau de bord</div>
+      <div class="espace-nav-item" data-esptab="accompagnement" onclick="showEspaceTab(this,'accompagnement')"><span class="dot"></span>Mon accompagnement</div>
+      <div class="espace-nav-item" data-esptab="patrimoine" onclick="showEspaceTab(this,'patrimoine')"><span class="dot"></span>Mon patrimoine</div>
+      <div class="espace-nav-item" data-esptab="ceder" onclick="showEspaceTab(this,'ceder')"><span class="dot"></span>Céder un actif</div>
+      <div class="espace-nav-item" data-esptab="coffre" onclick="showEspaceTab(this,'coffre')"><span class="dot"></span>Coffre-fort</div>
+    </div>
+
+    <div class="espace-main">
+
+      <!-- ===== TABLEAU DE BORD ===== -->
+      <div class="espace-tabpanel active" id="esptab-dashboard">
+        <div class="espace-panel-head">
+          <span class="eyebrow" contenteditable="true">Vue d'ensemble</span>
+          <h2 class="section-title" contenteditable="true">Tableau de bord</h2>
+        </div>
+
+        <div class="esp-kpi-grid">
+          <div class="esp-kpi-card"><div class="k-label" contenteditable="true">Patrimoine suivi</div><div class="k-value" contenteditable="true">4,25M MAD</div><div class="k-note" contenteditable="true">Mis à jour le 08 juillet</div></div>
+          <div class="esp-kpi-card"><div class="k-label" contenteditable="true">Performance 12 mois</div><div class="k-value" contenteditable="true">+6,8%</div><div class="k-note" contenteditable="true">Toutes classes confondues</div></div>
+          <div class="esp-kpi-card"><div class="k-label" contenteditable="true">Actifs suivis</div><div class="k-value" contenteditable="true">5</div><div class="k-note" contenteditable="true">3 classes d'actifs</div></div>
+          <div class="esp-kpi-card"><div class="k-label" contenteditable="true">Prochain rendez-vous</div><div class="k-value" contenteditable="true">14 juil.</div><div class="k-note" contenteditable="true">Présentation stratégie</div></div>
+        </div>
+
+        <div class="esp-2col">
+          <div class="esp-card">
+            <h4 contenteditable="true">Répartition de mon patrimoine</h4>
+            <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Assurance-vie multisupport</span><span contenteditable="true">42%</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:42%;"></div></div></div>
+            <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Immobilier locatif</span><span contenteditable="true">33%</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:33%;"></div></div></div>
+            <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Portefeuille financier (OPCVM)</span><span contenteditable="true">17%</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:17%;"></div></div></div>
+            <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Liquidités</span><span contenteditable="true">8%</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:8%;"></div></div></div>
+          </div>
+          <div class="esp-card">
+            <h4 contenteditable="true">À suivre</h4>
+            <div class="esp-bar-row"><span contenteditable="true" style="font-size:12.5px;color:var(--charcoal);">Présentation stratégie — 14 juillet, 11h00</span></div>
+            <div class="esp-bar-row"><span contenteditable="true" style="font-size:12.5px;color:var(--charcoal);">Point de mise en œuvre — 14 juillet</span></div>
+            <div class="esp-bar-row" style="margin-bottom:0;"><span contenteditable="true" style="font-size:12.5px;color:var(--charcoal);">Revue trimestrielle — mi-août</span></div>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:6px;">
+          <a class="btn btn-bronze" onclick="showView('view-reco-hub')" contenteditable="true">Voir mes recommandations →</a>
+        </div>
+      </div>
+
+      <!-- ===== MON ACCOMPAGNEMENT (+ RENDEZ-VOUS) ===== -->
+      <div class="espace-tabpanel" id="esptab-accompagnement">
+        <div class="espace-panel-head">
+          <span class="eyebrow" contenteditable="true">Processus d'investissement & rendez-vous</span>
+          <h2 class="section-title" contenteditable="true">Mon accompagnement</h2>
+          <p contenteditable="true">Cliquez sur une étape pour en savoir plus. L'historique de vos échanges avec votre conseiller figure plus bas.</p>
+        </div>
+
+        <div class="step-nav-wrap">
+          <div class="step-nav">
+            <div class="step-nav-item done" data-step="r0" onclick="selectAccompStep(this)"><span class="arrow-tag">▾ Vous en êtes ici</span><span class="dot"></span><span class="lbl">R0 · Audit patrimonial</span></div>
+            <div class="step-nav-item active viewing" data-step="r1" onclick="selectAccompStep(this)"><span class="arrow-tag">▾ Vous en êtes ici</span><span class="dot"></span><span class="lbl">R1 · Stratégie sur-mesure</span></div>
+            <div class="step-nav-item" data-step="r2" onclick="selectAccompStep(this)"><span class="arrow-tag">▾ Vous en êtes ici</span><span class="dot"></span><span class="lbl">R2 · Gouvernance & suivi</span></div>
+          </div>
+
+          <div class="step-explain-box">
+            <div class="step-explain" data-explain="r0">
+              <div class="se-intro"><b contenteditable="true">Gratuit · 30 à 60 min</b><p contenteditable="true">Un premier échange pour comprendre votre situation : actifs, structures, objectifs. Rien n'est recommandé avant cette étape. L'audit complet est consultable dans l'onglet « Mon patrimoine ».</p></div>
+            </div>
+            <div class="step-explain active" data-explain="r1">
+              <div class="se-intro"><b contenteditable="true">À partir de votre audit</b><p contenteditable="true">Nous construisons une stratégie qui vous est propre et vous présentons des recommandations claires, expliquées une à une. Les documents de stratégie sont disponibles dans votre Coffre-fort.</p></div>
+            </div>
+            <div class="step-explain" data-explain="r2">
+              <div class="se-intro"><b contenteditable="true">Dans la durée</b><p contenteditable="true">Une fois la stratégie mise en œuvre, nous restons impliqués : reporting périodique, comptes rendus, ajustements réguliers, également archivés dans votre Coffre-fort.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="esp-card" style="margin-top:26px;">
+          <h4 contenteditable="true">À venir</h4>
+          <div class="rdv-panel-box" style="border:none;padding:0;">
+            <div class="rdv-item"><span contenteditable="true">Présentation stratégie — 14 juillet 2026, 11h00</span><span class="rstatus">Confirmé</span></div>
+            <div class="rdv-item"><span contenteditable="true">Point de mise en œuvre — 14 juillet 2026</span><span class="rstatus">Confirmé</span></div>
+            <div class="rdv-item"><span contenteditable="true">Revue trimestrielle — mi-août 2026</span><span class="rstatus">À planifier</span></div>
+          </div>
+        </div>
+
+        <div class="esp-card">
+          <h4 contenteditable="true">Passés</h4>
+          <div class="rdv-panel-box" style="border:none;padding:0;">
+            <div class="rdv-item" style="opacity:0.6;"><span contenteditable="true">R0 · Audit patrimonial — 03 juillet 2026</span><span class="rstatus">Terminé</span></div>
+            <div class="rdv-item" style="opacity:0.6;"><span contenteditable="true">Point de cadrage initial — 26 juin 2026</span><span class="rstatus">Terminé</span></div>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <a class="btn btn-outline-ink" onclick="showView('view-questionnaire')" contenteditable="true">Prendre un nouveau rendez-vous</a>
+        </div>
+      </div>
+
+      <!-- ===== MON PATRIMOINE ===== -->
+      <div class="espace-tabpanel" id="esptab-patrimoine">
+        <div class="espace-panel-head">
+          <span class="eyebrow" contenteditable="true">Historique complet</span>
+          <h2 class="section-title" contenteditable="true">Mon patrimoine</h2>
+          <p contenteditable="true">Un espace partagé avec votre conseiller, organisé par catégorie.</p>
+        </div>
+
+        <div class="esp-card">
+          <h4 contenteditable="true">Répartition par classe d'actifs</h4>
+          <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Assurance-vie multisupport</span><span contenteditable="true">42% · 1 785 000 MAD</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:42%;"></div></div></div>
+          <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Immobilier locatif</span><span contenteditable="true">33% · 1 402 500 MAD</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:33%;"></div></div></div>
+          <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Portefeuille financier (OPCVM)</span><span contenteditable="true">17% · 722 500 MAD</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:17%;"></div></div></div>
+          <div class="esp-bar-row"><div class="bar-label"><span contenteditable="true">Liquidités</span><span contenteditable="true">8% · 340 000 MAD</span></div><div class="esp-bar-track"><div class="esp-bar-fill" style="width:8%;"></div></div></div>
+        </div>
+
+        <div class="audit-card" style="margin-top:20px;">
+          <div class="label" contenteditable="true">Dernière mise à jour — 08 juillet 2026</div>
+          <h3 contenteditable="true">Audit patrimonial — Othmane Benzakour</h3>
+          <div class="meta" contenteditable="true">Réalisé avec Rania El Amrani, votre conseillère Horkos · Session du 03 juillet 2026</div>
+          <div class="audit-rows">
+            <div class="audit-row"><span contenteditable="true">Patrimoine total audité</span><span contenteditable="true">4 250 000 MAD</span></div>
+            <div class="audit-row"><span contenteditable="true">Nombre d'actifs recensés</span><span contenteditable="true">5 actifs · 3 classes</span></div>
+            <div class="audit-row"><span contenteditable="true">Objectif principal</span><span contenteditable="true">Transmission & diversification</span></div>
+            <div class="audit-row"><span contenteditable="true">Objectif secondaire</span><span contenteditable="true">Optimisation fiscale</span></div>
+            <div class="audit-row"><span contenteditable="true">Structure de détention</span><span contenteditable="true">Nom propre + 1 SCI familiale</span></div>
+            <div class="audit-row"><span contenteditable="true">Profil de risque retenu</span><span contenteditable="true">Équilibré</span></div>
+            <div class="audit-row"><span contenteditable="true">Horizon d'investissement</span><span contenteditable="true">8 à 12 ans</span></div>
+            <div class="audit-row"><span contenteditable="true">Prochaine revue prévue</span><span contenteditable="true">Mi-août 2026</span></div>
+          </div>
+          <div class="row-btns">
+            <span contenteditable="true">Télécharger le rapport complet (PDF)</span>
+            <span contenteditable="true">Télécharger la synthèse 1 page</span>
+          </div>
+          <div class="lockline" contenteditable="true">Consultable par vous, modifiable uniquement par votre conseiller.</div>
+        </div>
+
+        <div class="docs-grid" style="margin-top:18px;">
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Pièces de l'audit</h4>
+            <div class="doc-row"><span contenteditable="true">Questionnaire patrimonial rempli</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Annexe fiscale — situation actuelle</span><span class="ddl">Ouvrir</span></div>
+          </div>
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Détail par actif</h4>
+            <div class="doc-row"><span contenteditable="true">Assurance-vie multisupport — fiche actif</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Immobilier locatif — fiche actif</span><span class="ddl">Ouvrir</span></div>
+          </div>
+        </div>
+
+        <p style="font-size:12px;color:var(--warm-grey);margin-top:16px;" contenteditable="true">La stratégie recommandée, vos relevés et vos contrats sont centralisés dans votre Coffre-fort.</p>
+      </div>
+
+      <!-- ===== CÉDER UN ACTIF ===== -->
+      <div class="espace-tabpanel" id="esptab-ceder">
+        <div class="espace-panel-head">
+          <span class="eyebrow" contenteditable="true">Céder un actif</span>
+          <h2 class="section-title" contenteditable="true">Soumettre un actif à la cession</h2>
+          <p contenteditable="true">Décrivez l'actif concerné le plus précisément possible — votre conseiller revient vers vous avec une évaluation et les options de cession.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-fields">
+            <select class="f full" required>
+              <option value="" disabled selected>Type d'actif à céder</option>
+              <optgroup label="Immobilier">
+                <option>Résidence (principale ou secondaire)</option>
+                <option>Bien locatif résidentiel</option>
+                <option>Local commercial</option>
+                <option>Immeuble de rapport</option>
+                <option>Terrain</option>
+                <option>Actif hôtelier / parahôtelier</option>
+                <option>Programme immobilier en développement</option>
+              </optgroup>
+              <optgroup label="Entreprise & participations">
+                <option>Entreprise — cession totale</option>
+                <option>Participation minoritaire</option>
+                <option>Part de SCI / société patrimoniale</option>
+                <option>Participation dans un fonds ou club deal</option>
+              </optgroup>
+              <optgroup label="Actifs financiers">
+                <option>Portefeuille de valeurs mobilières</option>
+                <option>Contrat d'assurance-vie existant</option>
+              </optgroup>
+              <optgroup label="Autres">
+                <option>Œuvre d'art</option>
+                <option>Autre actif</option>
+              </optgroup>
+            </select>
+            <select class="f full" required>
+              <option value="" disabled selected>Motif de la cession</option>
+              <option>Succession / transmission en cours</option>
+              <option>Besoin de liquidités</option>
+              <option>Réorientation de la stratégie patrimoniale</option>
+              <option>Départ à la retraite</option>
+              <option>Divorce / séparation</option>
+              <option>Simplification du patrimoine</option>
+              <option>Opportunité de marché</option>
+              <option>Autre raison</option>
+            </select>
+            <input class="f" type="text" placeholder="Localisation (si bien immobilier)">
+            <input class="f" type="text" placeholder="Valeur estimée (MAD)">
+            <select class="f">
+              <option value="" disabled selected>Durée de détention</option>
+              <option>Moins de 2 ans</option>
+              <option>2 à 5 ans</option>
+              <option>5 à 10 ans</option>
+              <option>Plus de 10 ans</option>
+            </select>
+            <select class="f">
+              <option value="" disabled selected>Mode de détention</option>
+              <option>Nom propre</option>
+              <option>Société / SCI</option>
+              <option>Indivision</option>
+              <option>Autre montage</option>
+            </select>
+            <select class="f">
+              <option value="" disabled selected>Charges ou dettes associées</option>
+              <option>Aucune</option>
+              <option>Crédit en cours</option>
+              <option>Autre charge (à préciser en description)</option>
+            </select>
+            <select class="f">
+              <option value="" disabled selected>Horizon de cession souhaité</option>
+              <option>Moins de 3 mois</option>
+              <option>3 à 6 mois</option>
+              <option>6 à 12 mois</option>
+              <option>Plus d'un an</option>
+            </select>
+            <select class="f full">
+              <option value="" disabled selected>Accompagnement souhaité</option>
+              <option>Évaluation seule</option>
+              <option>Mise en relation avec notre réseau</option>
+              <option>Accompagnement complet jusqu'à la cession</option>
+            </select>
+            <textarea class="f full" placeholder="Description complémentaire de l'actif"></textarea>
+          </div>
+          <a class="btn btn-bronze" style="width:100%;text-align:center;" contenteditable="true">Soumettre pour évaluation</a>
+        </div>
+      </div>
+
+      <!-- ===== COFFRE-FORT ===== -->
+      <div class="espace-tabpanel" id="esptab-coffre">
+        <div class="espace-panel-head">
+          <span class="eyebrow" contenteditable="true">Coffre-fort documentaire</span>
+          <h2 class="section-title" contenteditable="true">Mes documents</h2>
+          <p contenteditable="true">Tous vos documents patrimoniaux, contractuels et réglementaires, centralisés en un seul endroit et disponibles à tout moment.</p>
+        </div>
+
+        <div class="docs-grid">
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Relevés de situation</h4>
+            <div class="doc-row"><span contenteditable="true">Relevé assurance-vie — Juillet 2026</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Relevé portefeuille OPCVM — Juillet 2026</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Relevé immobilier locatif — T2 2026</span><span class="ddl">Ouvrir</span></div>
+          </div>
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Contrats & souscriptions</h4>
+            <div class="doc-row"><span contenteditable="true">Contrat assurance-vie multisupport — signé</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Bulletin de souscription PER</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Mandat de gestion — immobilier locatif</span><span class="ddl">Ouvrir</span></div>
+          </div>
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Documents réglementaires signés</h4>
+            <div class="doc-row"><span contenteditable="true">Lettre de mission Horkos — signée</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Questionnaire profil de risque — signé</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">Dossier KYC / LCB-FT</span><span class="ddl">Ouvrir</span></div>
+          </div>
+          <div class="doc-cat block"><div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+            <h4 contenteditable="true">Stratégie & comptes rendus</h4>
+            <div class="doc-row"><span contenteditable="true">Slides — Stratégie d'investissement 2026</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">CR rendez-vous — 08 juillet 2026</span><span class="ddl">Ouvrir</span></div>
+            <div class="doc-row"><span contenteditable="true">CR audit patrimonial — 03 juillet 2026</span><span class="ddl">Ouvrir</span></div>
+          </div>
+        </div>
+
+        <div class="lockline" style="margin-top:16px;" contenteditable="true">Coffre-fort sécurisé — consultable par vous à tout moment, alimenté et mis à jour par votre conseiller.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- ================= VIEW: NOS ARTICLES ================= -->
+<div id="view-ressources-articles" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Les ressources / Nos articles</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Nos articles</span>
+      <h1 contenteditable="true">Décrypter la gestion de patrimoine, sans jargon.</h1>
+      <p contenteditable="true">Nos points de vue sur l'actualité patrimoniale, fiscale et réglementaire au Maroc.</p>
+    </div>
+  </section>
+  <section style="padding-top:20px;">
+    <div class="wrap">
+      <div class="article-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div><div class="a-date" contenteditable="true">08 juillet 2026</div><div class="a-cat" contenteditable="true">Structuration</div></div>
+        <div><h4 contenteditable="true">Pourquoi loger un bien immobilier dans une société plutôt qu'en nom propre ?</h4><p contenteditable="true">Transmission, gestion, fiscalité : ce que change réellement la détention via une SARL immobilière.</p></div>
+      </div>
+      <div class="article-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div><div class="a-date" contenteditable="true">28 juin 2026</div><div class="a-cat" contenteditable="true">Placements</div></div>
+        <div><h4 contenteditable="true">Assurance-vie ou PER : comment choisir selon votre horizon ?</h4><p contenteditable="true">Deux enveloppes fiscales, deux logiques différentes - comment les articuler dans une stratégie globale.</p></div>
+      </div>
+      <div class="article-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div><div class="a-date" contenteditable="true">14 juin 2026</div><div class="a-cat" contenteditable="true">Transmission</div></div>
+        <div><h4 contenteditable="true">Anticiper une succession : les trois erreurs les plus fréquentes</h4><p contenteditable="true">Ce que nous observons le plus souvent chez les familles qui nous consultent trop tard.</p></div>
+      </div>
+      <div class="article-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div><div class="a-date" contenteditable="true">02 juin 2026</div><div class="a-cat" contenteditable="true">Private Equity</div></div>
+        <div><h4 contenteditable="true">Private Equity : quelle place dans un patrimoine diversifié ?</h4><p contenteditable="true">Horizon, liquidité, rendement : ce qu'il faut comprendre avant d'y consacrer une partie de son patrimoine.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Une question après lecture ?</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Prendre rendez-vous</a>
+    </div>
+  </section>
+</div>
+
+<!-- ================= VIEW: NOS GUIDES (LIVRES BLANCS) ================= -->
+<div id="view-ressources-guides" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Les ressources / Nos guides</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Nos guides</span>
+      <h1 contenteditable="true">Des guides complets, coécrits avec des institutions reconnues.</h1>
+      <p contenteditable="true">Chaque guide est réalisé en partenariat avec un acteur reconnu de la place. Laissez votre email pour le recevoir directement.</p>
+    </div>
+  </section>
+  <section style="padding-top:36px;">
+    <div class="wrap">
+      <div class="guide-grid">
+
+        <div class="guide-card block">
+          <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+          <div class="guide-cover" contenteditable="true">Guide de la structuration patrimoniale</div>
+          <div class="guide-body">
+            <div class="guide-partner" contenteditable="true">En partenariat avec un ordre d'experts-comptables</div>
+            <h4 contenteditable="true">Le guide complet de la structuration patrimoniale au Maroc</h4>
+            <p contenteditable="true">Quand et comment créer une société patrimoniale, apporter un bien en nature, choisir le bon régime fiscal.</p>
+            <span class="guide-cta" onclick="toggleGuideForm(this)">Recevoir le guide</span>
+            <div class="guide-form"><input type="email" placeholder="Votre adresse email" contenteditable="true"><button onclick="alert('Merci - le guide vous sera envoyé par email.')">Envoyer</button></div>
+            <div class="guide-note" contenteditable="true">Envoyé par email, aucune inscription requise.</div>
+          </div>
+        </div>
+
+        <div class="guide-card block">
+          <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+          <div class="guide-cover" contenteditable="true">Guide de la transmission patrimoniale</div>
+          <div class="guide-body">
+            <div class="guide-partner" contenteditable="true">En partenariat avec une chambre des notaires</div>
+            <h4 contenteditable="true">Réussir la transmission de son patrimoine : le guide pratique</h4>
+            <p contenteditable="true">Donation, succession, démembrement : les mécanismes à connaître avant qu'il ne soit trop tard.</p>
+            <span class="guide-cta" onclick="toggleGuideForm(this)">Recevoir le guide</span>
+            <div class="guide-form"><input type="email" placeholder="Votre adresse email" contenteditable="true"><button onclick="alert('Merci - le guide vous sera envoyé par email.')">Envoyer</button></div>
+            <div class="guide-note" contenteditable="true">Envoyé par email, aucune inscription requise.</div>
+          </div>
+        </div>
+
+        <div class="guide-card block">
+          <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+          <div class="guide-cover" contenteditable="true">Guide des classes d'actifs alternatives</div>
+          <div class="guide-body">
+            <div class="guide-partner" contenteditable="true">En partenariat avec une association de Private Equity</div>
+            <h4 contenteditable="true">Private Equity, Venture Capital, Art : le guide des actifs alternatifs</h4>
+            <p contenteditable="true">Comprendre le fonctionnement, l'horizon et le risque de ces classes d'actifs avant de s'y engager.</p>
+            <span class="guide-cta" onclick="toggleGuideForm(this)">Recevoir le guide</span>
+            <div class="guide-form"><input type="email" placeholder="Votre adresse email" contenteditable="true"><button onclick="alert('Merci - le guide vous sera envoyé par email.')">Envoyer</button></div>
+            <div class="guide-note" contenteditable="true">Envoyé par email, aucune inscription requise.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= VIEW: NOS EVENEMENTS ================= -->
+<div id="view-ressources-evenements" class="view">
+  <div class="wrap crumb"><a onclick="showView('view-home')">Accueil</a> / Les ressources / Nos événements</div>
+  <section class="pagehero" style="padding-bottom:36px;">
+    <div class="wrap">
+      <span class="tag" contenteditable="true">Nos événements</span>
+      <h1 contenteditable="true">Nous rencontrer, en petit comité.</h1>
+      <p contenteditable="true">Ateliers et rencontres organisés avec notre réseau de professionnels.</p>
+    </div>
+  </section>
+  <section style="padding-top:20px;">
+    <div class="wrap">
+      <div class="event-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div class="event-date"><div class="day" contenteditable="true">24</div><div class="month" contenteditable="true">Juil.</div></div>
+        <div><h4 contenteditable="true">Atelier structuration patrimoniale pour dirigeants</h4><p contenteditable="true">Casablanca - en présentiel, places limitées.</p></div>
+        <span class="e-status upcoming" contenteditable="true">À venir</span>
+      </div>
+      <div class="event-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div class="event-date"><div class="day" contenteditable="true">12</div><div class="month" contenteditable="true">Sept.</div></div>
+        <div><h4 contenteditable="true">Webinaire : préparer sa retraite au Maroc</h4><p contenteditable="true">En ligne - avec un expert-comptable partenaire.</p></div>
+        <span class="e-status upcoming" contenteditable="true">À venir</span>
+      </div>
+      <div class="event-row block">
+        <div class="block-ctrl"><button onclick="moveBlock(this,-1)">↑</button><button onclick="moveBlock(this,1)">↓</button><button onclick="duplicateBlock(this)">⧉</button><button onclick="deleteBlock(this)">✕</button></div>
+        <div class="event-date"><div class="day" contenteditable="true">15</div><div class="month" contenteditable="true">Mai</div></div>
+        <div><h4 contenteditable="true">Petit-déjeuner transmission & succession</h4><p contenteditable="true">Casablanca - avec une chambre des notaires.</p></div>
+        <span class="e-status past" contenteditable="true">Passé</span>
+      </div>
+    </div>
+  </section>
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 class="section-title" contenteditable="true">Être informé de nos prochains événements</h2>
+      <a class="btn btn-bronze" onclick="showView('view-questionnaire')" contenteditable="true">Rester en contact</a>
+    </div>
+  </section>
+</div>
+<!-- ================= VIEW: BACK-OFFICE ADMIN ================= -->
+<div id="view-admin" class="view">
+  <div class="admin-shell">
+
+    <div class="admin-sidebar">
+      <div class="a-logo">HORKOS <span style="font-size:10px;color:var(--warm-grey);font-weight:400;">back-office</span></div>
+      <div class="a-navlabel">Pilotage</div>
+      <div class="admin-nav-item active" data-admintab="dashboard" onclick="showAdminTab(this,'dashboard')"><span class="dot"></span>Tableau de bord</div>
+      <div class="admin-nav-item" data-admintab="insights" onclick="showAdminTab(this,'insights')"><span class="dot"></span>Insights</div>
+      <div class="a-navlabel" style="margin-top:18px;">Relation client</div>
+      <div class="admin-nav-item" data-admintab="utilisateurs" onclick="showAdminTab(this,'utilisateurs')"><span class="dot"></span>Utilisateurs</div>
+      <div class="admin-nav-item" data-admintab="conseillers" onclick="showAdminTab(this,'conseillers')"><span class="dot"></span>Conseillers</div>
+      <div class="admin-nav-item" data-admintab="leads" onclick="showAdminTab(this,'leads')"><span class="dot"></span>Leads téléphone</div>
+      <div class="a-navlabel" style="margin-top:18px;">Activité</div>
+      <div class="admin-nav-item" data-admintab="recos" onclick="showAdminTab(this,'recos')"><span class="dot"></span>Recommandations</div>
+      <div class="admin-nav-item" data-admintab="dossiers" onclick="showAdminTab(this,'dossiers')"><span class="dot"></span>Dossiers de structuration</div>
+      <div class="admin-nav-item" data-admintab="calendrier" onclick="showAdminTab(this,'calendrier')"><span class="dot"></span>Calendrier</div>
+    </div>
+
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <span class="a-icon">💬</span>
+        <span class="a-icon">⚙</span>
+        <span class="a-logout" onclick="showView('view-home')">Déconnexion</span>
+      </div>
+
+      <div class="admin-body">
+
+        <!-- ===== TABLEAU DE BORD ===== -->
+        <div class="admin-tab-panel active" id="admintab-dashboard">
+          <div class="admin-crumb">Back-office / <b>Tableau de bord</b></div>
+          <h1 class="admin-h1">Tableau de bord</h1>
+          <div class="admin-sub">Vue d'ensemble de l'activité du cabinet - 12 juillet 2026</div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-label">Prospects actifs</div><div class="kpi-value">37</div><div class="kpi-note">+5 cette semaine</div></div>
+            <div class="kpi-card"><div class="kpi-label">Clients accompagnés</div><div class="kpi-value">14</div><div class="kpi-note">+1 ce mois</div></div>
+            <div class="kpi-card"><div class="kpi-label">RDV cette semaine</div><div class="kpi-value">9</div><div class="kpi-note">6 confirmés</div></div>
+            <div class="kpi-card"><div class="kpi-label">Patrimoine suivi</div><div class="kpi-value">58,4M</div><div class="kpi-note">MAD sous conseil</div></div>
+          </div>
+
+          <div class="admin-card">
+            <h4>Funnel commercial</h4>
+            <div class="a-cardsub">De la prise de contact à la signature - cumul 90 jours</div>
+            <div class="funnel-row">
+              <div class="funnel-step"><div class="fs-val">142</div><div class="fs-label">Leads entrants</div></div>
+              <div class="funnel-arrow">→</div>
+              <div class="funnel-step"><div class="fs-val">86</div><div class="fs-label">R0 réalisés</div></div>
+              <div class="funnel-arrow">→</div>
+              <div class="funnel-step"><div class="fs-val">51</div><div class="fs-label">R1 réalisés</div></div>
+              <div class="funnel-arrow">→</div>
+              <div class="funnel-step"><div class="fs-val">28</div><div class="fs-label">R2 engagés</div></div>
+              <div class="funnel-arrow">→</div>
+              <div class="funnel-step"><div class="fs-val">14</div><div class="fs-label">Clients signés</div></div>
+            </div>
+          </div>
+
+          <div class="admin-2col">
+            <div class="admin-card">
+              <h4>Suivi des recommandations</h4>
+              <div class="a-cardsub">Progression des dossiers en cours de structuration</div>
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Diversification - famille Bennani</span><span>72%</span></div>
+                <div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:72%;background:var(--bronze);"></div></div>
+              </div>
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Transmission - M. El Fassi</span><span>45%</span></div>
+                <div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:45%;background:var(--bronze);"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Cession immobilière - Mme Idrissi</span><span>90%</span></div>
+                <div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:90%;background:var(--bronze);"></div></div>
+              </div>
+            </div>
+            <div class="admin-card">
+              <h4>Alertes</h4>
+              <div class="a-cardsub">Points nécessitant une action</div>
+              <div class="alert-box">3 relances R1 en attente depuis plus de 7 jours.</div>
+              <div class="alert-box">1 dossier de structuration bloqué sur pièce notariale.</div>
+              <div class="alert-box">2 demandes de rappel non traitées.</div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h4>Performance conseillers</h4>
+            <table class="admin-table">
+              <tr><th>Conseiller</th><th>Prospects</th><th>Clients actifs</th><th>Patrimoine suivi</th><th>Taux de conversion</th></tr>
+              <tr><td>Othmane Benzakour</td><td>22</td><td>9</td><td>38,1M MAD</td><td><span class="badge green">41%</span></td></tr>
+              <tr><td>Rania El Amrani</td><td>15</td><td>5</td><td>20,3M MAD</td><td><span class="badge orange">33%</span></td></tr>
+            </table>
+          </div>
+
+          <div class="admin-card">
+            <h4>Activité récente</h4>
+            <ul class="activity-feed">
+              <li><span><span class="af-dot"></span>Nouveau lead - Karim Tazi (site web)</span><span class="af-time">il y a 2h</span></li>
+              <li><span><span class="af-dot"></span>R0 complété - Salma Bennani</span><span class="af-time">il y a 5h</span></li>
+              <li><span><span class="af-dot"></span>Dossier structuration mis à jour - El Fassi</span><span class="af-time">hier</span></li>
+              <li><span><span class="af-dot"></span>Guide "Transmission patrimoniale" téléchargé (nouveau contact)</span><span class="af-time">hier</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ===== INSIGHTS ===== -->
+        <div class="admin-tab-panel" id="admintab-insights">
+          <div class="admin-crumb">Back-office / <b>Insights</b></div>
+          <h1 class="admin-h1">Insights</h1>
+          <div class="admin-sub">Trafic, engagement et comportement des visiteurs du site</div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-label">Visiteurs (30j)</div><div class="kpi-value">3 240</div><div class="kpi-note">+18% vs mois précédent</div></div>
+            <div class="kpi-card"><div class="kpi-label">Inscrits Espace client</div><div class="kpi-value">61</div><div class="kpi-note">+9 ce mois</div></div>
+            <div class="kpi-card"><div class="kpi-label">Guides téléchargés</div><div class="kpi-value">128</div><div class="kpi-note">3 guides actifs</div></div>
+            <div class="kpi-card"><div class="kpi-label">Taux de prise de RDV</div><div class="kpi-value">6,4%</div><div class="kpi-note">visiteurs → RDV pris</div></div>
+          </div>
+
+          <div class="admin-2col">
+            <div class="admin-card">
+              <h4>Intérêt par catégorie de produit</h4>
+              <div class="a-cardsub">Pages consultées, 30 derniers jours</div>
+              <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Assurance-vie / capitalisation</span><span>34%</span></div><div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:34%;background:var(--bronze);"></div></div></div>
+              <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Immobilier structuré</span><span>28%</span></div><div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:28%;background:var(--bronze);"></div></div></div>
+              <div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Private equity / fonds</span><span>21%</span></div><div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:21%;background:var(--bronze);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Transmission & fiscalité</span><span>17%</span></div><div style="height:6px;background:var(--cream-deep);"><div style="height:100%;width:17%;background:var(--bronze);"></div></div></div>
+            </div>
+            <div class="admin-card">
+              <h4>Croissance des inscrits</h4>
+              <div class="a-cardsub">Espace client - nouveaux comptes / mois</div>
+              <div class="funnel-row" style="align-items:flex-end;height:140px;">
+                <div class="funnel-step" style="height:40%;">Fév</div>
+                <div class="funnel-step" style="height:55%;">Mar</div>
+                <div class="funnel-step" style="height:50%;">Avr</div>
+                <div class="funnel-step" style="height:70%;">Mai</div>
+                <div class="funnel-step" style="height:85%;">Juin</div>
+                <div class="funnel-step" style="height:100%;background:var(--bronze);color:#fff;">Juil</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h4>Contenus les plus consultés</h4>
+            <table class="admin-table">
+              <tr><th>Contenu</th><th>Type</th><th>Vues</th><th>Conversion RDV</th></tr>
+              <tr><td>Guide - Transmission patrimoniale</td><td><span class="badge grey">Guide</span></td><td>412</td><td><span class="badge green">8,1%</span></td></tr>
+              <tr><td>Notre structuration patrimoniale</td><td><span class="badge grey">Page</span></td><td>587</td><td><span class="badge green">6,9%</span></td></tr>
+              <tr><td>Article - Diversifier au Maroc en 2026</td><td><span class="badge grey">Article</span></td><td>301</td><td><span class="badge orange">3,4%</span></td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== UTILISATEURS ===== -->
+        <div class="admin-tab-panel" id="admintab-utilisateurs">
+          <div class="admin-crumb">Back-office / <b>Utilisateurs</b></div>
+          <h1 class="admin-h1">Utilisateurs</h1>
+          <div class="admin-sub">Comptes Espace client et statut d'accompagnement</div>
+
+          <div class="admin-filterbar">
+            <div class="af-field"><label>Recherche</label><input type="text" placeholder="Nom, email..."></div>
+            <div class="af-field"><label>Statut</label><select><option>Tous</option><option>Prospect</option><option>Client actif</option></select></div>
+            <button class="admin-btn outline">Filtrer</button>
+          </div>
+
+          <table class="admin-table">
+            <tr><th>Client</th><th>Questionnaire</th><th>Dernière activité</th><th>Favoris</th><th>Biens suivis</th><th>Accès Espace client</th></tr>
+            <tr><td>Salma Bennani</td><td><span class="badge green">Complété</span></td><td>Il y a 1 jour</td><td>3</td><td>2</td><td><span class="toggle-mini on"></span></td></tr>
+            <tr><td>M. El Fassi</td><td><span class="badge green">Complété</span></td><td>Il y a 3 jours</td><td>1</td><td>1</td><td><span class="toggle-mini on"></span></td></tr>
+            <tr><td>Mme Idrissi</td><td><span class="badge orange">Partiel</span></td><td>Il y a 6 jours</td><td>0</td><td>1</td><td><span class="toggle-mini on"></span></td></tr>
+            <tr><td>Karim Tazi</td><td><span class="badge grey">Non démarré</span></td><td>Il y a 2h</td><td>0</td><td>0</td><td><span class="toggle-mini"></span></td></tr>
+          </table>
+        </div>
+
+        <!-- ===== CONSEILLERS ===== -->
+        <div class="admin-tab-panel" id="admintab-conseillers">
+          <div class="admin-crumb">Back-office / <b>Conseillers</b></div>
+          <h1 class="admin-h1">Conseillers</h1>
+          <div class="admin-sub">Équipe et répartition des portefeuilles clients</div>
+          <div style="text-align:right;margin-bottom:16px;"><button class="admin-btn">+ Ajouter un conseiller</button></div>
+          <table class="admin-table">
+            <tr><th>Nom</th><th>Rôle</th><th>Portefeuille</th><th>Clients actifs</th><th>Statut</th></tr>
+            <tr><td>Othmane Benzakour</td><td>Fondateur & CEO</td><td>38,1M MAD</td><td>9</td><td><span class="badge green">Actif</span></td></tr>
+            <tr><td>Rania El Amrani</td><td>Conseillère senior</td><td>20,3M MAD</td><td>5</td><td><span class="badge green">Actif</span></td></tr>
+          </table>
+        </div>
+
+        <!-- ===== LEADS TÉLÉPHONE ===== -->
+        <div class="admin-tab-panel" id="admintab-leads">
+          <div class="admin-crumb">Back-office / <b>Leads téléphone</b></div>
+          <h1 class="admin-h1">Leads téléphone</h1>
+          <div class="admin-sub">Contacts entrants par téléphone à qualifier</div>
+          <div style="text-align:right;margin-bottom:16px;"><button class="admin-btn outline">Exporter CSV</button></div>
+          <table class="admin-table">
+            <tr><th>Nom</th><th>Téléphone</th><th>Source</th><th>Date</th><th>Statut</th></tr>
+            <tr><td>Nabil Chraibi</td><td>06 XX XX XX 12</td><td>Site web</td><td>11 juil.</td><td><span class="badge orange">À rappeler</span></td></tr>
+            <tr><td>Amina Squalli</td><td>06 XX XX XX 45</td><td>Recommandation</td><td>10 juil.</td><td><span class="badge green">Qualifié</span></td></tr>
+            <tr><td>Yassine Alaoui</td><td>06 XX XX XX 78</td><td>LinkedIn</td><td>09 juil.</td><td><span class="badge red">Non joignable</span></td></tr>
+          </table>
+        </div>
+
+        <!-- ===== RECOMMANDATIONS / DEALS ===== -->
+        <div class="admin-tab-panel" id="admintab-recos">
+          <div class="admin-crumb">Back-office / <b>Recommandations</b></div>
+          <h1 class="admin-h1">Recommandations</h1>
+          <div class="admin-sub">Catalogue des opportunités proposées aux clients</div>
+          <div class="admin-pill-tabs">
+            <span class="admin-pill active">Toutes</span>
+            <span class="admin-pill">Assurance-vie</span>
+            <span class="admin-pill">Immobilier</span>
+            <span class="admin-pill">Private equity</span>
+          </div>
+
+          <div class="reco-card-admin">
+            <div class="rc-thumb">Local commercial<br>prime</div>
+            <div class="rc-body">
+              <div class="rc-cat">Immobilier structuré</div>
+              <h4>Local commercial prime - Casablanca Racine</h4>
+              <div class="rc-meta">Rendement cible 7,2% · Ticket min. 800 000 MAD · 4 clients intéressés</div>
+            </div>
+            <div class="rc-edit" onclick="showAdminTab(null,'reco-detail')">Voir le détail ▸</div>
+          </div>
+          <div class="reco-card-admin">
+            <div class="rc-thumb">Contrat AV<br>multisupport</div>
+            <div class="rc-body">
+              <div class="rc-cat">Assurance-vie</div>
+              <h4>Contrat multisupport - architecture ouverte</h4>
+              <div class="rc-meta">Frais de gestion 0,8% · Ticket min. 100 000 MAD · 11 clients intéressés</div>
+            </div>
+            <div class="rc-edit">Voir le détail ▸</div>
+          </div>
+          <div class="reco-card-admin">
+            <div class="rc-thumb">Fonds PE<br>croissance</div>
+            <div class="rc-body">
+              <div class="rc-cat">Private equity</div>
+              <h4>Fonds PE - croissance PME régionales</h4>
+              <div class="rc-meta">Horizon 7 ans · Ticket min. 300 000 MAD · 3 clients intéressés</div>
+            </div>
+            <div class="rc-edit">Voir le détail ▸</div>
+          </div>
+        </div>
+
+        <!-- ===== RECO DETAIL ===== -->
+        <div class="admin-tab-panel" id="admintab-reco-detail">
+          <div class="admin-crumb">Back-office / Recommandations / <b>Local commercial prime</b></div>
+          <h1 class="admin-h1">Local commercial prime - Casablanca Racine</h1>
+          <div class="admin-sub">Immobilier structuré</div>
+
+          <div class="admin-detail-kv">
+            <div><div class="kv-label">Rendement cible</div><div class="kv-val">7,2% net</div></div>
+            <div><div class="kv-label">Ticket minimum</div><div class="kv-val">800 000 MAD</div></div>
+            <div><div class="kv-label">Horizon</div><div class="kv-val">6-8 ans</div></div>
+          </div>
+
+          <div class="admin-2col">
+            <div class="admin-card">
+              <h4>Informations générales</h4>
+              <table class="admin-table">
+                <tr><td>Localisation</td><td>Casablanca - Racine</td></tr>
+                <tr><td>Surface</td><td>145 m²</td></tr>
+                <tr><td>Locataire</td><td>Enseigne nationale, bail 9 ans</td></tr>
+              </table>
+            </div>
+            <div class="admin-card">
+              <h4>Informations financières</h4>
+              <table class="admin-table">
+                <tr><td>Prix d'acquisition</td><td>9 200 000 MAD</td></tr>
+                <tr><td>Loyer annuel</td><td>662 000 MAD</td></tr>
+                <tr><td>Frais de structuration</td><td>Forfait - voir Notre modèle</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <h4>Résumé exécutif</h4>
+            <p style="font-size:13px;color:var(--charcoal);line-height:1.7;">Emplacement prime en zone à forte densité commerciale, loué à une enseigne nationale sous bail longue durée. Positionnement défensif recherché pour les clients en phase de diversification de leur patrimoine.</p>
+          </div>
+          <div class="admin-card">
+            <h4>Description</h4>
+            <p style="font-size:13px;color:var(--charcoal);line-height:1.7;">Actif proposé dans le cadre d'un mandat de recherche pour clients en stratégie de diversification immobilière. Structuration en SCI recommandée - voir dossier de structuration associé.</p>
+          </div>
+        </div>
+
+        <!-- ===== DOSSIERS DE STRUCTURATION ===== -->
+        <div class="admin-tab-panel" id="admintab-dossiers">
+          <div class="admin-crumb">Back-office / <b>Dossiers de structuration</b></div>
+          <h1 class="admin-h1">Dossiers de structuration</h1>
+          <div class="admin-sub">Suivi des dossiers en cours d'implémentation avec le réseau de professionnels</div>
+
+          <div class="admin-pill-tabs">
+            <span class="admin-pill active">Dossiers en cours</span>
+            <span class="admin-pill">Demandes de rappel</span>
+          </div>
+
+          <div class="admin-filterbar">
+            <div class="af-field"><label>Recherche</label><input type="text" placeholder="Client, dossier..."></div>
+            <div class="af-field"><label>Statut</label><select><option>Tous</option><option>En cours</option><option>Bloqué</option><option>Finalisé</option></select></div>
+          </div>
+
+          <table class="admin-table">
+            <tr><th>Client</th><th>Type de dossier</th><th>Professionnel mandaté</th><th>Étape</th><th>Statut</th></tr>
+            <tr><td>M. El Fassi</td><td>Transmission - donation-partage</td><td>Notaire - Me Alami</td><td>Rédaction acte</td><td><span class="badge orange">En cours</span></td></tr>
+            <tr><td>Mme Idrissi</td><td>Cession immobilière</td><td>Agent - Casa Prime Immo</td><td>Compromis signé</td><td><span class="badge green">En cours</span></td></tr>
+            <tr><td>Famille Bennani</td><td>Structuration SCI</td><td>Expert-comptable - Fidaroc</td><td>Pièce notariale manquante</td><td><span class="badge red">Bloqué</span></td></tr>
+          </table>
+        </div>
+
+        <!-- ===== CALENDRIER ===== -->
+        <div class="admin-tab-panel" id="admintab-calendrier">
+          <div class="admin-crumb">Back-office / <b>Calendrier</b></div>
+          <h1 class="admin-h1">Calendrier des rendez-vous</h1>
+          <div class="admin-sub">Semaine du 13 au 19 juillet 2026</div>
+
+          <div class="admin-filterbar">
+            <div class="af-field"><label>Conseiller</label><select><option>Tous</option><option>Othmane Benzakour</option><option>Rania El Amrani</option></select></div>
+            <div class="af-field"><label>Type</label><select><option>Tous</option><option>R0</option><option>R1</option><option>R2</option></select></div>
+            <div class="af-field"><label>Statut</label><select><option>Tous</option><option>Confirmé</option><option>À confirmer</option></select></div>
+          </div>
+
+          <div class="admin-calendar">
+            <div class="cal-head"></div>
+            <div class="cal-head">Lun 13</div>
+            <div class="cal-head today">Mar 14</div>
+            <div class="cal-head">Mer 15</div>
+            <div class="cal-head">Jeu 16</div>
+            <div class="cal-head">Ven 17</div>
+            <div class="cal-head">Sam 18</div>
+            <div class="cal-head">Dim 19</div>
+
+            <div class="cal-time">9h</div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-event">R0 - K. Tazi</div></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+            <div class="cal-time">11h</div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-event">R1 - Bennani</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-event">R2 - El Fassi</div></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+            <div class="cal-time">14h</div><div class="cal-cell"><div class="cal-event">R1 - Idrissi</div></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-event">R0 - Chraibi</div></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+            <div class="cal-time">16h</div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-event">R1 - mise en œuvre</div></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h5 contenteditable="true">Horkos</h5>
+        <p style="font-size:12.5px;line-height:1.7;max-width:260px;" contenteditable="true">Cabinet de conseil en gestion de patrimoine - Casablanca, Maroc.</p>
+      </div>
+      <div>
+        <h5 contenteditable="true">Le cabinet</h5>
+        <ul>
+          <li><a onclick="showView('view-methode')" contenteditable="true">Notre approche</a></li>
+          <li><a onclick="showView('view-produits')" contenteditable="true">Nos produits</a></li>
+          <li><a onclick="showView('view-frais')" contenteditable="true">Notre modèle</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 contenteditable="true">Le conseil</h5>
+        <ul>
+          <li><a onclick="showView('view-structuration')" contenteditable="true">Notre structuration patrimoniale</a></li>
+          <li><a onclick="showView('view-conseil')" contenteditable="true">Notre réseau de professionnels</a></li>
+          <li><a onclick="showView('view-cas-usage')" contenteditable="true">Nos cas d'usage</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 contenteditable="true">Les ressources</h5>
+        <ul>
+          <li><a onclick="showView('view-ressources-articles')" contenteditable="true">Nos articles</a></li>
+          <li><a onclick="showView('view-ressources-guides')" contenteditable="true">Nos guides</a></li>
+          <li><a onclick="showView('view-ressources-evenements')" contenteditable="true">Nos événements</a></li>
+          <li><a onclick="showView('view-produits');setTimeout(function(){scrollToId('prod-deals-section')},60);" contenteditable="true">Céder un actif</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <span contenteditable="true">Horkos Conseil SARL - Base applicative consolidée, maquette de travail. Horkos ne fait pas de gestion sous mandat.</span>
+      <a href="#" onclick="event.preventDefault();showView('view-admin');" style="color:var(--bronze-light);font-size:12px;font-weight:600;white-space:nowrap;text-decoration:underline;">Back-office (démo) →</a>
+    </div>
+  </div>
+</footer>
+<script>
+function showView(id){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('visible'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('visible');
+  window.scrollTo(0,0);
+  history.replaceState(null, '', '#' + id);
+  var header = document.querySelector('header');
+  var footer = document.querySelector('footer');
+  if (id === 'view-admin') {
+    if (header) header.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+  } else {
+    if (header) header.style.display = '';
+    if (footer) footer.style.display = '';
+  }
+}
+function scrollToId(id){
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth'});
+}
+function selectOne(el){
+  var siblings = el.parentElement.children;
+  for (var i=0;i<siblings.length;i++){ siblings[i].classList.remove('selected'); }
+  el.classList.add('selected');
+}
+function toggleMulti(el){ el.classList.toggle('selected'); }
+function toggleProd(el){ el.classList.toggle('expanded'); }
+function togglePartnerCat(el){
+  selectOne(el);
+  var cat = el.getAttribute('data-cat');
+  document.querySelectorAll('.partner-cat-fields').forEach(function(g){
+    g.classList.toggle('active', g.getAttribute('data-cat') === cat);
+  });
+}
+function toggleGuideForm(el){
+  var form = el.nextElementSibling;
+  if (form && form.classList.contains('guide-form')) form.classList.toggle('open');
+}
+
+function selectAccompStep(el){
+  var step = el.getAttribute('data-step');
+  document.querySelectorAll('.step-nav-item').forEach(function(i){ i.classList.remove('viewing'); });
+  el.classList.add('viewing');
+  document.querySelectorAll('.step-explain').forEach(function(p){ p.classList.remove('active'); });
+  var panel = document.querySelector('.step-explain[data-explain="' + step + '"]');
+  if (panel) panel.classList.add('active');
+}
+function showEspaceTab(el, name){
+  document.querySelectorAll('.espace-nav-item').forEach(function(t){ t.classList.remove('active'); });
+  var tabEl = el || document.querySelector('.espace-nav-item[data-esptab="' + name + '"]');
+  if (tabEl) tabEl.classList.add('active');
+  document.querySelectorAll('.espace-tabpanel').forEach(function(p){ p.classList.remove('active'); });
+  var panel = document.getElementById('esptab-' + name);
+  if (panel) panel.classList.add('active');
+  var main = document.querySelector('.espace-main');
+  if (main) main.scrollTop = 0;
+}
+
+function showAdminTab(el, name){
+  document.querySelectorAll('.admin-nav-item').forEach(function(t){ t.classList.remove('active'); });
+  var tabEl = el || document.querySelector('.admin-nav-item[data-admintab="' + name + '"]');
+  if (tabEl) tabEl.classList.add('active');
+  document.querySelectorAll('.admin-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  var panel = document.getElementById('admintab-' + name);
+  if (panel) panel.classList.add('active');
+  var main = document.querySelector('.admin-main');
+  if (main) main.scrollTop = 0;
+}
+
+function moveBlock(btn, dir){
+  var block = btn.closest('.block');
+  var parent = block.parentElement;
+  if (dir === -1 && block.previousElementSibling) parent.insertBefore(block, block.previousElementSibling);
+  else if (dir === 1 && block.nextElementSibling) parent.insertBefore(block.nextElementSibling, block);
+}
+function duplicateBlock(btn){
+  var block = btn.closest('.block');
+  var clone = block.cloneNode(true);
+  block.parentElement.insertBefore(clone, block.nextSibling);
+}
+function deleteBlock(btn){
+  var block = btn.closest('.block');
+  if (confirm('Supprimer ce bloc ?')) block.remove();
+}
+document.getElementById('exportBtn').addEventListener('click', function(){
+  var clone = document.documentElement.cloneNode(true);
+  clone.querySelector('#editToolbar') && clone.querySelector('#editToolbar').remove();
+  clone.querySelector('#exportPanel') && clone.querySelector('#exportPanel').remove();
+  clone.querySelectorAll('.block-ctrl').forEach(function(el){ el.remove(); });
+  clone.querySelectorAll('[contenteditable]').forEach(function(el){ el.removeAttribute('contenteditable'); });
+  var htmlOut = '<' + '!DOCTYPE html>' + clone.outerHTML;
+  var blob = new Blob([htmlOut], {type:'text/html'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'horkos_app_modifie.html';
+  a.click();
+  document.getElementById('exportPanel').style.display = 'block';
+  document.getElementById('exportText').value = 'Fichier telecharge : horkos_app_modifie.html - renvoyez-le pour que j applique les changements.';
+});
+
+var initial = location.hash ? location.hash.substring(1) : 'view-home';
+if (document.getElementById(initial)) { showView(initial); }
+</script>
+
+</body>
+</html>

@@ -40,4 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/docs
+
+# documents personnels / d'identité — ne jamais committer
+/docs/ARCANIS4793 (1).jpg
+/docs/Othmane BENZAKOUR.jpg
+/docs/Identification fiscale_HORKOS CONSEIL.pdf
