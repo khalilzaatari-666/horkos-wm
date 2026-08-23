@@ -158,10 +158,10 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Horkos Wealth Management. Tous droits réservés.
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-xs text-gray-500 hover:text-white transition-colors">
+            <Link href="/mentions-legales" className="text-xs text-gray-500 hover:text-white transition-colors">
               Mentions légales
             </Link>
-            <Link href="#" className="text-xs text-gray-500 hover:text-white transition-colors">
+            <Link href="/politique-de-confidentialite" className="text-xs text-gray-500 hover:text-white transition-colors">
               Politique de confidentialité
             </Link>
           </div>
