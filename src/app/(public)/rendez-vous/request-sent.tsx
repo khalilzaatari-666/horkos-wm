@@ -12,12 +12,9 @@ interface RequestSentProps {
   firstName: string;
   lastName: string;
   email: string;
-  /** L'heure obtenue au calendrier (ISO), ou null si elle n'a pas pu être garantie. */
+  /** L'heure confirmée (ISO). Le rendez-vous est toujours réservé à ce stade. */
   bookedSlot: string | null;
-  /** Format choisi — n'a de sens que si `bookedSlot` est renseigné. */
   bookedMode: "presentiel" | "visio" | null;
-  /** Un créneau avait-il été choisi ? Distingue « perdu » de « jamais demandé ». */
-  requestedSlot: boolean;
 }
 
 const slotFmt = new Intl.DateTimeFormat("fr-FR", {
@@ -40,7 +37,6 @@ export function RequestSent({
   email,
   bookedSlot,
   bookedMode,
-  requestedSlot,
 }: RequestSentProps) {
   const router = useRouter();
   const [countdown, setCountdown] = useState(REDIRECT_DELAY);
@@ -73,38 +69,25 @@ export function RequestSent({
             <Check className="w-4.5 h-4.5" />
           </span>
           <h2 className="font-heading text-[21px] font-semibold text-ink leading-tight">
-            {bookedSlot ? "Votre rendez-vous est confirmé" : "Votre demande est envoyée"}
+            Votre rendez-vous est confirmé
           </h2>
         </div>
 
-        {bookedSlot ? (
-          <>
-            <p className="text-[15px] text-ink font-medium leading-[1.5]">
-              {/* La première lettre du jour en capitale : « Lundi 17 août à 10:00 ». */}
-              {(() => {
-                const s = slotFmt.format(new Date(bookedSlot));
-                return s.charAt(0).toUpperCase() + s.slice(1);
-              })()}
-            </p>
-            <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-2">
-              {bookedMode === "visio"
-                ? "En visioconférence — le lien Google Meet et l'invitation calendrier arrivent dans votre boîte email."
-                : "Au cabinet, à Casablanca. L'adresse exacte et l'invitation calendrier arrivent dans votre boîte email."}{" "}
-              Le premier rendez-vous est gratuit et sans engagement.
-            </p>
-          </>
-        ) : requestedSlot ? (
-          <p className="text-[13.5px] text-warm-grey leading-[1.65]">
-            Le créneau choisi n&apos;a pas pu être garanti — il venait d&apos;être pris. Votre
-            demande est bien transmise : un conseiller vous recontacte sous 24 à 48 heures pour
-            convenir d&apos;une heure. Le premier rendez-vous est gratuit et sans engagement.
-          </p>
-        ) : (
-          <p className="text-[13.5px] text-warm-grey leading-[1.65]">
-            Un conseiller vous recontacte au plus vite, sous 24 à 48 heures, pour convenir
-            d&apos;un créneau. Le premier rendez-vous est gratuit et sans engagement.
+        {bookedSlot && (
+          <p className="text-[15px] text-ink font-medium leading-[1.5]">
+            {/* La première lettre du jour en capitale : « Lundi 17 août à 10:00 ». */}
+            {(() => {
+              const s = slotFmt.format(new Date(bookedSlot));
+              return s.charAt(0).toUpperCase() + s.slice(1);
+            })()}
           </p>
         )}
+        <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-2">
+          {bookedMode === "visio"
+            ? "En visioconférence — le lien Google Meet et l'invitation calendrier arrivent dans votre boîte email."
+            : "Au cabinet, à Casablanca. L'adresse exacte et l'invitation calendrier arrivent dans votre boîte email."}{" "}
+          Le premier rendez-vous est gratuit et sans engagement.
+        </p>
 
         <div className="mt-6 pt-5 border-t border-cream-deep">
           <p className="text-[13.5px] text-ink leading-[1.6]">
@@ -128,7 +111,7 @@ export function RequestSent({
             <Link href="/" className="text-bronze hover:text-bronze-dark font-medium">
               Revenir à l&apos;accueil
             </Link>{" "}
-            - votre demande est déjà partie.
+            - votre rendez-vous est déjà confirmé.
           </p>
         </div>
       </div>

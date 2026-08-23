@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { submitAppointmentRequest, type RdvState } from "./actions";
+import { submitAppointmentRequest, emailHasAccount, type RdvState } from "./actions";
 import { RequestSent } from "./request-sent";
 import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
 import {
@@ -195,9 +195,9 @@ export function RdvForm() {
   const [slotStart, setSlotStart] = useState<string | null>(null);
   const [holdToken, setHoldToken] = useState<string | null>(null);
   const [mode, setMode] = useState<RdvMode | null>(null);
-  // Grille entièrement vide (pas encore de conseiller, tout complet) : l'étape
-  // du créneau laisse passer, sinon le questionnaire serait sans issue.
-  const [noSlots, setNoSlots] = useState(false);
+  // Une adresse déjà rattachée à un compte ne peut pas servir à une réservation
+  // visiteur — vérifié à la sortie du champ, reconfirmé côté serveur au submit.
+  const [emailTaken, setEmailTaken] = useState(false);
 
   const [state, formAction, pending] = useActionState(submitAppointmentRequest, initialState);
 
@@ -207,13 +207,25 @@ export function RdvForm() {
     email: validateEmail(email),
     phone: validatePhoneNational(phone, nationalLengths(phoneIso)),
   };
-  const coordonneesValid = Object.values(errors).every((e) => e === null);
+  const coordonneesValid = Object.values(errors).every((e) => e === null) && !emailTaken;
   // Errors only surface once a field has been left, so an untouched form is
   // never covered in red before anything has been typed.
   const shown = (field: keyof typeof errors) =>
     touched[field] ? errors[field] ?? undefined : undefined;
   const markTouched = (field: keyof typeof errors) =>
     setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
+
+  // Au blur : si l'email est bien formé, on demande au serveur s'il a déjà un
+  // compte. Toute frappe efface le verdict, le temps d'une nouvelle saisie.
+  const checkEmailTaken = async () => {
+    markTouched("email");
+    if (validateEmail(email) === null) setEmailTaken(await emailHasAccount(email));
+  };
+  const emailError =
+    shown("email") ??
+    (emailTaken
+      ? "Cette adresse a déjà un espace client. Connectez-vous, ou utilisez une autre adresse."
+      : undefined);
 
   const autreSelected = besoins.includes(AUTRE_BESOIN);
 
@@ -231,7 +243,6 @@ export function RdvForm() {
         email={email}
         bookedSlot={state.bookedSlot ?? null}
         bookedMode={mode}
-        requestedSlot={slotStart !== null}
       />
     );
   }
@@ -247,7 +258,9 @@ export function RdvForm() {
       (!autreSelected || validateBesoinAutre(besoinAutre) === null)) ||
     (step === 1 && patrimoine !== "") ||
     (step === 2 && investissement !== "") ||
-    (step === 3 && (noSlots || (slotStart !== null && mode !== null)));
+    // Le créneau est obligatoire : sans lui, pas de demande. Si la grille est
+    // vide, l'étape ne se franchit pas — le CreneauPicker l'explique.
+    (step === 3 && slotStart !== null && mode !== null);
 
   return (
     <form action={formAction} className="bg-cream border border-cream-deep rounded-lg p-6 sm:p-8">
@@ -366,7 +379,6 @@ export function RdvForm() {
                   setSlotStart(slot);
                   setHoldToken(token);
                 }}
-                onEmptyChange={setNoSlots}
               />
             </>
           )}
@@ -408,9 +420,12 @@ export function RdvForm() {
                   type="email"
                   inputMode="email"
                   value={email}
-                  onChange={setEmail}
-                  onBlur={() => markTouched("email")}
-                  error={shown("email")}
+                  onChange={(v) => {
+                    setEmail(v);
+                    if (emailTaken) setEmailTaken(false);
+                  }}
+                  onBlur={checkEmailTaken}
+                  error={emailError}
                   placeholder="votre@email.com"
                   autoComplete="email"
                 />
