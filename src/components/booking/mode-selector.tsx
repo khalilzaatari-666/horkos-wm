@@ -50,13 +50,13 @@ export function ModeSelector({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(mode.value)}
-            className={`flex items-start gap-3 text-left px-4 py-3.5 rounded-lg border transition-all duration-200 cursor-pointer ${
+            className={`flex items-center gap-3 text-left px-4 py-3.5 rounded-lg border transition-all duration-200 cursor-pointer ${
               selected
                 ? "border-bronze bg-bronze/10"
                 : "border-cream-deep bg-white hover:border-bronze/50"
             }`}
           >
-            <span className={`shrink-0 mt-0.5 ${selected ? "text-bronze-dark" : "text-warm-grey"}`}>
+            <span className={`shrink-0 ${selected ? "text-bronze-dark" : "text-warm-grey"}`}>
               {mode.icon}
             </span>
             <span className="min-w-0">

@@ -19,8 +19,8 @@ export const DEJEUNER_FIN = 14 * 60; // 14:00
 /** Marge minimale avant un rendez-vous, en minutes — pas de résa dans 10 min. */
 export const MARGE_MIN = 120;
 
-/** Combien de jours ouvrés proposés à la réservation. */
-export const JOURS_PROPOSES = 10;
+/** Combien de jours ouvrés proposés à la réservation (~6 semaines ouvrées). */
+export const JOURS_PROPOSES = 30;
 
 /**
  * Un début est valable si le rendez-vous complet tient dans une plage ouverte :
