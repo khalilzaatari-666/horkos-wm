@@ -2,7 +2,8 @@ import "server-only";
 
 import { Resend } from "resend";
 import { emailHtml, escapeHtml } from "./template";
-import { SITE_NAME, CABINET_EMAIL, TEAM_EMAIL } from "@/lib/site";
+import { staffRecipients } from "./recipients";
+import { SITE_NAME, CABINET_EMAIL } from "@/lib/site";
 
 /**
  * Notifie l'équipe qu'un nouveau dossier de cession vient d'arriver. La
@@ -40,6 +41,7 @@ export async function sendAssetSubmissionNotification(
   }
 
   const resend = new Resend(apiKey);
+  const to = await staffRecipients();
 
   const rows: [string, string][] = [
     ["Type d'actif", escapeHtml(input.assetType)],
@@ -59,7 +61,7 @@ export async function sendAssetSubmissionNotification(
   try {
     const result = await resend.emails.send({
       from: `${SITE_NAME} <${CABINET_EMAIL}>`,
-      to: TEAM_EMAIL,
+      to,
       // Permet de répondre directement au prospect depuis l'alerte.
       replyTo: input.contact.email,
       subject: `Nouveau dossier de cession — ${escapeHtml(input.contact.name)}`,

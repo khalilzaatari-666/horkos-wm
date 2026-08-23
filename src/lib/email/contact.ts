@@ -2,7 +2,8 @@ import "server-only";
 
 import { Resend } from "resend";
 import { emailHtml, escapeHtml } from "./template";
-import { SITE_NAME, CABINET_EMAIL, TEAM_EMAIL } from "@/lib/site";
+import { staffRecipients } from "./recipients";
+import { SITE_NAME, CABINET_EMAIL } from "@/lib/site";
 
 /**
  * Notifie l'équipe qu'un message de contact vient d'arriver. Le message est déjà
@@ -29,11 +30,12 @@ export async function sendContactNotification(input: ContactEmailInput): Promise
   }
 
   const resend = new Resend(apiKey);
+  const to = await staffRecipients();
 
   try {
     const result = await resend.emails.send({
       from: `${SITE_NAME} <${CABINET_EMAIL}>`,
-      to: TEAM_EMAIL,
+      to,
       // Permet de répondre directement à l'expéditeur depuis l'alerte.
       replyTo: input.email,
       subject: `Contact — ${escapeHtml(input.subject)} — ${escapeHtml(input.name)}`,
