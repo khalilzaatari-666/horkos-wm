@@ -9,12 +9,20 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    // Colonne d'au moins une hauteur d'écran : `main` s'étire (flex-1) et pousse
+    // le footer tout en bas, même quand la page est plus courte que l'écran.
+    <div className="min-h-screen flex flex-col">
       <OrganisationJsonLd />
       <ScrollRefresh />
       <Header />
-      <main className="flex-1 page-transition">{children}</main>
+      {/* `main` remplit l'espace entre header et footer ; `my-auto` centre le
+          contenu verticalement quand il reste de la place, et se réduit à zéro
+          quand la page est plus haute que l'écran (alignée en haut, défilement
+          normal, jamais de contenu rogné). */}
+      <main className="flex-1 flex flex-col page-transition">
+        <div className="my-auto w-full">{children}</div>
+      </main>
       <Footer />
-    </>
+    </div>
   );
 }
