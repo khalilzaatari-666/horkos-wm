@@ -13,7 +13,7 @@ export function absoluteUrl(path = "/"): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-export const CABINET_EMAIL = "bonjour@horkos-wm.com";
+export const CABINET_EMAIL = "contact@horkos-wm.com";
 
 /**
  * Destinataire des notifications internes (nouvelles soumissions, demandes).
