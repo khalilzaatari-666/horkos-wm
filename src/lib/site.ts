@@ -24,6 +24,6 @@ export const TEAM_EMAIL = process.env.TEAM_NOTIFICATION_EMAIL ?? CABINET_EMAIL;
 /**
  * TODO(client) : adresse complète du cabinet. Elle part telle quelle dans les
  * emails de confirmation des rendez-vous présentiels et dans l'invitation
- * calendrier — seul le quartier figure aujourd'hui dans la maquette.
+ * calendrier - seul le quartier figure aujourd'hui dans la maquette.
  */
 export const CABINET_ADDRESS = "Cabinet Horkos, Casablanca - Racine, Maroc";

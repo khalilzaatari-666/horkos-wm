@@ -47,8 +47,8 @@ export function BookingPanel() {
         </p>
         <p className="text-[13px] text-warm-grey leading-[1.65] mt-2">
           {state.bookedMode === "visio"
-            ? "En visioconférence — le lien Google Meet et l'invitation calendrier vous arrivent par email."
-            : "Au cabinet — l'adresse et l'invitation calendrier vous arrivent par email."}{" "}
+            ? "En visioconférence - le lien Google Meet et l'invitation calendrier vous arrivent par email."
+            : "Au cabinet - l'adresse et l'invitation calendrier vous arrivent par email."}{" "}
           Un empêchement ? Prévenez votre conseiller, il vous proposera une autre heure.
         </p>
         <Link

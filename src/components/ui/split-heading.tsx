@@ -29,7 +29,7 @@ export function SplitHeading({
     if (!el) return;
 
     // The element renders at opacity 0 so the words never flash before the
-    // split runs — reveal the container itself as soon as we take over.
+    // split runs - reveal the container itself as soon as we take over.
     const reveal = () => gsap.set(el, { opacity: 1 });
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {

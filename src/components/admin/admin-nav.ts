@@ -3,7 +3,7 @@
  *
  * `adminOnly` marque celles qui touchent aux rôles : un conseiller consulte les
  * rendez-vous et les dossiers, mais ne se promeut pas lui-même. La barre les
- * masque, et chaque page revérifie côté serveur — un menu caché n'est pas un
+ * masque, et chaque page revérifie côté serveur - un menu caché n'est pas un
  * contrôle d'accès.
  */
 export interface AdminSection {

@@ -3,7 +3,7 @@
  *
  * C'est lui qui fait « apparaître le rendez-vous dans le calendrier » sans
  * aucune API : joint à l'email en `METHOD:REQUEST`, Gmail, Outlook et Apple le
- * proposent à l'ajout — Google Calendar l'insère même de lui-même côté Gmail.
+ * proposent à l'ajout - Google Calendar l'insère même de lui-même côté Gmail.
  */
 
 export interface IcsEvent {
@@ -31,7 +31,7 @@ export function escapeIcsText(value: string): string {
 
 /**
  * Pliage RFC 5545 : 75 octets maximum par ligne, la suite indentée d'une
- * espace. En octets UTF-8, pas en caractères — un accent compte double, et un
+ * espace. En octets UTF-8, pas en caractères - un accent compte double, et un
  * pli au milieu d'un caractère multi-octets corromprait le fichier, donc on
  * plie caractère par caractère en comptant les octets.
  */

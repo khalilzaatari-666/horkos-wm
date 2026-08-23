@@ -9,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 interface SwipeRowProps {
   items: ReactNode[];
   className?: string;
-  /** Flex basis per card — tune so the next card peeks in and invites the swipe. */
+  /** Flex basis per card - tune so the next card peeks in and invites the swipe. */
   cardBasis?: string;
 }
 
@@ -85,7 +85,7 @@ export function SwipeRow({ items, className = "", cardBasis = "78%" }: SwipeRowP
     });
   };
 
-  // Scroll thumb. No motion-preference guard — it is a navigation affordance,
+  // Scroll thumb. No motion-preference guard - it is a navigation affordance,
   // not decoration, so hiding it would cost reduced-motion users information.
   useEffect(() => {
     const scroller = scrollerRef.current;

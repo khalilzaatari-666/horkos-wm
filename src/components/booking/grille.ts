@@ -1,5 +1,5 @@
 /**
- * La grille horaire du cabinet — la même vérité que `get_slot_availability`
+ * La grille horaire du cabinet - la même vérité que `get_slot_availability`
  * côté SQL (migration 010). Si l'une change, l'autre doit changer : le test de
  * `grille` verrouille la liste exacte des débuts pour qu'un écart se voie.
  *
@@ -16,7 +16,7 @@ export const FERMETURE = 18 * 60; // 18:00
 export const DEJEUNER_DEBUT = 12 * 60 + 30; // 12:30
 export const DEJEUNER_FIN = 14 * 60; // 14:00
 
-/** Marge minimale avant un rendez-vous, en minutes — pas de résa dans 10 min. */
+/** Marge minimale avant un rendez-vous, en minutes - pas de résa dans 10 min. */
 export const MARGE_MIN = 120;
 
 /** Combien de jours ouvrés proposés à la réservation (~6 semaines ouvrées). */

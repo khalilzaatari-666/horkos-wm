@@ -196,7 +196,7 @@ export function RdvForm() {
   const [holdToken, setHoldToken] = useState<string | null>(null);
   const [mode, setMode] = useState<RdvMode | null>(null);
   // Une adresse déjà rattachée à un compte ne peut pas servir à une réservation
-  // visiteur — vérifié à la sortie du champ, reconfirmé côté serveur au submit.
+  // visiteur - vérifié à la sortie du champ, reconfirmé côté serveur au submit.
   const [emailTaken, setEmailTaken] = useState(false);
 
   const [state, formAction, pending] = useActionState(submitAppointmentRequest, initialState);
@@ -259,7 +259,7 @@ export function RdvForm() {
     (step === 1 && patrimoine !== "") ||
     (step === 2 && investissement !== "") ||
     // Le créneau est obligatoire : sans lui, pas de demande. Si la grille est
-    // vide, l'étape ne se franchit pas — le CreneauPicker l'explique.
+    // vide, l'étape ne se franchit pas - le CreneauPicker l'explique.
     (step === 3 && slotStart !== null && mode !== null);
 
   return (

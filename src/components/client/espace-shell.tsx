@@ -141,7 +141,7 @@ export function EspaceShell({
   return (
     <div className="flex min-h-screen bg-white">
       {/* `sticky h-screen` : dans la rangée flex, la barre s'étirerait sinon à
-          la hauteur de la page entière, et son pied — la déconnexion — ne se
+          la hauteur de la page entière, et son pied - la déconnexion - ne se
           verrait qu'après avoir tout défilé. Bornée à l'écran, elle reste en
           place et son propre défilement prend le relais si la fenêtre est trop
           basse pour toutes les entrées. */}

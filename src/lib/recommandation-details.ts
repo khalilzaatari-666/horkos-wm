@@ -5,7 +5,7 @@ import { z } from "zod";
  *
  * Ce JSON sera saisi à la main par l'admin au Sprint 6 : il sera incomplet, mal
  * formé, ou absent pendant un moment. Chaque section est donc facultative et
- * validée séparément — une clé cassée ne doit jamais faire tomber la page, elle
+ * validée séparément - une clé cassée ne doit jamais faire tomber la page, elle
  * doit simplement ne pas s'afficher.
  */
 const sectionSchema = z.object({

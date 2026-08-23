@@ -28,7 +28,7 @@ const slotFmt = new Intl.DateTimeFormat("fr-FR", {
 
 /**
  * Shown once the demande is saved, then hands over to account creation with
- * everything prefilled. The account is an invitation, never a gate — the
+ * everything prefilled. The account is an invitation, never a gate - the
  * conseiller already has the request whatever the visitor does next.
  */
 export function RequestSent({
@@ -84,7 +84,7 @@ export function RequestSent({
         )}
         <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-2">
           {bookedMode === "visio"
-            ? "En visioconférence — le lien Google Meet et l'invitation calendrier arrivent dans votre boîte email."
+            ? "En visioconférence - le lien Google Meet et l'invitation calendrier arrivent dans votre boîte email."
             : "Au cabinet, à Casablanca. L'adresse exacte et l'invitation calendrier arrivent dans votre boîte email."}{" "}
           Le premier rendez-vous est gratuit et sans engagement.
         </p>

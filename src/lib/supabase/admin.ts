@@ -3,7 +3,7 @@ import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Client Supabase à clé de service — contourne INTÉGRALEMENT la sécurité au
+ * Client Supabase à clé de service - contourne INTÉGRALEMENT la sécurité au
  * niveau des lignes.
  *
  * Réservé à la seule opération qui l'exige : créer un compte pour un membre de

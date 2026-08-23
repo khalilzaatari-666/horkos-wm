@@ -133,7 +133,7 @@ function Calendar({
               type="button"
               disabled={!selectable}
               aria-pressed={isSelected}
-              aria-label={`${d} ${MONTHS_FR[m - 1]} ${y}${known && !hasRoom ? " — complet" : ""}`}
+              aria-label={`${d} ${MONTHS_FR[m - 1]} ${y}${known && !hasRoom ? " - complet" : ""}`}
               onClick={() => onPick(key)}
               className={`h-9 rounded-md text-[13px] tabular-nums transition-colors ${
                 isSelected
@@ -174,7 +174,7 @@ function getToken(): string {
 }
 
 /**
- * Grille de réservation partagée — questionnaire public et espace client.
+ * Grille de réservation partagée - questionnaire public et espace client.
  *
  * Le composant ne connaît ni la grille ni la capacité : il affiche ce que
  * `get_slot_availability` retourne et tient le créneau choisi via `hold_slot`.
@@ -260,7 +260,7 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
   );
 
   // Compte à rebours du hold. À zéro, la sélection tombe et la grille se
-  // rafraîchit — le serveur, lui, a déjà oublié le hold.
+  // rafraîchit - le serveur, lui, a déjà oublié le hold.
   useEffect(() => {
     if (!selected) return;
     timer.current = setInterval(() => {
@@ -331,7 +331,7 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
       <div className="py-10 text-center text-[13px] text-warm-grey leading-[1.65]">
         Aucun créneau ouvert à la réservation pour l&apos;instant.
         <br />
-        De nouveaux créneaux s&apos;ouvrent régulièrement — réessayez un peu plus tard.
+        De nouveaux créneaux s&apos;ouvrent régulièrement - réessayez un peu plus tard.
       </div>
     );
   }
@@ -356,7 +356,7 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
       {/* Heures du jour actif. Flex centré plutôt qu'une grille : la dernière
           rangée incomplète (13 créneaux ne se divisent ni par 3 ni par 4) se
           centre au lieu de laisser un créneau orphelin collé à gauche. Chaque
-          bouton garde la largeur d'une colonne — 3 sur mobile, 4 dès `sm`. */}
+          bouton garde la largeur d'une colonne - 3 sur mobile, 4 dès `sm`. */}
       {active && (
         <div className="flex flex-wrap justify-center gap-2 mt-3">
           {active.slots.map((slot) => {
@@ -391,7 +391,7 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
             <span className="tabular-nums font-medium">
               {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, "0")}
             </span>
-            {" "}— terminez votre demande pour le confirmer.
+            {" "}- terminez votre demande pour le confirmer.
           </p>
         ) : notice ? (
           <p className="text-[12.5px] text-charcoal">{notice}</p>

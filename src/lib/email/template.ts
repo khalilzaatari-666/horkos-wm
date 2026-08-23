@@ -3,7 +3,7 @@ import "server-only";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 /**
- * Gabarit HTML commun à tous les emails du cabinet — mêmes contraintes que
+ * Gabarit HTML commun à tous les emails du cabinet - mêmes contraintes que
  * code-connexion.html : tableaux et styles inline, pour survivre aux clients
  * mail les plus stricts (Outlook, Gmail, messageries d'entreprise).
  */

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
  * bookEspaceSlot : le type de rendez-vous n'est pas pris du formulaire mais
- * déduit du parcours — une « revue » si un R0 est déjà terminé, sinon un
+ * déduit du parcours - une « revue » si un R0 est déjà terminé, sinon un
  * « R0 ». On vérifie cette déduction, l'exigence de session et le passage à
  * bookAndNotify.
  */

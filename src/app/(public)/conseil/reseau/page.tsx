@@ -212,7 +212,7 @@ export default function ReseauPage() {
   useEffect(() => {
     const mm = gsap.matchMedia();
 
-    // Desktop only — mobile uses the StackCards deck.
+    // Desktop only - mobile uses the StackCards deck.
     mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
       const wrap = partnersRef.current;
       if (!wrap) return;

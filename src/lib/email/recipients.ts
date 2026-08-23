@@ -5,11 +5,11 @@ import { TEAM_EMAIL } from "@/lib/site";
 
 /**
  * Adresses de l'équipe (admins + conseillers) qui doivent recevoir les alertes
- * internes — nouvelles soumissions, messages de contact.
+ * internes - nouvelles soumissions, messages de contact.
  *
  * Lecture via la clé de service, CÔTÉ SERVEUR UNIQUEMENT : un visiteur anonyme
  * n'a aucun accès aux profils du staff (RLS), et ces adresses ne doivent jamais
- * atteindre le navigateur — elles ne servent qu'à remplir le champ `to` d'un
+ * atteindre le navigateur - elles ne servent qu'à remplir le champ `to` d'un
  * email envoyé depuis le serveur. Une fonction SECURITY DEFINER ouverte à `anon`
  * les exposerait au contraire à n'importe quel appelant : la clé de service,
  * confinée au serveur, est ici le choix le plus protecteur.

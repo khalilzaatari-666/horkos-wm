@@ -25,14 +25,14 @@ const STAFF_ROLES: readonly string[] = ["conseiller", "admin"];
  * Envoie à un compte déjà inscrit le lien qui lui fera choisir un mot de passe.
  *
  * Pas `inviteUserByEmail` : elle échoue sur un compte existant, or c'est
- * précisément le cas ici — la personne s'est inscrite comme cliente, puis on la
+ * précisément le cas ici - la personne s'est inscrite comme cliente, puis on la
  * promeut. Le lien de récupération, lui, fonctionne sur un compte existant et
  * aboutit au même endroit : /auth/callback échange le code contre une session
  * et dépose l'arrivant sur /bienvenue.
  *
  * La clé de service est préférée quand elle est là, pour n'envoyer cette
  * requête sur aucun client porteur des cookies de l'admin. À défaut, l'endpoint
- * de récupération se contente de la clé publique — l'envoi marche quand même.
+ * de récupération se contente de la clé publique - l'envoi marche quand même.
  */
 async function sendSetPasswordLink(email: string): Promise<boolean> {
   const client = createAdminClient() ?? (await createClient());
@@ -54,7 +54,7 @@ async function sendSetPasswordLink(email: string): Promise<boolean> {
  * personne s'inscrit normalement sur le site, puis un admin la promeut.
  *
  * Deux garde-fous. La policy « Admins can update all profiles » (`is_admin()`)
- * est la barrière réelle — Postgres refusera l'écriture à un conseiller. Le
+ * est la barrière réelle - Postgres refusera l'écriture à un conseiller. Le
  * contrôle « ne pas se rétrograder soi-même » ci-dessous, lui, protège d'une
  * autre erreur : un unique admin qui se retire ses droits et verrouille le
  * back-office pour tout le monde, sans recours autre que du SQL.
@@ -82,7 +82,7 @@ export async function updateUserRole(
     return {
       status: "error",
       message:
-        "Vous ne pouvez pas retirer vos propres droits d'administrateur — demandez à un autre admin.",
+        "Vous ne pouvez pas retirer vos propres droits d'administrateur - demandez à un autre admin.",
     };
   }
 
@@ -104,7 +104,7 @@ export async function updateUserRole(
   // `.select()` n'est pas décoratif : une écriture bloquée par la RLS ne
   // renvoie AUCUNE erreur, elle met simplement à jour zéro ligne. Sans lire ce
   // qui a été touché, l'action annonçait un succès alors que rien n'avait
-  // changé — et l'écran ne pouvait pas le dire.
+  // changé - et l'écran ne pouvait pas le dire.
   const { data: updated, error } = await supabase
     .from("profiles")
     .update({ role: parsed.data.role })
@@ -131,7 +131,7 @@ export async function updateUserRole(
 
   // Entrer dans l'équipe, c'est avoir besoin d'un mot de passe : le
   // back-office ne se déverrouille pas par code email. Un compte déjà inscrit
-  // n'en a pas — d'où l'envoi automatique, sans qu'un admin ait à y penser.
+  // n'en a pas - d'où l'envoi automatique, sans qu'un admin ait à y penser.
   //
   // L'échec de l'envoi ne remet pas le rôle en cause : la promotion est faite
   // et le reste se rattrape à la main. On le dit, plutôt que de laisser croire
@@ -157,7 +157,7 @@ export async function updateUserRole(
     : {
         status: "error",
         message:
-          "Rôle mis à jour, mais l'email de définition du mot de passe n'est pas parti. Vérifiez la configuration email de Supabase — la limite d'envoi est souvent en cause.",
+          "Rôle mis à jour, mais l'email de définition du mot de passe n'est pas parti. Vérifiez la configuration email de Supabase - la limite d'envoi est souvent en cause.",
       };
 }
 

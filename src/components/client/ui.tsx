@@ -162,13 +162,13 @@ export function Badge({
  *
  * Large : la barre latérale prend déjà 256 px, et un contenu bridé à 980 px
  * laissait de larges bandes vides sur un écran d'ordinateur portable. La borne
- * haute existe quand même — au-delà, les grilles s'étirent au point que l'œil
+ * haute existe quand même - au-delà, les grilles s'étirent au point que l'œil
  * ne relie plus une ligne à son en-tête.
  */
 export function Panel({
   children,
   /**
-   * Pour les pages dont le contenu ne remplit pas 1500 px — l'accompagnement et
+   * Pour les pages dont le contenu ne remplit pas 1500 px - l'accompagnement et
    * ses quelques rendez-vous. Centrer sur une largeur plus courte vaut mieux
    * que de laisser des cartes s'aligner à gauche d'un canevas trop grand.
    */

@@ -28,7 +28,7 @@ interface AnimateInProps {
   once?: boolean;
 }
 
-/** Full-travel, 3D-friendly values — desktop has the GPU headroom for them. */
+/** Full-travel, 3D-friendly values - desktop has the GPU headroom for them. */
 const desktopVariants: Record<AnimationVariant, gsap.TweenVars> = {
   "fade-up": { opacity: 0, y: 40 },
   "fade-down": { opacity: 0, y: -40 },
@@ -42,7 +42,7 @@ const desktopVariants: Record<AnimationVariant, gsap.TweenVars> = {
 
 /**
  * Mobile: shorter travel (a 50px slide eats a third of a 375px viewport),
- * no 3D rotation and no blur filter — both stutter on mid-range phones.
+ * no 3D rotation and no blur filter - both stutter on mid-range phones.
  */
 const mobileVariants: Record<AnimationVariant, gsap.TweenVars> = {
   "fade-up": { opacity: 0, y: 20 },

@@ -23,7 +23,7 @@ interface IconGeometry {
 }
 
 const geometry: Record<BesoinIconName, IconGeometry> = {
-  // Pie split into parts — répartition du capital.
+  // Pie split into parts - répartition du capital.
   diversifier: {
     fill: <path d="M12 3.5a8.5 8.5 0 0 1 7.6 12.7L12 12z" />,
     stroke: (
@@ -34,7 +34,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // Sheet with a percent sign — la fiscalité, sur le papier.
+  // Sheet with a percent sign - la fiscalité, sur le papier.
   fiscalite: {
     fill: <path d="M6 3.5h7.5L18 8v12.5H6z" />,
     stroke: (
@@ -48,7 +48,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // Hourglass — le temps qu'on prépare.
+  // Hourglass - le temps qu'on prépare.
   retraite: {
     fill: <path d="M8.6 3.5h6.8v3.2c0 1.2-.5 2.3-1.4 3.1L12 12l-2 2.2c-.9.8-1.4 1.9-1.4 3.1v3.2h6.8v-3.2c0-1.2-.5-2.3-1.4-3.1L12 12l2-2.2c.9-.8 1.4-1.9 1.4-3.1z" />,
     stroke: (
@@ -60,7 +60,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // A grown-up and a child — la génération suivante.
+  // A grown-up and a child - la génération suivante.
   transmettre: {
     fill: (
       <>
@@ -78,7 +78,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // Stacked strata — des actifs rangés en couches.
+  // Stacked strata - des actifs rangés en couches.
   patrimoine: {
     fill: <path d="M12 3.4 3.4 8 12 12.6 20.6 8z" />,
     stroke: (
@@ -90,7 +90,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // Org chart — une structure qu'on dessine.
+  // Org chart - une structure qu'on dessine.
   societe: {
     fill: (
       <>
@@ -109,7 +109,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // Someone, and a seal of approval — l'équipe qu'on retient.
+  // Someone, and a seal of approval - l'équipe qu'on retient.
   collaborateurs: {
     fill: (
       <>
@@ -127,7 +127,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // A stack of coins that goes up — la trésorerie qui travaille.
+  // A stack of coins that goes up - la trésorerie qui travaille.
   tresorerie: {
     fill: <path d="M9.2 3.6c3 0 5.5 1.1 5.5 2.4v10.4c0 1.3-2.5 2.4-5.5 2.4s-5.5-1.1-5.5-2.4V6c0-1.3 2.5-2.4 5.5-2.4z" />,
     stroke: (
@@ -140,7 +140,7 @@ const geometry: Record<BesoinIconName, IconGeometry> = {
     ),
   },
 
-  // A deed handed from one side to the other — l'actif qui change de mains.
+  // A deed handed from one side to the other - l'actif qui change de mains.
   ceder: {
     fill: <path d="M8.4 2.8h5.1L17 6.3v8.4H8.4z" />,
     stroke: (

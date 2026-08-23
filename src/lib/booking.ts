@@ -60,7 +60,7 @@ export async function bookAndNotify(
   const isVisio = mode === "visio";
 
   const event = await createAppointmentEvent({
-    summary: `${SITE_NAME} — rendez-vous ${client.name}`,
+    summary: `${SITE_NAME} - rendez-vous ${client.name}`,
     description: isVisio
       ? "Rendez-vous en visioconférence avec votre conseiller Horkos."
       : `Rendez-vous au cabinet Horkos.\n${CABINET_ADDRESS}`,

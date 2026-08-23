@@ -50,12 +50,12 @@ export default async function SoumissionsPage() {
                   )}
                 </Td>
                 <Td className="whitespace-nowrap tabular-nums">
-                  {s.estimated_value ? formatMAD(Number(s.estimated_value)) : "—"}
+                  {s.estimated_value ? formatMAD(Number(s.estimated_value)) : "-"}
                 </Td>
-                <Td>{s.reason ?? "—"}</Td>
-                <Td>{s.horizon ?? "—"}</Td>
+                <Td>{s.reason ?? "-"}</Td>
+                <Td>{s.horizon ?? "-"}</Td>
                 <Td>
-                  <div className="font-medium text-ink">{s.contact_name ?? "—"}</div>
+                  <div className="font-medium text-ink">{s.contact_name ?? "-"}</div>
                   {s.contact_email && (
                     <a
                       href={`mailto:${s.contact_email}`}

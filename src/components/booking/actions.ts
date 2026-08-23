@@ -4,15 +4,15 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Fine enveloppe des RPC de réservation (migration 010). Toute la logique —
- * grille, capacité, verrous — vit dans Postgres ; ici on ne fait que valider
+ * Fine enveloppe des RPC de réservation (migration 010). Toute la logique -
+ * grille, capacité, verrous - vit dans Postgres ; ici on ne fait que valider
  * les formes et transporter la session, pour que `auth.uid()` soit renseigné
  * quand l'utilisateur est connecté.
  */
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide.");
 const uuid = z.uuid();
-// Un instant ISO complet — la validité métier (grille, marge) est revérifiée
+// Un instant ISO complet - la validité métier (grille, marge) est revérifiée
 // par la fonction SQL, qui reste la seule autorité.
 const isoInstant = z.iso.datetime({ offset: true });
 

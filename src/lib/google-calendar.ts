@@ -3,7 +3,7 @@ import "server-only";
 import { JWT } from "google-auth-library";
 
 /**
- * Google Calendar — création de l'événement du rendez-vous, avec son lien Meet
+ * Google Calendar - création de l'événement du rendez-vous, avec son lien Meet
  * pour les visios.
  *
  * Un compte de service ne possède aucune licence Meet en propre : il agit au
@@ -12,7 +12,7 @@ import { JWT } from "google-auth-library";
  *
  * Contrat d'échec identique au reste de la réservation : toute erreur rend
  * `null` et se contente d'un log. Une panne Google ne doit jamais coûter un
- * créneau — le rendez-vous est pris, le conseiller enverra le lien à la main.
+ * créneau - le rendez-vous est pris, le conseiller enverra le lien à la main.
  */
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
@@ -72,7 +72,7 @@ async function accessToken(): Promise<string | null> {
 
 /**
  * Crée l'événement du rendez-vous. `withMeet` demande en plus une conférence
- * Google Meet — c'est `conferenceDataVersion=1` qui autorise Google à en
+ * Google Meet - c'est `conferenceDataVersion=1` qui autorise Google à en
  * générer une ; sans ce paramètre, la demande est ignorée en silence.
  */
 export async function createAppointmentEvent(options: {
@@ -115,7 +115,7 @@ export async function createAppointmentEvent(options: {
 
   try {
     // `sendUpdates=none` : c'est notre email de confirmation, à la charte du
-    // cabinet, qui prévient le client — pas l'invitation générique de Google.
+    // cabinet, qui prévient le client - pas l'invitation générique de Google.
     // L'événement apparaît malgré tout dans les agendas des participants.
     const url = `${API}?conferenceDataVersion=1&sendUpdates=none`;
     const response = await fetch(url, {
@@ -152,7 +152,7 @@ export async function createAppointmentEvent(options: {
 }
 
 /**
- * Ajoute le conseiller à l'événement une fois qu'on sait lequel a été assigné —
+ * Ajoute le conseiller à l'événement une fois qu'on sait lequel a été assigné -
  * `book_slot` ne le révèle qu'après la réservation, et l'événement doit exister
  * avant pour porter le lien Meet.
  */

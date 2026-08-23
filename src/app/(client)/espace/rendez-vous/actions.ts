@@ -20,7 +20,7 @@ const schema = z.object({
 
 /**
  * Réservation depuis l'espace client. Le type de rendez-vous n'est pas pris du
- * formulaire : il se déduit du parcours — une revue si l'audit R0 est passé,
+ * formulaire : il se déduit du parcours - une revue si l'audit R0 est passé,
  * sinon un R0. Un champ caché serait un mensonge facile.
  */
 export async function bookEspaceSlot(

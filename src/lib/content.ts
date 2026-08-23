@@ -3,7 +3,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 /**
  * Read helpers for the public "Ressources" pages.
  *
- * Everything here is filled from the back-office — nothing is hardcoded. RLS
+ * Everything here is filled from the back-office - nothing is hardcoded. RLS
  * already restricts anonymous reads to rows with `is_published = true`; the
  * explicit filters below just keep the intent visible at the call site.
  */
@@ -99,7 +99,7 @@ const longDate = new Intl.DateTimeFormat("fr-FR", {
 });
 const shortMonth = new Intl.DateTimeFormat("fr-FR", { month: "short" });
 
-/** "8 juillet 2026" — `numeric` keeps the day free of a leading zero. */
+/** "8 juillet 2026" - `numeric` keeps the day free of a leading zero. */
 export function formatLongDate(value: string): string {
   return longDate.format(new Date(value));
 }

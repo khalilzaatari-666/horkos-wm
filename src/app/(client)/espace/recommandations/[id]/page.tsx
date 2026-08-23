@@ -110,7 +110,7 @@ export default async function RecommandationPage({
                 {details.pourquoi.map((point, i) => (
                   <li key={i} className="flex gap-2.5 text-[13.5px] text-charcoal leading-[1.65]">
                     <span aria-hidden="true" className="text-bronze shrink-0">
-                      —
+                      -
                     </span>
                     {point}
                   </li>

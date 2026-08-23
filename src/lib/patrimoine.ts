@@ -96,7 +96,7 @@ const CONCENTRATION_THRESHOLD = 45;
  * calculé automatiquement et présenté à un client est précisément ce qu'un
  * contrôle AMMC demanderait de justifier. C'est au conseiller de qualifier.
  *
- * Sans objet quand une seule classe existe — « 100 % sur une seule classe »
+ * Sans objet quand une seule classe existe - « 100 % sur une seule classe »
  * n'apprend rien à qui ne détient qu'un actif.
  */
 export function concentration(classes: AssetClass[]): AssetClass | null {
@@ -122,12 +122,12 @@ const DAY_MS = 86_400_000;
  * Performance sur douze mois, pondérée par la valeur des actifs.
  *
  * Pour chaque actif on cherche le relevé le plus proche de la date d'il y a un
- * an, dans une fenêtre de ± 75 jours — un relevé trimestriel ne tombe jamais
+ * an, dans une fenêtre de ± 75 jours - un relevé trimestriel ne tombe jamais
  * pile. Les actifs sans point de comparaison sont exclus des DEUX côtés du
  * rapport : les inclure au numérateur seulement gonflerait artificiellement la
  * performance d'un patrimoine récemment enrichi.
  *
- * Retourne `percent: null` plutôt que zéro quand rien n'est comparable — un
+ * Retourne `percent: null` plutôt que zéro quand rien n'est comparable - un
  * zéro se lit comme « stable », ce qui serait un chiffre inventé.
  */
 export function performance12m(
@@ -185,9 +185,9 @@ export function performance12m(
   };
 }
 
-/** « 4,25M MAD » — les montants patrimoniaux se lisent en ordre de grandeur. */
+/** « 4,25M MAD » - les montants patrimoniaux se lisent en ordre de grandeur. */
 export function formatMAD(value: number): string {
-  if (!Number.isFinite(value)) return "—";
+  if (!Number.isFinite(value)) return "-";
   const abs = Math.abs(value);
 
   if (abs >= 1_000_000) {

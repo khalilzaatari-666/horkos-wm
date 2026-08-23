@@ -2,7 +2,7 @@
 
 /**
  * Les sept besoins « Pour vous » du carrousel de l'accueil se retrouvent ici à
- * l'identique — `besoinsParticuliers` dans `@/lib/besoins` est typé dessus, donc
+ * l'identique - `besoinsParticuliers` dans `@/lib/besoins` est typé dessus, donc
  * renommer d'un côté sans l'autre ne compile pas. Les deux besoins « Pour votre
  * entreprise » n'en font délibérément pas partie.
  */

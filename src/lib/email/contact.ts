@@ -8,7 +8,7 @@ import { SITE_NAME, CABINET_EMAIL } from "@/lib/site";
 /**
  * Notifie l'équipe qu'un message de contact vient d'arriver. Le message est déjà
  * enregistré en base quand on arrive ici : l'échec d'envoi ne doit jamais bloquer
- * le visiteur — il est seulement journalisé. Le back-office (/admin) reste la
+ * le visiteur - il est seulement journalisé. Le back-office (/admin) reste la
  * source de vérité ; cet email n'est qu'une alerte.
  */
 

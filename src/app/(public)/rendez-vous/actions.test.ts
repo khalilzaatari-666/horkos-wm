@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 /**
  * submitAppointmentRequest : la validation serveur est la seule qui compte, le
  * créneau est désormais OBLIGATOIRE, et le questionnaire n'est enregistré
- * QU'APRÈS une réservation réussie — jamais de demande sans rendez-vous. On
+ * QU'APRÈS une réservation réussie - jamais de demande sans rendez-vous. On
  * mocke Supabase et bookAndNotify pour isoler ces règles.
  */
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
@@ -111,7 +111,7 @@ describe("validation", () => {
     expect(mockBook).not.toHaveBeenCalled();
   });
 
-  it("refuse une demande sans créneau — le slot est désormais obligatoire", async () => {
+  it("refuse une demande sans créneau - le slot est désormais obligatoire", async () => {
     stubSupabase();
     const res = await submitAppointmentRequest(
       IDLE,

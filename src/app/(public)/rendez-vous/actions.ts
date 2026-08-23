@@ -21,7 +21,7 @@ export interface RdvState {
 }
 
 /**
- * Server-side validation is the only one that counts — the browser form can be
+ * Server-side validation is the only one that counts - the browser form can be
  * bypassed. The rules come from `@/lib/validation` so they stay identical to
  * the ones the visitor sees, and answers are checked against the published
  * option lists rather than accepted as free text.
@@ -145,7 +145,7 @@ export async function submitAppointmentRequest(
   // Le rendez-vous est confirmé : on attache le questionnaire, rattaché au
   // rendez-vous créé et déjà « planifie ». L'id est généré ici (un INSERT
   // anonyme avec RETURNING passerait par une policy SELECT absente pour `anon`).
-  // Un échec d'écriture ici ne défait pas la réservation — on le journalise.
+  // Un échec d'écriture ici ne défait pas la réservation - on le journalise.
   const { error } = await supabase.from("appointment_requests").insert({
     id: crypto.randomUUID(),
     first_name: firstName,
@@ -171,7 +171,7 @@ export async function submitAppointmentRequest(
 /**
  * Le formulaire interroge ceci quand le visiteur quitte le champ email : cette
  * adresse a-t-elle déjà un espace client ? On répond false au moindre doute
- * (adresse invalide, RPC absente/en erreur) pour ne jamais bloquer à tort — la
+ * (adresse invalide, RPC absente/en erreur) pour ne jamais bloquer à tort - la
  * vérification qui fait foi est celle de submitAppointmentRequest.
  */
 export async function emailHasAccount(email: string): Promise<boolean> {

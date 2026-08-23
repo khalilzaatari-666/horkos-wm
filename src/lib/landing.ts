@@ -2,7 +2,7 @@
  * Où déposer quelqu'un après une connexion réussie.
  *
  * Un membre de l'équipe qui se connecte atterrissait dans l'espace client, sans
- * rien à l'écran menant au back-office. Le rôle décide donc de la destination —
+ * rien à l'écran menant au back-office. Le rôle décide donc de la destination -
  * sauf si une page précise était demandée avant la connexion, auquel cas c'est
  * elle qui gagne : on ne détourne pas quelqu'un de la page qu'il visait.
  */

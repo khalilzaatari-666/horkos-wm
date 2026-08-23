@@ -11,7 +11,7 @@ function tone(index: number): string {
 /**
  * Répartition par classe d'actifs : une barre empilée et sa légende.
  *
- * Pas de librairie de graphiques — des proportions se rendent en CSS, et une
+ * Pas de librairie de graphiques - des proportions se rendent en CSS, et une
  * dépendance supplémentaire pèserait sur chaque page de l'espace pour un seul
  * usage.
  */

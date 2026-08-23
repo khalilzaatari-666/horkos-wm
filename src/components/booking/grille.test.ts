@@ -14,13 +14,13 @@ import {
 /**
  * Ce fichier verrouille la grille horaire. Son rôle explicite (voir l'en-tête de
  * grille.ts et de la migration 010) : si la liste des 13 débuts change ici sans
- * changer `_booking_starts()` côté SQL — ou l'inverse — un test casse.
+ * changer `_booking_starts()` côté SQL - ou l'inverse - un test casse.
  */
 
 // La vérité partagée avec `public._booking_starts()` dans 010_booking.sql.
 const STARTS_SQL = [540, 570, 600, 630, 660, 690, 840, 870, 900, 930, 960, 990, 1020];
 
-describe("slotsOfDay — les 13 débuts d'une journée ouvrée", () => {
+describe("slotsOfDay - les 13 débuts d'une journée ouvrée", () => {
   it("rend exactement la liste que reflète _booking_starts() côté SQL", () => {
     expect(slotsOfDay()).toEqual(STARTS_SQL);
   });
@@ -45,7 +45,7 @@ describe("slotsOfDay — les 13 débuts d'une journée ouvrée", () => {
   });
 });
 
-describe("isBookableStart — un rendez-vous complet doit tenir dans une plage ouverte", () => {
+describe("isBookableStart - un rendez-vous complet doit tenir dans une plage ouverte", () => {
   it("accepte le premier créneau du matin (09:00)", () => {
     expect(isBookableStart(OUVERTURE)).toBe(true);
   });
@@ -81,7 +81,7 @@ describe("isBookableStart — un rendez-vous complet doit tenir dans une plage o
   });
 });
 
-describe("isJourOuvre — samedi et dimanche fermés", () => {
+describe("isJourOuvre - samedi et dimanche fermés", () => {
   it("ouvre du lundi (1) au vendredi (5)", () => {
     for (const day of [1, 2, 3, 4, 5]) expect(isJourOuvre(day)).toBe(true);
   });
@@ -92,7 +92,7 @@ describe("isJourOuvre — samedi et dimanche fermés", () => {
   });
 });
 
-describe("formatMinutes — minutes depuis minuit vers HH:MM", () => {
+describe("formatMinutes - minutes depuis minuit vers HH:MM", () => {
   it("zéro-remplit les heures et les minutes", () => {
     expect(formatMinutes(540)).toBe("09:00");
     expect(formatMinutes(570)).toBe("09:30");

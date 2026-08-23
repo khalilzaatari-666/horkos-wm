@@ -14,7 +14,7 @@ export interface AdminProfile {
 }
 
 /**
- * Coquille du back-office — barre latérale sombre, pour la distinguer d'un coup
+ * Coquille du back-office - barre latérale sombre, pour la distinguer d'un coup
  * d'œil de l'espace client. On ne veut pas qu'un conseiller croie parler à son
  * client parce que les deux interfaces se ressemblent.
  */

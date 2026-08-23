@@ -26,7 +26,7 @@ interface HashScrollProps {
 
 /**
  * Descend en douceur jusqu'à une section quand on arrive sur la page avec son
- * ancre — depuis la carte « Céder un actif » du carrousel, par exemple.
+ * ancre - depuis la carte « Céder un actif » du carrousel, par exemple.
  *
  * Le lien porte `scroll={false}` : Next ne saute donc pas à l'ancre et laisse
  * l'animation faire le trajet. Sur un chargement direct de l'URL en revanche,

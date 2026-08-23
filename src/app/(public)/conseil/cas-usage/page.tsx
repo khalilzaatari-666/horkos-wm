@@ -107,7 +107,7 @@ export default function CasUsagePage() {
   useEffect(() => {
     const mm = gsap.matchMedia();
 
-    // Desktop only — mobile uses the StackCards deck below.
+    // Desktop only - mobile uses the StackCards deck below.
     mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
       const grid = cardsRef.current;
       if (!grid) return;

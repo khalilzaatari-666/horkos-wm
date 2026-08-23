@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<string, string> = {
  * parcourue remplie.
  *
  * Le rail ne court pas d'un bord à l'autre mais du centre du premier jalon au
- * centre du dernier — sinon il dépasse des pastilles et la barre semble
+ * centre du dernier - sinon il dépasse des pastilles et la barre semble
  * commencer avant l'étape initiale.
  */
 function ParcoursBar({ appointments }: { appointments: Appointment[] }) {

@@ -41,7 +41,7 @@ export function SetPasswordForm() {
 
     if (updateError) {
       setError(
-        "Le mot de passe n'a pas pu être enregistré. Le lien d'invitation a peut-être expiré — demandez-en un nouveau."
+        "Le mot de passe n'a pas pu être enregistré. Le lien d'invitation a peut-être expiré - demandez-en un nouveau."
       );
       setLoading(false);
       return;

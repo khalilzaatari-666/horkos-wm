@@ -97,7 +97,7 @@ describe("chargement de la disponibilité", () => {
 
     await mountLoaded({ onSelect: vi.fn() });
 
-    // fetchAvailability(from, to, token) — le token est le 3e argument.
+    // fetchAvailability(from, to, token) - le token est le 3e argument.
     const token = mockFetch.mock.calls[0][2];
     expect(token).toMatch(/^[0-9a-f-]{36}$/i);
   });

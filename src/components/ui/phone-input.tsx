@@ -8,7 +8,7 @@ interface PhoneInputProps {
   /** ISO 3166-1 alpha-2 of the selected country. */
   iso: string;
   onIsoChange: (iso: string) => void;
-  /** National number, as typed — the dial code is not part of it. */
+  /** National number, as typed - the dial code is not part of it. */
   value: string;
   onChange: (value: string) => void;
   onBlur: () => void;

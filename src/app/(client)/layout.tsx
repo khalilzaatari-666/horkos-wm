@@ -7,7 +7,7 @@ import { EspaceShell } from "@/components/client/espace-shell";
  * chaque page charge ensuite ses propres données.
  *
  * Le middleware garantit déjà qu'un utilisateur est connecté, mais il ne
- * garantit pas que sa ligne `profiles` existe — le déclencheur
+ * garantit pas que sa ligne `profiles` existe - le déclencheur
  * `handle_new_user` peut avoir échoué. On préfère renvoyer vers la connexion
  * plutôt que d'afficher un espace à moitié vide sans expliquer pourquoi.
  */

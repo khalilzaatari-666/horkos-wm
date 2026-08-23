@@ -9,7 +9,7 @@ const initialState: RoleState = { status: "idle" };
 /**
  * Un rôle mal attribué ouvre l'accès aux données de tous les clients, donc le
  * changement demande une confirmation explicite plutôt que de partir au premier
- * changement de liste — contrairement au statut d'une demande, qui est anodin.
+ * changement de liste - contrairement au statut d'une demande, qui est anodin.
  */
 export function RoleSelect({
   id,

@@ -58,7 +58,7 @@ interface Row {
   /** Compte client rattaché (null tant que le visiteur n'en a pas créé). */
   client: Personne | null;
   advisor: { first_name: string | null; last_name: string | null } | null;
-  /** Questionnaire de prise de rendez-vous rattaché — la source du contexte. */
+  /** Questionnaire de prise de rendez-vous rattaché - la source du contexte. */
   demande: Demande | null;
 }
 
@@ -160,7 +160,7 @@ export default async function AdminRendezVousPage({
   // enchaînés sur une variable réassignée. Ce n'est pas une coquetterie : la
   // réassignation d'un constructeur de requête Supabase fait réinstancier ses
   // génériques à chaque maillon, et coûtait à elle seule 63 000 instanciations
-  // de types — de quoi faire dépasser la limite mémoire du worker TypeScript
+  // de types - de quoi faire dépasser la limite mémoire du worker TypeScript
   // de Next au moment du build.
   const egalites: Record<string, string> = {};
   if (statut) egalites.status = statut;
@@ -327,10 +327,10 @@ export default async function AdminRendezVousPage({
                           rel="noopener noreferrer"
                           className="text-[12px] text-bronze-dark hover:text-bronze transition-colors"
                         >
-                          Visio — rejoindre
+                          Visio - rejoindre
                         </a>
                       ) : (
-                        <span className="text-[12px] text-warm-grey">Visio — lien à envoyer</span>
+                        <span className="text-[12px] text-warm-grey">Visio - lien à envoyer</span>
                       )
                     ) : (
                       <span className="text-[12px] text-charcoal">Au cabinet</span>
@@ -417,11 +417,11 @@ export default async function AdminRendezVousPage({
                     </p>
                   )}
 
-                  {!d && <span className="text-warm-grey">—</span>}
+                  {!d && <span className="text-warm-grey">-</span>}
                 </Td>
 
                 <Td className="whitespace-nowrap">
-                  {fullName(r.advisor) || <span className="text-warm-grey">—</span>}
+                  {fullName(r.advisor) || <span className="text-warm-grey">-</span>}
                 </Td>
 
                 <Td>

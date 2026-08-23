@@ -15,8 +15,8 @@ const DEBOUNCE_MS = 150;
  *
  * Every reveal on the site renders at `opacity: 0` and waits for a trigger
  * whose start offset is measured once, at creation. Anything that changes the
- * document height afterwards — a form replaced by its confirmation, an
- * accordion opening, a card expanding — moves the sections below without
+ * document height afterwards - a form replaced by its confirmation, an
+ * accordion opening, a card expanding - moves the sections below without
  * ScrollTrigger noticing, so their reveals never fire and the content stays
  * invisible with only the section backgrounds showing.
  *

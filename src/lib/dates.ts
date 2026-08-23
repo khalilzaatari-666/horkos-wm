@@ -38,20 +38,20 @@ const MOIS_COURTS = [
  */
 export function formatDateLong(value: string | Date | null | undefined): string {
   const d = toDate(value);
-  if (!d) return "—";
+  if (!d) return "-";
   return `${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-/** « 14 juil. » — pour les cartes où la place manque. */
+/** « 14 juil. » - pour les cartes où la place manque. */
 export function formatDateShort(value: string | Date | null | undefined): string {
   const d = toDate(value);
-  if (!d) return "—";
+  if (!d) return "-";
   return `${d.getDate()} ${MOIS_COURTS[d.getMonth()]}`;
 }
 
 export function formatDateTime(value: string | Date | null | undefined): string {
   const d = toDate(value);
-  if (!d) return "—";
+  if (!d) return "-";
   const h = String(d.getHours()).padStart(2, "0");
   const m = String(d.getMinutes()).padStart(2, "0");
   return `${formatDateLong(d)} à ${h}h${m}`;

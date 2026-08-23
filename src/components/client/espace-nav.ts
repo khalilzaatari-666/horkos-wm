@@ -33,7 +33,7 @@ export function initials(firstName?: string | null, lastName?: string | null, em
   return (email?.trim()?.[0] ?? "?").toUpperCase();
 }
 
-/** « Othmane B. » — assez pour se reconnaître, sans encombrer la barre. */
+/** « Othmane B. » - assez pour se reconnaître, sans encombrer la barre. */
 export function shortName(firstName?: string | null, lastName?: string | null, email?: string | null): string {
   const first = firstName?.trim();
   const last = lastName?.trim();

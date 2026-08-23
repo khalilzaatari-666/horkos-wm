@@ -22,7 +22,7 @@ const select =
 
 /**
  * Filtres portés par l'URL plutôt que par un état local : la vue devient
- * partageable et survit à un rechargement — un conseiller peut envoyer « les
+ * partageable et survit à un rechargement - un conseiller peut envoyer « les
  * visios non confirmées de Untel » à un collègue par simple lien.
  *
  * `replace` et non `push` : filtrer n'est pas naviguer, et empiler chaque

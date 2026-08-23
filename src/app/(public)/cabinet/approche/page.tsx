@@ -28,7 +28,7 @@ const philosophie = [
 export default function ApprochePage() {
   const stripRef = useRef<HTMLDivElement>(null);
 
-  // Desktop grid entrance — the mobile row is handled by SwipeRow itself.
+  // Desktop grid entrance - the mobile row is handled by SwipeRow itself.
   useEffect(() => {
     const mm = gsap.matchMedia();
 

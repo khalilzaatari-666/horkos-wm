@@ -68,7 +68,7 @@ beforeEach(() => {
   mockEmails.mockReset();
 });
 
-describe("visio — chemin nominal", () => {
+describe("visio - chemin nominal", () => {
   it("crée l'événement avec Meet AVANT de réserver, passe le lien à book_slot, puis rattache le conseiller et envoie les emails", async () => {
     mockCreateEvent.mockResolvedValue({ eventId: "evt-1", meetLink: "https://meet.google.com/abc" });
     const supabase = supabaseWith({ data: bookResult("visio"), error: null });
@@ -103,7 +103,7 @@ describe("visio — chemin nominal", () => {
   });
 });
 
-describe("présentiel — chemin nominal", () => {
+describe("présentiel - chemin nominal", () => {
   it("crée l'événement sans Meet avec l'adresse du cabinet et réserve sans lien", async () => {
     mockCreateEvent.mockResolvedValue({ eventId: "evt-2", meetLink: null });
     const supabase = supabaseWith({ data: bookResult("presentiel"), error: null });

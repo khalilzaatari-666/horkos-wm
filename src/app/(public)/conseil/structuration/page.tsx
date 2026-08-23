@@ -159,7 +159,7 @@ export default function StructurationPage() {
         </div>
       </section>
 
-      {/* Notre rôle — process */}
+      {/* Notre rôle - process */}
       <section className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
           <AnimateIn variant="fade-right">
@@ -232,7 +232,7 @@ export default function StructurationPage() {
         </div>
       </section>
 
-      {/* Cas d'usage — Apport immobilier */}
+      {/* Cas d'usage - Apport immobilier */}
       <section className="bg-ink text-cream py-16 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-7">
           <div className="grid md:grid-cols-2 gap-12 items-center">

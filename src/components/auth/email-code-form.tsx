@@ -25,7 +25,7 @@ const inputClass =
 /**
  * Passwordless email flow.
  *
- * `signInWithOtp` covers both cases with one call — it creates the account when
+ * `signInWithOtp` covers both cases with one call - it creates the account when
  * `shouldCreateUser` is on. On the login page it stays off, so an unknown
  * address gets told to sign up instead of silently getting an account.
  */
@@ -173,7 +173,7 @@ export function EmailCodeForm({
     router.refresh();
   }
 
-  // Verify as soon as the sixth digit lands — no extra click.
+  // Verify as soon as the sixth digit lands - no extra click.
   useEffect(() => {
     if (step === "code" && code.length === CODE_LENGTH && !verifying && !verifiedRef.current) {
       verifyCode(code);

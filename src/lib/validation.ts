@@ -3,7 +3,7 @@ import { nationalLengthsForDial } from "@/lib/countries";
 /**
  * Field validators shared by the forms and their server actions.
  *
- * The browser check is only there to give immediate feedback — the server one
+ * The browser check is only there to give immediate feedback - the server one
  * is what actually protects the data. Both live here so a rule can't be
  * tightened on one side and forgotten on the other.
  */
@@ -14,7 +14,7 @@ export const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[ '-][A-Za-zÀ-ÖØ-öø-
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** The national part only — the dial code comes from the country picker.
+/** The national part only - the dial code comes from the country picker.
  *  Deliberately permissive on grouping: numbering plans differ from one
  *  country to the next and many clients live abroad. */
 export const PHONE_NATIONAL_REGEX = /^[\d\s().-]+$/;
@@ -45,7 +45,7 @@ export function sanitizeName(value: string): string {
  * Raises the first letter of each part of a name.
  *
  * Only a lowercase letter sitting at the start or just after a separator is
- * touched — nothing else is altered, so "McDonald" and "d'ARTAGNAN" keep the
+ * touched - nothing else is altered, so "McDonald" and "d'ARTAGNAN" keep the
  * casing they were given.
  */
 export function capitaliseName(value: string): string {
@@ -119,7 +119,7 @@ export function validatePhoneNational(
 /**
  * Joins the dial code and the national number into what gets stored.
  *
- * The leading zero is a national trunk prefix — "06 12 34 56 78" dialled from
+ * The leading zero is a national trunk prefix - "06 12 34 56 78" dialled from
  * abroad is "+212 612345678", not "+212 0612345678". Dropping it here means
  * the stored number is always callable as-is.
  */
@@ -132,7 +132,7 @@ export function composePhone(dialCode: string, nationalNumber: string): string {
  * Server-side check on the composed value.
  *
  * The dial code is all the server gets, so the expected lengths are looked up
- * from it — enough to apply the same rule the browser applied.
+ * from it - enough to apply the same rule the browser applied.
  */
 export function validatePhoneFull(value: string): string | null {
   const v = value.trim();

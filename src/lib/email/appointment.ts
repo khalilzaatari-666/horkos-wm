@@ -6,14 +6,14 @@ import { emailHtml, escapeHtml } from "./template";
 import { SITE_NAME, CABINET_EMAIL, CABINET_ADDRESS } from "@/lib/site";
 
 /**
- * Emails de confirmation d'un rendez-vous — un au client, un au conseiller.
+ * Emails de confirmation d'un rendez-vous - un au client, un au conseiller.
  *
  * L'agenda Google du cabinet porte déjà l'événement (voir `@/lib/booking`), ce
  * qui suffit aux comptes du domaine. L'invitation ICS jointe couvre tous les
  * autres : un client sous Outlook, Apple Mail ou une messagerie d'entreprise ne
  * verrait rien sans elle.
  *
- * Ces emails sont notre propre confirmation, à la charte du cabinet — d'où le
+ * Ces emails sont notre propre confirmation, à la charte du cabinet - d'où le
  * `sendUpdates=none` côté Google, qui évite au client d'en recevoir deux.
  *
  * Contrat d'échec : comme l'agenda, jamais bloquant. La réservation est déjà
@@ -26,7 +26,7 @@ export interface AppointmentEmailInput {
   /** Début du rendez-vous, ISO. */
   slotIso: string;
   mode: "presentiel" | "visio";
-  /** Lien Meet — null si la création a échoué, l'email l'annonce alors. */
+  /** Lien Meet - null si la création a échoué, l'email l'annonce alors. */
   meetingUrl: string | null;
   client: { name: string; email: string };
   advisor: { name: string; email: string | null };
@@ -111,7 +111,7 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
     attachments: [icsAttachment],
   });
 
-  // Le conseiller reçoit sa propre confirmation — c'est aussi elle qui pose le
+  // Le conseiller reçoit sa propre confirmation - c'est aussi elle qui pose le
   // rendez-vous dans SON calendrier via la même invitation.
   const advisorEmail = input.advisor.email
     ? resend.emails.send({

@@ -5,7 +5,7 @@
  * marocaine résidant à l'étranger, un choix limité au Maghreb et à l'Europe
  * laisserait des clients légitimes sans indicatif utilisable.
  *
- * Les drapeaux ne sont pas stockés — ils se déduisent du code ISO, deux
+ * Les drapeaux ne sont pas stockés - ils se déduisent du code ISO, deux
  * lettres converties en indicateurs régionaux Unicode.
  */
 
@@ -157,7 +157,7 @@ export function getCountry(iso: string): Country {
  * L'indicatif le plus long l'emporte : +1 et +212 commencent tous deux par « 1 »
  * ou « 2 », et retenir la première correspondance rattacherait des numéros au
  * mauvais pays. Quand plusieurs pays partagent l'indicatif (+1), on prend celui
- * des pays suggérés s'il y figure — le cabinet est marocain, ses clients
+ * des pays suggérés s'il y figure - le cabinet est marocain, ses clients
  * canadiens sont plus probables que ceux d'une petite île des Caraïbes.
  */
 export function splitPhone(stored: string | null | undefined): {

@@ -13,14 +13,14 @@ interface StackCardsProps {
   topOffset?: number;
   /** Extra offset per card, so each parked card leaves a visible sliver. */
   step?: number;
-  /** Vertical flow gap — this is what creates the scroll distance between cards. */
+  /** Vertical flow gap - this is what creates the scroll distance between cards. */
   gap?: number;
 }
 
 /**
  * Mobile card deck: each card parks under the header and the next one scrolls
  * over it, while the covered card recedes slightly for depth. Meant to be
- * rendered inside a `md:hidden` wrapper — desktop keeps its grid.
+ * rendered inside a `md:hidden` wrapper - desktop keeps its grid.
  *
  * NOTE: `position: sticky` breaks if any ancestor is a scroll container, so
  * sections wrapping this must use `overflow-x-clip` rather than `overflow-hidden`.
@@ -48,7 +48,7 @@ export function StackCards({
         if (!inner) return;
 
         // A sticky element's getBoundingClientRect reports its *pinned* position,
-        // so it can never be its own ScrollTrigger trigger — the measurement is
+        // so it can never be its own ScrollTrigger trigger - the measurement is
         // wrong the moment it parks. Trigger off the container instead and derive
         // offsets from offsetTop, which reports layout position and ignores sticky.
         gsap.fromTo(
@@ -86,7 +86,7 @@ export function StackCards({
       });
     });
 
-    // Reduced motion still needs the cards visible — they render at opacity 0.
+    // Reduced motion still needs the cards visible - they render at opacity 0.
     mm.add("(prefers-reduced-motion: reduce)", () => {
       gsap.set(gsap.utils.toArray("[data-stack-inner]", container), { opacity: 1 });
     });

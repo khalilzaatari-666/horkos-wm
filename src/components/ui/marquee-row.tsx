@@ -32,8 +32,8 @@ const REVERSE_HEADROOM_CYCLES = 1000;
  *
  * The track holds N identical copies of `items`. One copy plus one gap is the
  * stride: translating by exactly that distance lands the row back on an
- * identical frame, so `repeat: -1` loops with no seam. Everything else —
- * hover, drag, offscreen pausing — drives the tween's `progress()` rather than
+ * identical frame, so `repeat: -1` loops with no seam. Everything else -
+ * hover, drag, offscreen pausing - drives the tween's `progress()` rather than
  * `x`, which keeps the wrap arithmetic exact no matter how far it is nudged.
  */
 export function MarqueeRow({
@@ -69,7 +69,7 @@ export function MarqueeRow({
   };
 
   // Relâcher au-dessus du carrousel doit retrouver l'arrêt au survol, pas la
-  // vitesse normale — sinon la rangée repart alors que le curseur est dessus.
+  // vitesse normale - sinon la rangée repart alors que le curseur est dessus.
   const release = () => easeTimeScale(hoveringRef.current ? 0 : 1, 0.45);
 
   // Enough copies that the track always overflows the viewport by a full stride,
@@ -118,7 +118,7 @@ export function MarqueeRow({
 
       // Une boucle infinie démarre à l'instant zéro : la lire à l'envers l'y
       // ramène en quelques secondes et elle s'arrête, faute de cycles derrière
-      // elle. On avance la tête de lecture de mille cycles — position visuelle
+      // elle. On avance la tête de lecture de mille cycles - position visuelle
       // identique, mais la marche arrière a désormais de quoi courir.
       loop.totalTime(loop.duration() * REVERSE_HEADROOM_CYCLES);
       loopRef.current = loop;
@@ -199,7 +199,7 @@ export function MarqueeRow({
     return () => ctx.revert();
   }, [copies, direction, speed, reduced, items.length]);
 
-  // The duplicated copies are `aria-hidden`, but a link inside stays tabbable —
+  // The duplicated copies are `aria-hidden`, but a link inside stays tabbable -
   // which would walk a keyboard user through the same cards once per copy. They
   // must stay clickable though, since a duplicate is often the one on screen,
   // so `inert` is out and the tab order is trimmed by hand.
@@ -228,7 +228,7 @@ export function MarqueeRow({
     </div>
   );
 
-  // No motion means no duplicates either — a plain scrollable row, swipeable.
+  // No motion means no duplicates either - a plain scrollable row, swipeable.
   // The arrows step it by one card instead of accelerating anything, and jump
   // rather than glide: a smooth scroll would be the very motion being avoided.
   if (reduced) {
@@ -261,7 +261,7 @@ export function MarqueeRow({
   }
 
   // The row takes the width of whatever wraps it, and the mask fades both ends
-  // instead of cutting them — so the cards leaving the frame dissolve rather
+  // instead of cutting them - so the cards leaving the frame dissolve rather
   // than disappearing against a hard edge. The mask sits on the inner track
   // rather than the container, or it would fade the arrows out too.
   return (

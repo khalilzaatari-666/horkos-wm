@@ -17,7 +17,7 @@ const SIGNED_URL_TTL_SECONDS = 60;
  *
  * Le bucket est privé : rien n'est accessible sans une URL signée émise ici,
  * après vérification que le document appartient bien au demandeur. La double
- * barrière est volontaire — les policies RLS filtrent déjà, mais une erreur de
+ * barrière est volontaire - les policies RLS filtrent déjà, mais une erreur de
  * requête ne doit pas suffire à exposer une pièce patrimoniale.
  *
  * Chaque ouverture est journalisée dans `audit_logs` : c'est une consultation

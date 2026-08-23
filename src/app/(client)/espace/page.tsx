@@ -120,7 +120,7 @@ export default async function EspacePage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Kpi
             label="Patrimoine suivi"
-            value={assetRows.length ? formatMAD(total) : "—"}
+            value={assetRows.length ? formatMAD(total) : "-"}
             note={assetRows.length ? undefined : "Aucun actif enregistré"}
           />
           <Kpi
@@ -139,7 +139,7 @@ export default async function EspacePage() {
           <Kpi
             label="Prochain rendez-vous"
             value={
-              nextAppointment ? formatDateShort(nextAppointment.date) : "—"
+              nextAppointment ? formatDateShort(nextAppointment.date) : "-"
             }
             note={
               nextAppointment

@@ -145,7 +145,7 @@ export function HomeContent() {
       (context) => {
         const { isMobile } = context.conditions as { isMobile: boolean; isDesktop: boolean };
 
-        // Hero parallax — desktop only, it reads as jank on touch scrolling.
+        // Hero parallax - desktop only, it reads as jank on touch scrolling.
         if (!isMobile && heroRef.current) {
           gsap.to(heroRef.current, {
             yPercent: 20,

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Une destination explicite l'emporte — c'est elle qui porte
+      // Une destination explicite l'emporte - c'est elle qui porte
       // l'invitation vers /bienvenue, ou la page qu'on visait avant de se
       // connecter. Sans elle, le rôle décide.
       if (next) return NextResponse.redirect(`${origin}${next}`);

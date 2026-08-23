@@ -47,7 +47,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 }
 
 /**
- * Carte du formulaire, ou rien en mode `bare` — l'espace client fournit alors la
+ * Carte du formulaire, ou rien en mode `bare` - l'espace client fournit alors la
  * sienne, pour que le formulaire s'accorde à ses autres panneaux sans que la
  * page publique ne change d'apparence.
  *
@@ -71,7 +71,7 @@ export interface AssetFormDefaults {
 /**
  * Le même formulaire sert au visiteur anonyme sur `/cabinet/produits` et au
  * client connecté sur `/espace/ceder`, où ses coordonnées sont pré-remplies.
- * Deux copies divergeraient — c'est déjà arrivé avec les listes de besoins.
+ * Deux copies divergeraient - c'est déjà arrivé avec les listes de besoins.
  */
 export function AssetForm({
   defaults,

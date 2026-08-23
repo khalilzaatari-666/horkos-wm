@@ -74,7 +74,7 @@ export default async function UtilisateursPage() {
             <tr key={p.id} className="hover:bg-cream/40 transition-colors">
               <Td>
                 <div className="font-medium text-ink">
-                  {[p.first_name, p.last_name].filter(Boolean).join(" ") || "—"}
+                  {[p.first_name, p.last_name].filter(Boolean).join(" ") || "-"}
                 </div>
               </Td>
               <Td>
@@ -82,7 +82,7 @@ export default async function UtilisateursPage() {
                   href={`mailto:${p.email}`}
                   className="block text-[12.5px] text-bronze-dark hover:text-bronze transition-colors"
                 >
-                  {p.email ?? "—"}
+                  {p.email ?? "-"}
                 </a>
                 {p.phone && <div className="text-[12px] text-warm-grey">{p.phone}</div>}
               </Td>

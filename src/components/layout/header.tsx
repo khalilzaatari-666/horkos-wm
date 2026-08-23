@@ -366,7 +366,7 @@ export function Header() {
               </Link>
             </div>
 
-            {/* Footer lives here on mobile — the page footer is hidden below lg.
+            {/* Footer lives here on mobile - the page footer is hidden below lg.
                 `mt-auto` pins it to the bottom of the full-height panel. */}
             <div
               className="mt-auto pt-8 pb-2 text-center flex flex-col items-center gap-3"
