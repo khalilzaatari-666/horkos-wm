@@ -4,23 +4,9 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, PanelHead, CardGrid, EmptyPanel } from "@/components/client/ui";
 import { DocumentRow } from "@/components/client/document-row";
 import { formatDateLong } from "@/lib/dates";
+import { DOCUMENT_RUBRIQUES as RUBRIQUES } from "@/lib/documents";
 
 export const metadata: Metadata = { title: "Coffre-fort" };
-
-/**
- * Les rubriques dans l'ordre de la maquette.
- *
- * `autre` n'y figure pas : c'est un filet en base pour une pièce qui ne rentre
- * nulle part, et une rubrique « Autre » vide n'apprendrait rien au client. Les
- * documents qui la portent sont rattachés en fin de liste, voir plus bas.
- */
-const RUBRIQUES = [
-  { key: "releves_situation", label: "Relevés de situation" },
-  { key: "contrats", label: "Contrats & souscriptions" },
-  { key: "reglementaires", label: "Documents réglementaires signés" },
-  { key: "strategie", label: "Stratégie & comptes rendus" },
-  { key: "autre", label: "Autres pièces" },
-] as const;
 
 export default async function CoffrePage() {
   const supabase = await createClient();

@@ -45,6 +45,11 @@ export function assetTypeLabel(type: string): string {
   return TYPE_LABELS[type] ?? type;
 }
 
+/** Liste ordonnée des types d'actifs, pour les menus de saisie du back-office. */
+export const ASSET_TYPES: { value: string; label: string }[] = Object.entries(
+  TYPE_LABELS
+).map(([value, label]) => ({ value, label }));
+
 export function totalPatrimoine(assets: AssetRow[]): number {
   return assets.reduce((sum, a) => sum + (a.value || 0), 0);
 }
