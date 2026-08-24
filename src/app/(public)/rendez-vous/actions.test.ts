@@ -8,6 +8,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  */
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/booking", () => ({ bookAndNotify: vi.fn() }));
+// La limitation de débit (server-only) est neutralisée ici : toujours autorisée.
+vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn().mockResolvedValue(true) }));
 
 import { submitAppointmentRequest, emailHasAccount, type RdvState } from "./actions";
 import { createClient } from "@/lib/supabase/server";

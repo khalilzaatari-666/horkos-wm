@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { bookAndNotify } from "@/lib/booking";
 import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
 import {
@@ -91,6 +92,13 @@ export async function submitAppointmentRequest(
     return { status: "error", message: parsed.error.issues[0].message };
   }
 
+  if (!(await rateLimit("rdv", { max: 5, windowSeconds: 600 }))) {
+    return {
+      status: "error",
+      message: "Trop de demandes envoyées. Merci de patienter quelques minutes avant de réessayer.",
+    };
+  }
+
   const {
     firstName,
     lastName,
@@ -177,6 +185,9 @@ export async function submitAppointmentRequest(
 export async function emailHasAccount(email: string): Promise<boolean> {
   const parsed = z.email().safeParse(email.trim());
   if (!parsed.success) return false;
+
+  // Ce point est aussi une surface d'énumération d'emails : on le plafonne.
+  if (!(await rateLimit("email-check", { max: 20, windowSeconds: 600 }))) return false;
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("email_has_account", { p_email: parsed.data });

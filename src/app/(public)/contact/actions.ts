@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { sendContactNotification } from "@/lib/email/contact";
 import { contactSubjectOptions } from "@/lib/contact-options";
 import {
@@ -51,6 +52,13 @@ export async function submitContact(
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0].message };
+  }
+
+  if (!(await rateLimit("contact", { max: 5, windowSeconds: 600 }))) {
+    return {
+      status: "error",
+      message: "Trop de messages envoyés. Merci de patienter quelques minutes avant de réessayer.",
+    };
   }
 
   const d = parsed.data;

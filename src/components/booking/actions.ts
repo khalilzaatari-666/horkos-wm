@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Fine enveloppe des RPC de réservation (migration 010). Toute la logique -
@@ -47,6 +48,10 @@ export async function holdSlot(slotStart: string, token: string): Promise<boolea
     .object({ slotStart: isoInstant, token: uuid })
     .safeParse({ slotStart, token });
   if (!parsed.success) return false;
+
+  // Les holds sont bon marché et re-choisis souvent, mais restent une écriture :
+  // on plafonne largement pour n'attraper que l'abus.
+  if (!(await rateLimit("hold", { max: 40, windowSeconds: 600 }))) return false;
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("hold_slot", {

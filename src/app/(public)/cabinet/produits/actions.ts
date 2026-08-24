@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { sendAssetSubmissionNotification } from "@/lib/email/asset-submission";
 import {
   assetTypeOptions,
@@ -61,6 +62,13 @@ export async function submitAsset(
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0].message };
+  }
+
+  if (!(await rateLimit("asset", { max: 5, windowSeconds: 600 }))) {
+    return {
+      status: "error",
+      message: "Trop de demandes envoyées. Merci de patienter quelques minutes avant de réessayer.",
+    };
   }
 
   const d = parsed.data;

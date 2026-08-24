@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export interface GuideRequestState {
   status: "idle" | "success" | "error";
@@ -25,6 +26,13 @@ export async function requestGuide(
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0].message };
+  }
+
+  if (!(await rateLimit("guide", { max: 10, windowSeconds: 600 }))) {
+    return {
+      status: "error",
+      message: "Trop de demandes envoyées. Merci de patienter quelques minutes avant de réessayer.",
+    };
   }
 
   const supabase = await createClient();
