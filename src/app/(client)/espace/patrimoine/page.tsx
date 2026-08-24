@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, PanelHead, Card, CardTitle, CardGrid, EmptyPanel, Badge } from "@/components/client/ui";
 import { RepartitionBar } from "@/components/client/repartition-bar";
+import { AuditReportButton } from "./audit-report-button";
 import { formatDateLong } from "@/lib/dates";
 import {
   repartition,
@@ -101,16 +102,7 @@ export default async function PatrimoinePage() {
                         ? "Votre audit est disponible. Il détaille votre situation, les points d'attention relevés et la structuration proposée."
                         : "Votre conseiller travaille sur votre audit. Vous serez prévenu dès qu'il sera disponible."}
                     </p>
-                    {audit.pdf_url && (
-                      <a
-                        href={audit.pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block mt-4 px-5 py-2.5 text-[13px] font-medium bg-ink text-cream rounded-lg hover:bg-navy transition-colors"
-                      >
-                        Télécharger le rapport
-                      </a>
-                    )}
+                    {audit.pdf_url && <AuditReportButton auditId={audit.id} />}
                   </>
                 ) : (
                   <p className="text-[13px] text-warm-grey leading-[1.65]">
