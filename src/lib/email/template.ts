@@ -50,7 +50,7 @@ export function emailHtml(options: {
   <tr><td align="center" style="padding:32px 16px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #EFE7D8;border-radius:10px;overflow:hidden;">
       <tr><td align="center" style="background-color:#0B1A2E;padding:28px 32px;">
-        <img src="${SITE_URL}/images/logo-light.png" alt="${SITE_NAME}" width="170" style="display:block;width:170px;max-width:70%;height:auto;border:0;font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:2px;color:#F8F4EC;" />
+        <img src="${SITE_URL}/images/logo-light.png" alt="${SITE_NAME}" width="300" style="display:block;width:300px;max-width:82%;height:auto;border:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:2px;color:#F8F4EC;" />
       </td></tr>
       <tr><td style="padding:32px;">
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:600;color:#0B1A2E;">${options.title}</div>
