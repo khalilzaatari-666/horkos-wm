@@ -97,8 +97,10 @@ export function AnimateIn({
           reduceMotion: boolean;
         };
 
+        const targets = stagger ? [el, ...Array.from(el.children)] : el;
+
         if (reduceMotion) {
-          gsap.set(stagger ? [el, ...Array.from(el.children)] : el, { opacity: 1 });
+          gsap.set(targets, { opacity: 1 });
           return;
         }
 
@@ -106,23 +108,49 @@ export function AnimateIn({
           ? mobileVariants[mobileVariant ?? variant]
           : desktopVariants[variant];
 
+        const dur = isMobile ? duration * 0.75 : duration;
         const toVars: gsap.TweenVars = {
           ...restingState(from),
-          duration: isMobile ? duration * 0.75 : duration,
+          duration: dur,
           delay: delay / 1000,
           ease: "power3.out",
-          scrollTrigger: {
+        };
+
+        // Un élément déjà à l'écran au montage doit se révéler tout de suite :
+        // lui attacher un ScrollTrigger le laisserait à opacity 0 tant qu'aucun
+        // défilement ne survient - or il n'y en a pas si tout tient dans la
+        // fenêtre (page de connexion, back-office). On ne garde le déclencheur
+        // au défilement que pour ce qui est encore sous la ligne de flottaison.
+        const inView = el.getBoundingClientRect().top < window.innerHeight * 0.92;
+        if (!inView) {
+          toVars.scrollTrigger = {
             trigger: el,
             start: isMobile ? "top 92%" : "top 88%",
             toggleActions: once ? "play none none none" : "play none none reverse",
-          },
-        };
+          };
+        }
 
+        let tween: gsap.core.Tween;
         if (stagger) {
           gsap.set(el, { opacity: 1 });
-          gsap.fromTo(el.children, from, { ...toVars, stagger });
+          tween = gsap.fromTo(el.children, from, { ...toVars, stagger });
         } else {
-          gsap.fromTo(el, from, toVars);
+          tween = gsap.fromTo(el, from, toVars);
+        }
+
+        // Filet de sécurité : si l'animation d'un élément visible ne s'est pas
+        // achevée à temps (onglet en arrière-plan au chargement dont le ticker
+        // rAF est ralenti, échec GSAP…), on tue le tween puis on force l'état
+        // final - sans tuer le tween d'abord, sa prochaine image écraserait la
+        // valeur qu'on vient de poser. Le contenu sous la ligne de flottaison
+        // garde son déclencheur au défilement, sans filet.
+        if (inView) {
+          const ms = (delay / 1000 + dur) * 1000 + 600;
+          const failsafe = window.setTimeout(() => {
+            tween.kill();
+            gsap.set(targets, restingState(from));
+          }, ms);
+          return () => window.clearTimeout(failsafe);
         }
       }
     );
