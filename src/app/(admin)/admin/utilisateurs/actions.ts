@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/site";
+import { sendAccountLink } from "@/lib/email/account-link";
 import { NAME_REGEX, NAME_MAX, EMAIL_MAX } from "@/lib/validation";
 import { ROLES, INVITABLE_ROLES } from "./constants";
 
@@ -24,26 +25,33 @@ const STAFF_ROLES: readonly string[] = ["conseiller", "admin"];
 /**
  * Envoie à un compte déjà inscrit le lien qui lui fera choisir un mot de passe.
  *
- * Pas `inviteUserByEmail` : elle échoue sur un compte existant, or c'est
- * précisément le cas ici - la personne s'est inscrite comme cliente, puis on la
- * promeut. Le lien de récupération, lui, fonctionne sur un compte existant et
- * aboutit au même endroit : /auth/callback échange le code contre une session
- * et dépose l'arrivant sur /bienvenue.
- *
- * La clé de service est préférée quand elle est là, pour n'envoyer cette
- * requête sur aucun client porteur des cookies de l'admin. À défaut, l'endpoint
- * de récupération se contente de la clé publique - l'envoi marche quand même.
+ * On GÉNÈRE le lien avec la clé de service (`generateLink`, type recovery) puis
+ * on l'expédie nous-mêmes via Resend, plutôt que de laisser Supabase l'envoyer.
+ * Raison : le lien email par défaut de Supabase passe par PKCE, dont le
+ * `code_verifier` reste dans le navigateur de l'admin qui a lancé la demande -
+ * ouvert par le destinataire sur un autre appareil, l'échange échoue et il
+ * atterrit sur /connexion. Un lien `token_hash`, vérifié par `verifyOtp` sur
+ * /auth/confirm, n'a pas ce défaut et fonctionne partout.
  */
-async function sendSetPasswordLink(email: string): Promise<boolean> {
-  const client = createAdminClient() ?? (await createClient());
-  const { error } = await client.auth.resetPasswordForEmail(email, {
-    redirectTo: `${SITE_URL}/auth/callback?next=/bienvenue`,
-  });
-  if (error) {
-    console.error("[admin] lien de mot de passe non envoyé:", error.message);
+async function sendSetPasswordLink(
+  email: string,
+  firstName?: string | null
+): Promise<boolean> {
+  const admin = createAdminClient();
+  if (!admin) {
+    console.error("[admin] SUPABASE_SERVICE_ROLE_KEY absente : lien de mot de passe non généré.");
     return false;
   }
-  return true;
+
+  const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email });
+  const tokenHash = data?.properties?.hashed_token;
+  if (error || !tokenHash) {
+    console.error("[admin] génération du lien de mot de passe échouée:", error?.message);
+    return false;
+  }
+
+  const link = `${SITE_URL}/auth/confirm?token_hash=${tokenHash}&type=recovery&next=/bienvenue`;
+  return sendAccountLink({ email, link, firstName, mode: "recovery" });
 }
 
 /**
@@ -91,7 +99,7 @@ export async function updateUserRole(
   // lequel partira le lien de mot de passe.
   const { data: cible } = await supabase
     .from("profiles")
-    .select("role, email")
+    .select("role, email, first_name")
     .eq("id", parsed.data.id)
     .maybeSingle();
 
@@ -148,7 +156,7 @@ export async function updateUserRole(
     };
   }
 
-  const envoye = await sendSetPasswordLink(cible.email);
+  const envoye = await sendSetPasswordLink(cible.email, cible.first_name);
   return envoye
     ? {
         status: "success",
@@ -158,6 +166,87 @@ export async function updateUserRole(
         status: "error",
         message:
           "Rôle mis à jour, mais l'email de définition du mot de passe n'est pas parti. Vérifiez la configuration email de Supabase - la limite d'envoi est souvent en cause.",
+      };
+}
+
+// ============================================================
+// RENVOI DU LIEN DE DÉFINITION DU MOT DE PASSE
+// ============================================================
+
+const resendSchema = z.object({ id: z.uuid() });
+
+export interface ResendState {
+  status: "idle" | "success" | "error";
+  message?: string;
+}
+
+/**
+ * Renvoie à un membre de l'équipe le lien qui lui fait choisir son mot de passe.
+ *
+ * Les liens de récupération Supabase sont à usage unique et expirent (une heure
+ * par défaut) : une personne promue qui tarde à cliquer se retrouve sans accès,
+ * et le back-office n'offrait alors aucun moyen de relancer sans repasser par un
+ * changement de rôle bidon. Cette action comble ce trou.
+ *
+ * Mêmes garde-fous que la promotion : l'appelant doit être admin (vérifié par la
+ * RLS via le client ordinaire), et seul un compte déjà membre de l'équipe reçoit
+ * un lien - un client se connecte par code, il n'a pas de mot de passe à définir.
+ */
+export async function resendSetPasswordLink(
+  _previous: ResendState,
+  formData: FormData
+): Promise<ResendState> {
+  const parsed = resendSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) {
+    return { status: "error", message: "Compte invalide." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { status: "error", message: "Session expirée. Reconnectez-vous." };
+
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (me?.role !== "admin") {
+    return { status: "error", message: "Seul un administrateur peut renvoyer un lien." };
+  }
+
+  const { data: cible } = await supabase
+    .from("profiles")
+    .select("role, email, first_name")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+
+  if (!cible) return { status: "error", message: "Compte introuvable." };
+
+  if (!STAFF_ROLES.includes(cible.role)) {
+    return {
+      status: "error",
+      message: "Ce compte n'est pas membre de l'équipe : un client se connecte par code, sans mot de passe.",
+    };
+  }
+
+  if (!cible.email) {
+    return { status: "error", message: "Ce compte n'a pas d'email : impossible d'envoyer le lien." };
+  }
+
+  const envoye = await sendSetPasswordLink(cible.email, cible.first_name);
+  return envoye
+    ? {
+        status: "success",
+        message: `Lien renvoyé à ${cible.email}. Il expire vite : à ouvrir sans tarder.`,
+      }
+    : {
+        status: "error",
+        message:
+          "L'email n'est pas parti. Vérifiez la configuration email de Supabase - la limite d'envoi est souvent en cause.",
       };
 }
 
@@ -244,26 +333,48 @@ export async function inviteStaff(
     };
   }
 
-  const { error } = await admin.auth.admin.inviteUserByEmail(parsed.data.email, {
-    data: {
-      first_name: parsed.data.firstName,
-      last_name: parsed.data.lastName,
-      role: parsed.data.role,
+  // On génère le lien d'invitation (qui crée aussi le compte, avec ses
+  // métadonnées) sans laisser Supabase l'envoyer : même raison que pour la
+  // promotion, l'email par défaut passe par PKCE et casse d'un appareil à
+  // l'autre. On expédie donc nous-mêmes un lien `token_hash`.
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "invite",
+    email: parsed.data.email,
+    options: {
+      data: {
+        first_name: parsed.data.firstName,
+        last_name: parsed.data.lastName,
+        role: parsed.data.role,
+      },
     },
-    // Passe par le callback existant, qui échange le code contre une session
-    // puis dépose l'invité sur la page de définition du mot de passe.
-    redirectTo: `${SITE_URL}/auth/callback?next=/bienvenue`,
   });
 
-  if (error) {
+  const tokenHash = data?.properties?.hashed_token;
+  if (error || !tokenHash) {
     // Cas courant : la personne s'est déjà inscrite côté client. L'inviter
     // échoue, mais la promotion depuis la liste marche très bien.
-    const exists = /already|registered|exist/i.test(error.message);
+    const exists = /already|registered|exist/i.test(error?.message ?? "");
     return {
       status: "error",
       message: exists
         ? "Ce compte existe déjà. Attribuez-lui simplement son rôle dans la liste ci-dessous."
-        : "L'invitation n'a pas pu être envoyée. Vérifiez la configuration email de Supabase.",
+        : "L'invitation n'a pas pu être générée. Réessayez.",
+    };
+  }
+
+  const link = `${SITE_URL}/auth/confirm?token_hash=${tokenHash}&type=invite&next=/bienvenue`;
+  const sent = await sendAccountLink({
+    email: parsed.data.email,
+    link,
+    firstName: parsed.data.firstName,
+    mode: "invite",
+  });
+
+  if (!sent) {
+    return {
+      status: "error",
+      message:
+        "Le compte est créé mais l'email d'invitation n'est pas parti. Utilisez « Renvoyer le lien » depuis la liste ci-dessous.",
     };
   }
 

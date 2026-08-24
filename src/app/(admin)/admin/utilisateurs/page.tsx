@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { formatDateLong } from "@/lib/dates";
 import { RoleSelect } from "./role-select";
+import { ResendLink } from "./resend-link";
 import { InviteForm } from "./invite-form";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
@@ -92,6 +93,9 @@ export default async function UtilisateursPage() {
               </Td>
               <Td>
                 <RoleSelect id={p.id} value={p.role} isSelf={p.id === user.id} />
+                {(p.role === "conseiller" || p.role === "admin") && p.id !== user.id && (
+                  <ResendLink id={p.id} />
+                )}
               </Td>
             </tr>
           ))}
