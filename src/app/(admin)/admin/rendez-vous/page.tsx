@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { AdminPanel, AdminHead, AdminTable, Td } from "@/components/admin/ui";
+import { AdminPanel, AdminHead, AdminTable } from "@/components/admin/ui";
 import { RendezVousFilters, type ConseillerOption } from "./filters";
+import { RdvRow, type RdvRowData } from "./rdv-row";
 import {
   RDV_STATUTS,
-  RDV_STATUT_STYLES,
   PERIODES,
   MODES,
   TRIS,
@@ -18,9 +18,6 @@ import {
 } from "./constants";
 
 export const metadata: Metadata = { title: "Rendez-vous" };
-
-/** Au-delà, la colonne des besoins devient un mur de pastilles ; le reste passe en « +N ». */
-const BESOINS_VISIBLES = 3;
 
 /** L'heure du rendez-vous s'affiche dans le fuseau du cabinet, pas celui du serveur. */
 const rdvFmt = new Intl.DateTimeFormat("fr-FR", {
@@ -122,17 +119,6 @@ function TriHeader({
   );
 }
 
-/** Une ligne « libellé : valeur » du profil, quand la valeur existe. */
-function Ligne({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <div className="flex items-baseline gap-1.5 text-[12px] whitespace-nowrap">
-      <span className="text-warm-grey">{label}</span>
-      <span className="text-charcoal font-medium">{value}</span>
-    </div>
-  );
-}
-
 export default async function AdminRendezVousPage({
   searchParams,
 }: {
@@ -194,13 +180,17 @@ export default async function AdminRendezVousPage({
         ? base.lt("date", nowIso)
         : base;
 
-  const [{ data }, { data: staff }] = await Promise.all([
+  const [{ data }, { data: staff }, { count: totalMatch }] = await Promise.all([
     query,
     supabase
       .from("profiles")
       .select("id, first_name, last_name")
       .eq("role", "conseiller")
       .order("last_name", { ascending: true }),
+    // Total à filtres égaux (statut/mode/conseiller) mais SANS borne de date :
+    // sert à signaler les rendez-vous cachés par la période courante, pour qu'un
+    // « à venir » vide ne laisse pas croire qu'il n'y a aucun rendez-vous.
+    supabase.from("appointments").select("*", { count: "exact", head: true }).match(egalites),
   ]);
 
   const rows: Row[] = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
@@ -236,6 +226,50 @@ export default async function AdminRendezVousPage({
     name: [c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom",
   }));
 
+  // Tout le calcul d'affichage se fait ici, côté serveur : la ligne cliente ne
+  // reçoit que des chaînes prêtes. L'heure surtout est formatée ici pour que le
+  // fuseau du cabinet soit identique au rendu serveur, sans écart d'hydratation.
+  const displayRows: RdvRowData[] = sorted.map((r) => {
+    const d = r.demande;
+    const heure = (() => {
+      const s = rdvFmt.format(new Date(r.date));
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    })();
+    return {
+      id: r.id,
+      heure,
+      type: r.type,
+      mode: r.mode,
+      meetingUrl: r.meeting_url,
+      nom: nomAffiche(r),
+      email: r.client?.email || r.demande?.email || null,
+      phone: r.client?.phone || r.demande?.phone || null,
+      sansCompte: !r.client,
+      advisorName: fullName(r.advisor),
+      status: r.status,
+      demande: d
+        ? {
+            besoins: d.besoins ?? [],
+            besoinAutre: d.besoin_autre,
+            patrimoine: d.patrimoine,
+            investissement: d.investissement,
+            message: d.message,
+            email: d.email ?? null,
+            phone: d.phone ?? null,
+          }
+        : null,
+    };
+  });
+
+  // Rendez-vous masqués par la période courante (mêmes autres filtres).
+  const horsPeriode =
+    periode === "tous" ? 0 : Math.max(0, (totalMatch ?? 0) - sorted.length);
+  const toutePeriode = new URLSearchParams();
+  if (statut) toutePeriode.set("statut", statut);
+  if (mode) toutePeriode.set("mode", mode);
+  if (conseiller) toutePeriode.set("conseiller", conseiller);
+  toutePeriode.set("periode", "tous");
+
   const triParams: Record<string, string | undefined> = {
     periode: single("periode"),
     statut: single("statut"),
@@ -253,6 +287,19 @@ export default async function AdminRendezVousPage({
       <AnimateIn variant="fade-up" delay={40}>
         <RendezVousFilters conseillers={conseillers} total={sorted.length} />
       </AnimateIn>
+
+      {horsPeriode > 0 && (
+        <p className="text-[12.5px] text-warm-grey -mt-1 mb-3">
+          {horsPeriode} autre{horsPeriode > 1 ? "s" : ""} rendez-vous hors de la période affichée.{" "}
+          <Link
+            href={`?${toutePeriode.toString()}`}
+            scroll={false}
+            className="text-bronze-dark hover:text-bronze font-medium transition-colors"
+          >
+            Voir toute la période
+          </Link>
+        </p>
+      )}
 
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
@@ -273,7 +320,7 @@ export default async function AdminRendezVousPage({
               sensActuel={sens}
               params={triParams}
             />,
-            "Contexte",
+            "Questionnaire",
             <TriHeader
               key="conseiller"
               label="Conseiller"
@@ -294,147 +341,9 @@ export default async function AdminRendezVousPage({
           isEmpty={sorted.length === 0}
           empty="Aucun rendez-vous ne correspond à ces filtres."
         >
-          {sorted.map((r) => {
-            const style =
-              RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
-            const nom = nomAffiche(r);
-            const email = r.client?.email || r.demande?.email || null;
-            const phone = r.client?.phone || r.demande?.phone || null;
-            const sansCompte = !r.client;
-            const d = r.demande;
-            const besoins = d?.besoins ?? [];
-            const visibles = besoins.slice(0, BESOINS_VISIBLES);
-            const reste = besoins.length - visibles.length;
-            const heure = (() => {
-              const s = rdvFmt.format(new Date(r.date));
-              return s.charAt(0).toUpperCase() + s.slice(1);
-            })();
-
-            return (
-              <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
-                {/* Rendez-vous : quand, quel type, quel format. */}
-                <Td className="whitespace-nowrap">
-                  <div className="font-medium text-ink">{heure}</div>
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    <span className="inline-block text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded">
-                      {r.type}
-                    </span>
-                    {r.mode === "visio" ? (
-                      r.meeting_url ? (
-                        <a
-                          href={r.meeting_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[12px] text-bronze-dark hover:text-bronze transition-colors"
-                        >
-                          Visio - rejoindre
-                        </a>
-                      ) : (
-                        <span className="text-[12px] text-warm-grey">Visio - lien à envoyer</span>
-                      )
-                    ) : (
-                      <span className="text-[12px] text-charcoal">Au cabinet</span>
-                    )}
-                  </div>
-                </Td>
-
-                {/* Client : compte rattaché, ou coordonnées du questionnaire. */}
-                <Td>
-                  {nom ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <span className="text-ink font-medium">{nom}</span>
-                        {sansCompte && (
-                          <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.6px] text-bronze-dark bg-bronze/12 px-1.5 py-0.5 rounded">
-                            Visiteur
-                          </span>
-                        )}
-                      </div>
-                      {email && (
-                        <a
-                          href={`mailto:${email}`}
-                          className="block text-[12px] text-bronze-dark hover:text-bronze transition-colors truncate max-w-[220px]"
-                        >
-                          {email}
-                        </a>
-                      )}
-                      {phone && (
-                        <a
-                          href={`tel:${phone}`}
-                          className="block text-[12px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
-                        >
-                          {phone}
-                        </a>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-[12px] text-warm-grey italic">Visiteur sans compte</span>
-                  )}
-                </Td>
-
-                {/* Contexte : ce que le visiteur a dit de sa situation. */}
-                <Td className="max-w-[320px]">
-                  {besoins.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {visibles.map((b) => (
-                        <span
-                          key={b}
-                          className="inline-block text-[11.5px] text-charcoal bg-cream border border-cream-deep px-2 py-0.5 rounded-md"
-                        >
-                          {b}
-                        </span>
-                      ))}
-                      {reste > 0 && (
-                        <span
-                          title={besoins.slice(BESOINS_VISIBLES).join(", ")}
-                          className="inline-block text-[11.5px] font-semibold text-warm-grey bg-cream/60 border border-cream-deep px-2 py-0.5 rounded-md cursor-default"
-                        >
-                          +{reste}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {d?.besoin_autre && (
-                    <p className="text-[12px] text-charcoal leading-[1.5] mt-2 pl-2.5 border-l-2 border-bronze/40 italic">
-                      {d.besoin_autre}
-                    </p>
-                  )}
-
-                  {(d?.patrimoine || d?.investissement) && (
-                    <div className="space-y-0.5 mt-2">
-                      <Ligne label="Patrimoine" value={d?.patrimoine ?? null} />
-                      <Ligne label="À investir" value={d?.investissement ?? null} />
-                    </div>
-                  )}
-
-                  {d?.message && (
-                    <p
-                      title={d.message}
-                      className="text-[12px] text-warm-grey leading-[1.5] mt-2 line-clamp-2"
-                    >
-                      {d.message}
-                    </p>
-                  )}
-
-                  {!d && <span className="text-warm-grey">-</span>}
-                </Td>
-
-                <Td className="whitespace-nowrap">
-                  {fullName(r.advisor) || <span className="text-warm-grey">-</span>}
-                </Td>
-
-                <Td>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold whitespace-nowrap ${style.pill}`}
-                  >
-                    <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                    {style.label}
-                  </span>
-                </Td>
-              </tr>
-            );
-          })}
+          {displayRows.map((row) => (
+            <RdvRow key={row.id} data={row} />
+          ))}
         </AdminTable>
       </AnimateIn>
 
