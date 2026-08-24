@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { slugify } from "@/lib/slug";
@@ -37,15 +37,24 @@ const EMPTY: ArticleInitial = {
 export function ArticleForm({
   action,
   initial = EMPTY,
+  onCancel,
+  onSuccess,
 }: {
   action: (prev: ContentState, formData: FormData) => Promise<ContentState>;
   initial?: ArticleInitial;
+  /** Fournis en modale : annuler ferme, un succès ferme et rafraîchit la liste. */
+  onCancel?: () => void;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [title, setTitle] = useState(initial.title);
   const [slug, setSlug] = useState(initial.slug);
   // Tant que l'utilisateur n'a pas touché au slug, il suit le titre.
   const [slugLocked, setSlugLocked] = useState(Boolean(initial.slug));
+
+  useEffect(() => {
+    if (state.status === "success") onSuccess?.();
+  }, [state, onSuccess]);
 
   return (
     <form action={formAction} className="max-w-[760px] space-y-5">
@@ -168,12 +177,22 @@ export function ArticleForm({
         >
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>
-        <Link
-          href="/admin/contenu/articles"
-          className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors"
-        >
-          Annuler
-        </Link>
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors cursor-pointer"
+          >
+            Annuler
+          </button>
+        ) : (
+          <Link
+            href="/admin/contenu/articles"
+            className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors"
+          >
+            Annuler
+          </Link>
+        )}
       </div>
     </form>
   );

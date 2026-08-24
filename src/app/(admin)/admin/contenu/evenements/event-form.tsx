@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Link from "next/link";
 import type { ContentState } from "../shared";
 
@@ -37,11 +37,19 @@ function toLocalInput(iso: string): string {
 export function EventForm({
   action,
   initial = EMPTY,
+  onCancel,
+  onSuccess,
 }: {
   action: (prev: ContentState, formData: FormData) => Promise<ContentState>;
   initial?: EventInitial;
+  onCancel?: () => void;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
+
+  useEffect(() => {
+    if (state.status === "success") onSuccess?.();
+  }, [state, onSuccess]);
 
   return (
     <form action={formAction} className="max-w-[760px] space-y-5">
@@ -121,12 +129,22 @@ export function EventForm({
         >
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>
-        <Link
-          href="/admin/contenu/evenements"
-          className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors"
-        >
-          Annuler
-        </Link>
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors cursor-pointer"
+          >
+            Annuler
+          </button>
+        ) : (
+          <Link
+            href="/admin/contenu/evenements"
+            className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors"
+          >
+            Annuler
+          </Link>
+        )}
       </div>
     </form>
   );

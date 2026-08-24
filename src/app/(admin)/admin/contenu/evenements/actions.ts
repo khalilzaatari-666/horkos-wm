@@ -67,7 +67,8 @@ export async function createEvent(
   if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
 
   revalidate();
-  redirect("/admin/contenu/evenements");
+  // La création se fait en modale : elle se ferme et rafraîchit sur ce succès.
+  return { status: "success" };
 }
 
 export async function updateEvent(

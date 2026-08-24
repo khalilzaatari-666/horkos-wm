@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPanel, AdminHead } from "@/components/admin/ui";
 import { ArticleForm, type ArticleInitial } from "../article-form";
-import { createArticle, updateArticle } from "../actions";
+import { updateArticle } from "../actions";
 
 export const metadata: Metadata = { title: "Article" };
 
@@ -13,16 +13,6 @@ interface PageProps {
 
 export default async function ArticleEditPage({ params }: PageProps) {
   const { id } = await params;
-  const isNew = id === "new";
-
-  if (isNew) {
-    return (
-      <AdminPanel>
-        <AdminHead title="Nouvel article" desc="Rédigez, puis publiez quand vous êtes prêt." />
-        <ArticleForm action={createArticle} />
-      </AdminPanel>
-    );
-  }
 
   const supabase = await createClient();
   const { data: article } = await supabase

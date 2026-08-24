@@ -74,7 +74,9 @@ export async function createArticle(
   }
 
   revalidate(d.slug);
-  redirect("/admin/contenu/articles");
+  // Pas de redirection : la création vit dans une modale, qui se ferme et
+  // rafraîchit la liste sur ce succès.
+  return { status: "success" };
 }
 
 export async function updateArticle(

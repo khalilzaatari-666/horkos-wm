@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPanel, AdminHead } from "@/components/admin/ui";
 import { EventForm, type EventInitial } from "../event-form";
-import { createEvent, updateEvent } from "../actions";
+import { updateEvent } from "../actions";
 
 export const metadata: Metadata = { title: "Événement" };
 
@@ -13,15 +13,6 @@ interface PageProps {
 
 export default async function EventEditPage({ params }: PageProps) {
   const { id } = await params;
-
-  if (id === "new") {
-    return (
-      <AdminPanel>
-        <AdminHead title="Nouvel événement" desc="Renseignez la date et le lieu, puis publiez." />
-        <EventForm action={createEvent} />
-      </AdminPanel>
-    );
-  }
 
   const supabase = await createClient();
   const { data: event } = await supabase

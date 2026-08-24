@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPanel, AdminHead } from "@/components/admin/ui";
 import { GuideForm, type GuideInitial } from "../guide-form";
-import { createGuide, updateGuide } from "../actions";
+import { updateGuide } from "../actions";
 
 export const metadata: Metadata = { title: "Guide" };
 
@@ -13,15 +13,6 @@ interface PageProps {
 
 export default async function GuideEditPage({ params }: PageProps) {
   const { id } = await params;
-
-  if (id === "new") {
-    return (
-      <AdminPanel>
-        <AdminHead title="Nouveau guide" desc="Renseignez le guide, joignez le PDF, puis publiez." />
-        <GuideForm action={createGuide} />
-      </AdminPanel>
-    );
-  }
 
   const supabase = await createClient();
   const { data: guide } = await supabase

@@ -73,7 +73,8 @@ export async function createGuide(
   }
 
   revalidate();
-  redirect("/admin/contenu/guides");
+  // La création se fait en modale : elle se ferme et rafraîchit sur ce succès.
+  return { status: "success" };
 }
 
 export async function updateGuide(

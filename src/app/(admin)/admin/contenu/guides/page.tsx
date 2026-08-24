@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
+import { GuideCreate } from "./guide-create";
 import { setGuidePublished, deleteGuide } from "./actions";
 
 export const metadata: Metadata = { title: "Guides" };
@@ -26,12 +27,7 @@ export default async function AdminGuidesPage() {
           desc="Les guides téléchargeables proposés sur la page Ressources. Le PDF est le fichier envoyé aux personnes qui le demandent."
         />
         <AnimateIn variant="fade-up">
-          <Link
-            href="/admin/contenu/guides/new"
-            className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
-          >
-            Nouveau guide
-          </Link>
+          <GuideCreate />
         </AnimateIn>
       </div>
 

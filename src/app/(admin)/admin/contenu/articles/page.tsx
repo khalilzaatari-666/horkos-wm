@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
+import { ArticleCreate } from "./article-create";
 import { setArticlePublished, deleteArticle } from "./actions";
 
 export const metadata: Metadata = { title: "Articles" };
@@ -26,12 +27,7 @@ export default async function AdminArticlesPage() {
           desc="Les articles publiés alimentent la page Ressources du site. Un brouillon reste invisible tant qu'il n'est pas publié."
         />
         <AnimateIn variant="fade-up">
-          <Link
-            href="/admin/contenu/articles/new"
-            className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
-          >
-            Nouvel article
-          </Link>
+          <ArticleCreate />
         </AnimateIn>
       </div>
 

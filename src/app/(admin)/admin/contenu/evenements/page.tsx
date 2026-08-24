@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateTime } from "@/lib/dates";
+import { EventCreate } from "./event-create";
 import { setEventPublished, deleteEvent } from "./actions";
 
 export const metadata: Metadata = { title: "Événements" };
@@ -27,12 +28,7 @@ export default async function AdminEventsPage() {
           desc="Les événements publiés apparaissent sur la page Ressources, les à venir en premier."
         />
         <AnimateIn variant="fade-up">
-          <Link
-            href="/admin/contenu/evenements/new"
-            className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
-          >
-            Nouvel événement
-          </Link>
+          <EventCreate />
         </AnimateIn>
       </div>
 
