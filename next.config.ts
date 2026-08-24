@@ -1,6 +1,31 @@
 import type { NextConfig } from "next";
 
+/**
+ * next/image n'autorise que les hôtes déclarés. Les couvertures d'articles et de
+ * guides vivent dans le bucket public `media` de Supabase : on dérive son hôte de
+ * l'URL du projet plutôt que de coder un domaine en dur (il change d'un
+ * environnement à l'autre).
+ */
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: supabaseHost
+      ? [
+          {
+            protocol: "https",
+            hostname: supabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ]
+      : [],
+  },
   typescript: {
     /**
      * Le typage N'EST PAS désactivé : il est simplement sorti du build.
