@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
 
 export function AdminPanel({ children }: { children: React.ReactNode }) {
@@ -31,25 +32,50 @@ export function AdminCard({
   );
 }
 
+/**
+ * Une vignette de chiffre-clé.
+ *
+ * `href` la rend cliquable vers la section concernée ; `emphasis` teinte la
+ * valeur en bronze pour signaler « il y a quelque chose à traiter » sans qu'un
+ * œil ait à lire l'intitulé.
+ */
 export function AdminKpi({
   label,
   value,
   note,
+  href,
+  emphasis = false,
 }: {
   label: string;
   value: string;
   note?: string;
+  href?: string;
+  emphasis?: boolean;
 }) {
-  return (
-    <AdminCard className="p-5">
+  const card = (
+    <AdminCard
+      className={`p-5 h-full ${href ? "transition-colors hover:border-bronze/50" : ""}`}
+    >
       <div className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
         {label}
       </div>
-      <div className="font-heading text-[26px] font-semibold text-ink mt-2 leading-none">
+      <div
+        className={`font-heading text-[26px] font-semibold mt-2 leading-none ${
+          emphasis ? "text-bronze-dark" : "text-ink"
+        }`}
+      >
         {value}
       </div>
       {note && <div className="text-[11.5px] text-warm-grey mt-2">{note}</div>}
     </AdminCard>
+  );
+
+  return href ? (
+    <Link href={href} className="block">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
 

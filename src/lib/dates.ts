@@ -57,6 +57,28 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   return `${formatDateLong(d)} à ${h}h${m}`;
 }
 
+/**
+ * « à l'instant », « il y a 3 min », « il y a 2 h », « il y a 4 j », sinon la
+ * date courte. `ref` (l'instant « maintenant ») est passé explicitement plutôt
+ * que lu via `Date.now()` : le rendu reste pur et identique serveur/client.
+ */
+export function formatRelative(
+  value: string | Date | null | undefined,
+  ref: Date
+): string {
+  const d = toDate(value);
+  if (!d) return "-";
+  const sec = Math.round((ref.getTime() - d.getTime()) / 1000);
+  if (sec < 45) return "à l'instant";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  const j = Math.round(h / 24);
+  if (j < 7) return `il y a ${j} j`;
+  return formatDateShort(d);
+}
+
 function toDate(value: string | Date | null | undefined): Date | null {
   if (!value) return null;
   const d = value instanceof Date ? value : new Date(value);
