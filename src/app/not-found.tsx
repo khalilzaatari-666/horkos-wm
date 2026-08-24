@@ -16,7 +16,7 @@ export default function NotFound() {
         <Image
           src="/images/logo.png"
           alt="Horkos Wealth Management"
-          width={160}
+          width={168}
           height={56}
           className="h-12 w-auto mb-12"
           priority

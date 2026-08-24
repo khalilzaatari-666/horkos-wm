@@ -61,7 +61,7 @@ export function Footer() {
             <Image
               src="/images/logo-light.png"
               alt="Horkos Wealth Management"
-              width={160}
+              width={168}
               height={56}
               className="h-16 w-auto"
             />

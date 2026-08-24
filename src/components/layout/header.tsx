@@ -228,8 +228,8 @@ export function Header() {
           <Image
             src="/images/logo.png"
             alt="Horkos Wealth Management"
-            width={140}
-            height={50}
+            width={168}
+            height={56}
             className="h-14 w-auto"
             priority
           />
