@@ -59,7 +59,7 @@ export function emailHtml(options: {
         <div style="font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.6;color:#7A7468;">${options.note}</div>
       </td></tr>
       <tr><td align="center" style="background-color:#EFE7D8;padding:18px 32px;font-family:Arial,Helvetica,sans-serif;font-size:11.5px;line-height:1.6;color:#7A7468;">
-        Horkos Conseil - cabinet de conseil en gestion de patrimoine, Maroc.
+        ${SITE_NAME} - cabinet de conseil en gestion de patrimoine<br/>Casablanca, Maroc
       </td></tr>
     </table>
   </td></tr>
