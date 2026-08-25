@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  authors: [{ name: "Horkos Conseil" }],
+  authors: [{ name: "Horkos Wealth Management" }],
   keywords: [
     "gestion de patrimoine Maroc",
     "conseil en investissement financier",

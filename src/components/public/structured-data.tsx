@@ -35,7 +35,7 @@ export function OrganisationJsonLd() {
             "@type": "FinancialService",
             "@id": `${SITE_URL}/#organisation`,
             name: SITE_NAME,
-            alternateName: "Horkos Conseil",
+            alternateName: "Horkos Wealth Management",
             url: SITE_URL,
             logo: absoluteUrl("/images/logo-dark.jpg"),
             image: absoluteUrl("/images/logo-dark.jpg"),

@@ -25,7 +25,7 @@ const steps = [
 const trustCards = [
   { title: "Aucune recommandation d'investissement sans compréhension", desc: "Chaque recommandation est expliquée dans le détail, jusqu'à ce que vous puissiez la reformuler avec vos propres mots." },
   { title: "Confidentialité", desc: "Vos informations patrimoniales ne sont jamais partagées sans votre consentement." },
-  { title: "Rigueur réglementaire", desc: "Horkos Conseil structure son activité en conformité avec les cadres AMMC et ACAPS." },
+  { title: "Rigueur réglementaire", desc: "Horkos Wealth Management structure son activité en conformité avec les cadres AMMC et ACAPS." },
 ];
 
 const faqs = [
