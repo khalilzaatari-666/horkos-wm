@@ -87,7 +87,7 @@ export default async function ClientOverviewPage({
             note={perf.percent === null ? "Historique insuffisant" : `${perf.covered} actif(s)`}
           />
           <AdminKpi label="Actifs" value={String(assetRows.length)} href={`${base}/patrimoine`} />
-          <AdminKpi label="Audit" value={auditLabel} href={`${base}/audits`} />
+          <AdminKpi label="Audit" value={auditLabel} href={`${base}/patrimoine`} />
           <AdminKpi label="Documents" value={String(docCount ?? 0)} href={`${base}/documents`} />
           <AdminKpi
             label="Recommandations"
@@ -100,7 +100,7 @@ export default async function ClientOverviewPage({
       <AnimateIn variant="fade-up" delay={80}>
         <AdminCard className="p-6 mt-3.5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-heading text-[16px] font-semibold text-ink">
+            <h2 className="font-heading text-[17.5px] font-semibold text-ink">
               Répartition du patrimoine
             </h2>
             <Link
@@ -119,8 +119,8 @@ export default async function ClientOverviewPage({
             </>
           ) : (
             <p className="text-[13px] text-warm-grey leading-[1.65]">
-              Aucun actif enregistré. Ajoutez-en depuis l&apos;onglet Patrimoine pour voir la
-              répartition apparaître ici et dans l&apos;espace du client.
+              Aucun actif enregistré. Ajoutez-en depuis l&apos;onglet Audits
+              pour voir la répartition apparaître ici et dans l&apos;espace du client.
             </p>
           )}
         </AdminCard>

@@ -22,7 +22,7 @@ export function InviteForm() {
 
   return (
     <AdminCard className="p-6 mb-5">
-      <h2 className="font-heading text-[16px] font-semibold text-ink mb-1.5">
+      <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-1.5">
         Inviter un membre de l&apos;équipe
       </h2>
       <p className="text-[12.5px] text-warm-grey leading-[1.6] mb-4 max-w-[620px]">

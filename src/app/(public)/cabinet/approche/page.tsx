@@ -75,7 +75,7 @@ export default function ApprochePage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[560px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[560px] mt-3.5 text-[16px] leading-[1.7]">
               Cinq principes qui guident chaque accompagnement, du premier échange au suivi dans la durée.
             </p>
           </AnimateIn>
@@ -95,7 +95,7 @@ export default function ApprochePage() {
                 style={{ opacity: 0 }}
               >
                 <div className="font-heading text-[20px] text-bronze font-semibold transition-transform duration-300 group-hover:translate-x-1.5">{p.n}</div>
-                <h4 className="text-[13px] mt-1.5 leading-[1.35] font-medium transition-transform duration-300 group-hover:translate-x-1.5">{p.title}</h4>
+                <h4 className="text-[14.5px] mt-1.5 leading-[1.35] font-medium transition-transform duration-300 group-hover:translate-x-1.5">{p.title}</h4>
               </div>
             ))}
           </div>
@@ -111,7 +111,7 @@ export default function ApprochePage() {
               className="border-t-2 border-bronze bg-cream/40 rounded-b-lg px-4 pt-5 pb-6"
             >
               <div className="font-heading text-[20px] text-bronze font-semibold">{p.n}</div>
-              <h4 className="text-[13px] mt-1.5 leading-[1.35] font-medium">{p.title}</h4>
+              <h4 className="text-[14.5px] mt-1.5 leading-[1.35] font-medium">{p.title}</h4>
             </div>
           ))}
         />
@@ -142,7 +142,7 @@ export default function ApprochePage() {
                 <div className={`grid grid-cols-[56px_1fr] gap-[26px] py-6 border-t border-ink/[0.08] ${i === philosophie.length - 1 ? "border-b" : ""}`}>
                   <div className="font-heading text-[26px] text-bronze font-medium">{p.n}</div>
                   <div>
-                    <h3 className="text-[16.5px] font-semibold mb-1.5">{p.title}</h3>
+                    <h3 className="text-[20.5px] font-semibold mb-1.5">{p.title}</h3>
                     <p className="text-[14px] text-warm-grey max-w-[560px] leading-[1.6]">{p.desc}</p>
                   </div>
                 </div>

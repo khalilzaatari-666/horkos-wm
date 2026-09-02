@@ -36,7 +36,7 @@ export function GuideCard({ guide }: { guide: Guide }) {
             {guide.partner}
           </div>
         )}
-        <h2 className="font-heading text-[17px] font-semibold text-ink leading-[1.35]">
+        <h2 className="font-heading text-[18.5px] font-semibold text-ink leading-[1.35]">
           {guide.title}
         </h2>
         {guide.description && (

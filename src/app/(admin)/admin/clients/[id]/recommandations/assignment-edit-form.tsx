@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { updateAssignment } from "./actions";
-import { ASSIGNMENT_STATUS } from "./assignment-status";
+import { ASSIGNMENT_STATUS } from "@/lib/recommandation-status";
 import type { ActionState } from "@/lib/staff";
 
 const initialState: ActionState = { status: "idle" };

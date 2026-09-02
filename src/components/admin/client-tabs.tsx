@@ -9,11 +9,13 @@ export function ClientTabs({ id }: { id: string }) {
   const base = `/admin/clients/${id}`;
 
   const tabs = [
+    // L'ordre suit la vie du dossier : on découvre, on audite le patrimoine, on
+    // recommande, on suit - les pièces jointes fermant la marche.
     { href: base, label: "Vue d'ensemble" },
-    { href: `${base}/patrimoine`, label: "Patrimoine" },
-    { href: `${base}/audits`, label: "Audits" },
-    { href: `${base}/documents`, label: "Documents" },
+    { href: `${base}/patrimoine`, label: "Audits" },
     { href: `${base}/recommandations`, label: "Recommandations" },
+    { href: `${base}/suivi`, label: "Suivi" },
+    { href: `${base}/documents`, label: "Documents" },
   ];
 
   return (

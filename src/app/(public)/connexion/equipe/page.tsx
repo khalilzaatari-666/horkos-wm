@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AnimateIn } from "@/components/ui/animate-in";
@@ -25,7 +25,6 @@ const inputClass =
  * delivery outage can never lock the back-office out.
  */
 function ConnexionEquipeForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/admin";
 
@@ -49,8 +48,35 @@ function ConnexionEquipeForm() {
       return;
     }
 
-    router.push(redirect);
-    router.refresh();
+    // `signInWithPassword` rend la main dès la réponse du serveur, alors que la
+    // session est écrite dans le cookie par l'adaptateur de stockage, un cran
+    // plus tard. `getSession` prend le même verrou : en sortir garantit que le
+    // cookie existe. Sans cette attente, la navigation part avant lui, le proxy
+    // ne voit personne et renvoie ici - on reste sur cette page, bouton figé.
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setError("La session n'a pas pu être ouverte. Réessayez.");
+      setLoading(false);
+      return;
+    }
+
+    // Un compte client qui se trompe de formulaire serait sinon renvoyé vers
+    // son espace par le proxy, sans un mot d'explication.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
+    const staff = profile?.role === "admin" || profile?.role === "conseiller";
+
+    // Navigation complète et non `router.push` : le proxy et le layout doivent
+    // relire les cookies côté serveur, et un `router.refresh` lancé dans la
+    // foulée d'un `push` annule la navigation en cours.
+    window.location.assign(staff ? redirect : "/espace");
   }
 
   return (

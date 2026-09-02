@@ -53,7 +53,7 @@ function ProcessCard({ step, counterDelay = 0 }: { step: (typeof processSteps)[n
         className="font-heading text-[28px] text-bronze font-semibold mb-3 block"
         delay={counterDelay}
       />
-      <h3 className="text-[20px] font-semibold leading-[1.3] mb-2">{step.title}</h3>
+      <h3 className="text-[21.5px] font-semibold leading-[1.3] mb-2">{step.title}</h3>
       <p className="text-[14px] text-warm-grey leading-[1.65]">{step.desc}</p>
     </div>
   );
@@ -62,7 +62,7 @@ function ProcessCard({ step, counterDelay = 0 }: { step: (typeof processSteps)[n
 function ServiceCard({ service }: { service: (typeof services)[number] }) {
   return (
     <div className="bg-white rounded-lg p-6 h-full border border-ink/[0.06] shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <h4 className="text-[15px] font-semibold mb-2">{service.title}</h4>
+      <h4 className="text-[16.5px] font-semibold mb-2">{service.title}</h4>
       <p className="text-[13.5px] text-warm-grey leading-[1.6]">{service.desc}</p>
     </div>
   );
@@ -152,7 +152,7 @@ export default function StructurationPage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
               Horkos crée et structure des sociétés patrimoniales pour ses clients en mobilisant les professionnels du réseau : comptables, experts valorisateurs, avocats fiscalistes, notaires.
             </p>
           </AnimateIn>
@@ -174,7 +174,7 @@ export default function StructurationPage() {
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
-            <p className="text-[14.5px] text-warm-grey max-w-[680px] leading-[1.7] mb-8">
+            <p className="text-[16px] text-warm-grey max-w-[680px] leading-[1.7] mb-8">
               Nous ne sommes ni comptables, ni notaires, ni avocats. Notre rôle est de concevoir la stratégie de structuration la plus adaptée à votre situation, puis de vous orienter vers le bon professionnel du réseau pour la mettre en œuvre.
             </p>
           </AnimateIn>
@@ -265,7 +265,7 @@ export default function StructurationPage() {
 
             <AnimateIn variant="scale-in" mobileVariant="reveal-up" delay={200}>
               <div className="bg-cream/[0.06] border border-cream/[0.12] rounded-lg p-7">
-                <h4 className="text-[16.5px] font-semibold text-cream mb-3">
+                <h4 className="text-[18px] font-semibold text-cream mb-3">
                   Pourquoi structurer plutôt que détenir en nom propre ?
                 </h4>
                 <p className="text-[14.5px] text-[#D8CDBC] leading-[1.7]">

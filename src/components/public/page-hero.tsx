@@ -23,7 +23,7 @@ export function PageHero({ tag, title, subtitle }: PageHeroProps) {
           delay={200}
         />
         <AnimateIn variant="fade-up" delay={400}>
-          <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+          <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
             {subtitle}
           </p>
         </AnimateIn>

@@ -24,7 +24,7 @@ const partenaires = [
 function PartnerCard({ partner }: { partner: (typeof partenaires)[number] }) {
   return (
     <div className="bg-cream rounded-lg p-6 h-full border border-cream-deep shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <h4 className="text-[15px] font-semibold mb-2">{partner.title}</h4>
+      <h4 className="text-[16.5px] font-semibold mb-2">{partner.title}</h4>
       <p className="text-[13.5px] text-warm-grey leading-[1.6]">{partner.desc}</p>
     </div>
   );
@@ -255,7 +255,7 @@ export default function ReseauPage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
               Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : ce réseau nous permet d&apos;accéder à des opportunités et de les sélectionner pour vous.
             </p>
           </AnimateIn>
@@ -321,7 +321,7 @@ export default function ReseauPage() {
               <h2 className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-3">
                 Vous êtes un acteur spécialisé ? Proposez vos opportunités.
               </h2>
-              <p className="text-[14.5px] text-warm-grey leading-[1.7]">
+              <p className="text-[16px] text-warm-grey leading-[1.7]">
                 Société de gestion, assureur, agent immobilier, fonds Private Equity / Venture Capital ou porteur d&apos;un partenariat business - sélectionnez votre catégorie, nous étudions et présentons de façon sélective à nos clients.
               </p>
             </div>
@@ -329,7 +329,7 @@ export default function ReseauPage() {
 
           <AnimateIn variant="scale-in" delay={150}>
             <div className="bg-white rounded-lg p-7 shadow-sm max-w-[760px] mx-auto">
-              <h4 className="text-[16px] font-semibold mb-5">Questionnaire de partenariat</h4>
+              <h4 className="text-[17.5px] font-semibold mb-5">Questionnaire de partenariat</h4>
 
               {/* Category selector */}
               <div className="grid grid-cols-2 gap-3 mb-6">

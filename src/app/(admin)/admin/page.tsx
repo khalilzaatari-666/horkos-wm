@@ -4,7 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminCard, AdminKpi, AdminBadge } from "@/components/admin/ui";
 import { RDV_STATUT_STYLES, type RdvStatut } from "./rendez-vous/constants";
-import { formatDateTime, formatDateLong, formatRelative } from "@/lib/dates";
+import { formatDateTime, formatDateLong, formatDateShort, formatRelative } from "@/lib/dates";
+import { marquerDemandeTraitee } from "./actions";
+import {
+  TuileActivite,
+  TuileTaux,
+  GrapheActivite,
+  SERIE_INSCRIPTIONS,
+  SERIE_RENDEZ_VOUS,
+} from "./activite";
 
 export const metadata: Metadata = { title: "Back-office" };
 
@@ -211,6 +219,117 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
     .slice(0, 12);
 
+  // ----------------------------------------------------------------
+  // Activité du site : douze semaines glissantes, et 30 j contre les 30 j
+  // précédents. Les listes couvrent 84 jours, donc les deux fenêtres de 30 j se
+  // découpent dedans sans requête supplémentaire.
+  // ----------------------------------------------------------------
+  const JOUR = 86_400_000;
+  const debut12s = new Date(now.getTime() - 12 * 7 * JOUR).toISOString();
+  const debut90j = new Date(now.getTime() - 90 * JOUR).toISOString();
+
+  const [
+    { data: inscriptions12s },
+    { data: rdv12s },
+    { data: demandes90j },
+    { data: guides12s },
+    { data: contacts12s },
+    { count: rdvNes90j },
+    { data: rdvPasses90j },
+    { count: clientsAvecConseiller },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("created_at")
+      .eq("role", "client")
+      .gte("created_at", debut12s),
+    supabase.from("appointments").select("created_at").gte("created_at", debut12s),
+    supabase
+      .from("appointment_requests")
+      .select("created_at")
+      .gte("created_at", debut90j),
+    supabase.from("guide_downloads").select("sent_at").gte("sent_at", debut12s),
+    supabase.from("contacts").select("created_at").gte("created_at", debut12s),
+    // Dénominateur de la part prospects : tous les rendez-vous nés sur 90 jours,
+    // questionnaire ou non.
+    supabase
+      .from("appointments")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", debut90j),
+    // Seuls les rendez-vous dont l'heure est passée disent quelque chose d'un
+    // taux d'honoré : un rendez-vous à venir n'est ni tenu ni manqué.
+    supabase
+      .from("appointments")
+      .select("status")
+      .gte("date", debut90j)
+      .lt("date", nowIso),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("role", "client")
+      .not("advisor_id", "is", null),
+  ]);
+
+  const horodatages = (rows: unknown, champ: string): number[] =>
+    ((rows ?? []) as Record<string, unknown>[])
+      .map((r) => new Date(r[champ] as string).getTime())
+      .filter((t) => !Number.isNaN(t));
+
+  const tsInscriptions = horodatages(inscriptions12s, "created_at");
+  const tsRdv = horodatages(rdv12s, "created_at");
+  const tsGuides = horodatages(guides12s, "sent_at");
+  const tsContacts = horodatages(contacts12s, "created_at");
+  // Une demande n'existe jamais sans son rendez-vous : le questionnaire public
+  // réserve d'abord et n'enregistre qu'ensuite. Ces lignes ne comptent donc pas
+  // une intention de plus, elles disent d'où vient le rendez-vous.
+  const tsDemandes = horodatages(demandes90j, "created_at");
+
+  /** Combien d'horodatages tombent entre `depuis` et `jusqu'à` jours en arrière. */
+  const surFenetre = (ts: number[], depuisJours: number, jusquaJours: number) => {
+    const debut = now.getTime() - depuisJours * JOUR;
+    const fin = now.getTime() - jusquaJours * JOUR;
+    return ts.filter((t) => t >= debut && t < fin).length;
+  };
+
+  /** Douze paquets d'une semaine, du plus ancien au plus récent. */
+  const parSemaine = (ts: number[]) =>
+    Array.from({ length: 12 }, (_, i) => {
+      const debut = now.getTime() - (12 - i) * 7 * JOUR;
+      const fin = debut + 7 * JOUR;
+      return ts.filter((t) => t >= debut && t < fin).length;
+    });
+
+  const semaines = Array.from({ length: 12 }, (_, i) =>
+    formatDateShort(new Date(now.getTime() - (12 - i) * 7 * JOUR))
+  );
+
+  const statutsPasses = ((rdvPasses90j ?? []) as { status: string }[]).map((r) => r.status);
+  const honores = statutsPasses.filter((s) => s === "termine").length;
+  const annules = statutsPasses.filter((s) => s === "annule").length;
+
+  // Demandes d'échange en attente. Requête à part : elle ne nourrit ni la frise
+  // ni les compteurs, et la table peut ne pas encore exister sur une base qui
+  // n'a pas reçu la migration 017 - l'erreur rend alors une liste vide plutôt
+  // que de faire tomber le tableau de bord.
+  const { data: echangesData } = await supabase
+    .from("advisor_requests")
+    .select(
+      "id, created_at, client_id, client:client_id(first_name, last_name), " +
+        "recommandation:recommendation_id(title)"
+    )
+    .eq("status", "nouveau")
+    .order("created_at", { ascending: false })
+    .limit(8);
+
+  const echanges = ((echangesData ?? []) as unknown as Record<string, unknown>[]).map((d) => ({
+    id: d.id as string,
+    clientId: d.client_id as string,
+    who: fullName(one(d.client as NomPartiel | NomPartiel[])) || "Client",
+    titre: (one(d.recommandation as { title: string } | { title: string }[])?.title ??
+      "Recommandation") as string,
+    at: d.created_at as string,
+  }));
+
   return (
     <AdminPanel>
       <AdminHead
@@ -232,6 +351,54 @@ export default async function AdminDashboardPage() {
             >
               Désigner un conseiller
             </Link>
+          </div>
+        </AnimateIn>
+      )}
+
+      {/* Demandes d'échange : n'apparaît que s'il y en a. Un bandeau permanent
+          finirait par ne plus être lu, et une demande sans reprise est
+          exactement ce qu'il ne faut pas manquer. */}
+      {echanges.length > 0 && (
+        <AnimateIn variant="fade-up">
+          <div className="mb-5 p-5 rounded-xl border border-bronze/40 bg-bronze/[0.07]">
+            <div className="flex items-center gap-2.5 mb-3">
+              <h2 className="text-[14px] font-semibold text-ink">
+                Demandes d&apos;échange sur une recommandation
+              </h2>
+              <AdminBadge tone="attente">{echanges.length}</AdminBadge>
+            </div>
+            <ul className="divide-y divide-bronze/15">
+              {echanges.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      href={`/admin/clients/${d.clientId}/recommandations`}
+                      className="text-[13px] font-medium text-ink hover:text-bronze-dark transition-colors"
+                    >
+                      {d.who}
+                    </Link>
+                    <span className="text-[12.5px] text-charcoal"> — {d.titre}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[11.5px] text-warm-grey">
+                      {formatRelative(d.at, now)}
+                    </span>
+                    <form action={marquerDemandeTraitee}>
+                      <input type="hidden" name="id" value={d.id} />
+                      <button
+                        type="submit"
+                        className="text-[12px] font-medium text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+                      >
+                        Marquer traitée
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </AnimateIn>
       )}
@@ -291,11 +458,92 @@ export default async function AdminDashboardPage() {
         </div>
       </AnimateIn>
 
+      {/* Activité du site : volumes sur 30 jours, puis les taux qu'ils donnent. */}
+      <AnimateIn variant="fade-up" delay={100}>
+        <h2 className="font-heading text-[17.5px] font-semibold text-ink mt-8 mb-3.5">
+          Activité du site
+        </h2>
+      </AnimateIn>
+
+      <AnimateIn variant="fade-up" delay={110}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <TuileActivite
+            label="Inscriptions"
+            actuel={surFenetre(tsInscriptions, 30, 0)}
+            precedent={surFenetre(tsInscriptions, 60, 30)}
+          />
+          <TuileActivite
+            label="Messages de contact"
+            actuel={surFenetre(tsContacts, 30, 0)}
+            precedent={surFenetre(tsContacts, 60, 30)}
+          />
+          <TuileActivite
+            label="Rendez-vous réservés"
+            actuel={surFenetre(tsRdv, 30, 0)}
+            precedent={surFenetre(tsRdv, 60, 30)}
+          />
+          <TuileActivite
+            label="Guides téléchargés"
+            actuel={surFenetre(tsGuides, 30, 0)}
+            precedent={surFenetre(tsGuides, 60, 30)}
+          />
+        </div>
+      </AnimateIn>
+
+      <AnimateIn variant="fade-up" delay={130}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mt-3.5">
+          <TuileTaux
+            label="Nouveaux prospects"
+            numerateur={tsDemandes.length}
+            denominateur={rdvNes90j ?? 0}
+            detail="rendez-vous venus du questionnaire public · 90 j"
+          />
+          <TuileTaux
+            label="Rendez-vous honorés"
+            numerateur={honores}
+            denominateur={statutsPasses.length}
+            detail="marqués terminés · 90 j"
+          />
+          <TuileTaux
+            label="Annulations"
+            numerateur={annules}
+            denominateur={statutsPasses.length}
+            detail="rendez-vous passés · 90 j"
+          />
+          <TuileTaux
+            label="Clients suivis"
+            numerateur={clientsAvecConseiller ?? 0}
+            denominateur={clients ?? 0}
+            detail="clients avec un conseiller référent"
+          />
+        </div>
+      </AnimateIn>
+
+      <AnimateIn variant="fade-up" delay={150}>
+        <div className="mt-3.5">
+          <GrapheActivite
+            semaines={semaines}
+            series={[
+              {
+                label: "Inscriptions",
+                color: SERIE_INSCRIPTIONS,
+                values: parSemaine(tsInscriptions),
+              },
+              {
+                label: "Rendez-vous",
+                color: SERIE_RENDEZ_VOUS,
+                values: parSemaine(tsRdv),
+              },
+            ]}
+          />
+        </div>
+      </AnimateIn>
+
       {/* Frise d'activité (large) + derniers inscrits (étroit). */}
       <div className="grid lg:grid-cols-3 gap-3.5 mt-3.5">
         <AnimateIn variant="fade-up" delay={120} className="lg:col-span-2">
           <AdminCard className="p-6 h-full">
-            <h2 className="font-heading text-[16px] font-semibold text-ink mb-4">
+            <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-4">
               Activité récente
             </h2>
 
@@ -346,7 +594,7 @@ export default async function AdminDashboardPage() {
         <AnimateIn variant="fade-up" delay={150}>
           <AdminCard className="p-6 h-full">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="font-heading text-[16px] font-semibold text-ink">
+              <h2 className="font-heading text-[17.5px] font-semibold text-ink">
                 Derniers inscrits
               </h2>
               <Link
@@ -381,7 +629,7 @@ export default async function AdminDashboardPage() {
       <AnimateIn variant="fade-up" delay={120}>
         <AdminCard className="p-6 mt-3.5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-heading text-[16px] font-semibold text-ink">
+            <h2 className="font-heading text-[17.5px] font-semibold text-ink">
               Derniers rendez-vous
             </h2>
             <Link

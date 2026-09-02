@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import type { ActionState } from "@/lib/staff";
 import type { RecommandationDetails } from "@/lib/recommandation-details";
+import { MediaListUpload, type MediaItem } from "@/components/admin/media-list-upload";
 
 const initialState: ActionState = { status: "idle" };
 
@@ -58,6 +59,12 @@ export function RecommendationForm({
   const [pourquoi, setPourquoi] = useState<string[]>(initial.details.pourquoi ?? []);
   const [attention, setAttention] = useState<string[]>(initial.details.points_attention ?? []);
   const [fonc, setFonc] = useState<Fonc[]>(initial.details.fonctionnement ?? []);
+  // La légende d'une photo est facultative côté fiche, mais l'éditeur travaille
+  // sur un champ toujours présent : le vide est retiré à la sérialisation.
+  const [photos, setPhotos] = useState<MediaItem[]>(
+    (initial.details.photos ?? []).map((p) => ({ url: p.url, label: p.legende ?? "" }))
+  );
+  const [docs, setDocs] = useState<MediaItem[]>(initial.details.documents ?? []);
 
   useEffect(() => {
     if (state.status === "success") onSuccess();
@@ -75,6 +82,19 @@ export function RecommendationForm({
       ? { points_attention: attention.map((p) => p.trim()).filter(Boolean) }
       : {}),
     ...(frais.trim() ? { frais: frais.trim() } : {}),
+    // Un document sans intitulé n'est pas cliquable proprement sur la fiche :
+    // il est écarté plutôt qu'affiché sans nom.
+    ...(photos.length
+      ? {
+          photos: photos.map((p) => ({
+            url: p.url,
+            ...(p.label.trim() ? { legende: p.label.trim() } : {}),
+          })),
+        }
+      : {}),
+    ...(docs.filter((d) => d.label.trim()).length
+      ? { documents: docs.filter((d) => d.label.trim()).map((d) => ({ url: d.url, label: d.label.trim() })) }
+      : {}),
   };
 
   return (
@@ -157,6 +177,28 @@ export function RecommendationForm({
 
         <SectionLabel>Frais</SectionLabel>
         <textarea rows={2} value={frais} onChange={(e) => setFrais(e.target.value)} className={area} />
+
+        <SectionLabel>Photos</SectionLabel>
+        <MediaListUpload
+          kind="image"
+          items={photos}
+          setItems={setPhotos}
+          folder="recommandations/photos"
+          labelPlaceholder="Légende (facultative)"
+          addLabel="Ajouter des photos"
+          hint="JPEG ou PNG, 5 Mo par image. Plusieurs fichiers à la fois."
+        />
+
+        <SectionLabel>Documents</SectionLabel>
+        <MediaListUpload
+          kind="file"
+          items={docs}
+          setItems={setDocs}
+          folder="recommandations/documents"
+          labelPlaceholder="Intitulé du document"
+          addLabel="Ajouter des documents"
+          hint="PDF, PowerPoint ou Excel, 15 Mo par fichier. Visibles par les clients à qui la fiche est proposée."
+        />
       </div>
 
       <label className="flex items-center gap-2.5 cursor-pointer border-t border-cream-deep pt-4">

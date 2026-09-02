@@ -230,7 +230,7 @@ export function Header() {
             alt="Horkos Wealth Management"
             width={168}
             height={56}
-            className="h-14 w-auto"
+            className="h-10 w-auto"
             priority
           />
         </Link>

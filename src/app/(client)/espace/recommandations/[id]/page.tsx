@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, Card, CardTitle, Badge } from "@/components/client/ui";
 import { formatDateLong } from "@/lib/dates";
 import { parseDetails, hasContent } from "@/lib/recommandation-details";
+import { fileExtensionLabel } from "@/lib/documents";
+import { DemanderEchange } from "./demander-echange";
 
 const STATUS: Record<string, { label: string; tone: "neutre" | "attente" | "succes" | "refus" }> = {
   proposee: { label: "À étudier", tone: "attente" },
@@ -156,6 +159,60 @@ export default async function RecommandationPage({
           </AnimateIn>
         ) : null}
 
+        {details.photos?.length ? (
+          <AnimateIn variant="fade-up" delay={300}>
+            <Card className="p-6">
+              <CardTitle>En images</CardTitle>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {details.photos.map((photo) => (
+                  <figure key={photo.url}>
+                    {/* `unoptimized` : ces images viennent du bucket public, dont
+                        le domaine n'est pas déclaré à l'optimiseur de Next. */}
+                    <Image
+                      src={photo.url}
+                      alt={photo.legende ?? ""}
+                      width={640}
+                      height={420}
+                      unoptimized
+                      className="w-full h-auto rounded-lg border border-cream-deep"
+                    />
+                    {photo.legende && (
+                      <figcaption className="text-[12px] text-warm-grey leading-[1.5] mt-1.5">
+                        {photo.legende}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            </Card>
+          </AnimateIn>
+        ) : null}
+
+        {details.documents?.length ? (
+          <AnimateIn variant="fade-up" delay={340}>
+            <Card className="p-6">
+              <CardTitle>Documents</CardTitle>
+              <ul className="space-y-2">
+                {details.documents.map((doc) => (
+                  <li key={doc.url}>
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-[13.5px] text-bronze-dark hover:text-bronze transition-colors"
+                    >
+                      <span className="text-[10.5px] font-semibold text-warm-grey border border-cream-deep rounded px-1.5 py-0.5">
+                        {fileExtensionLabel(doc.url)}
+                      </span>
+                      {doc.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </AnimateIn>
+        ) : null}
+
         {details.frais && (
           <AnimateIn variant="fade-up" delay={320}>
             <Card className="p-6">
@@ -193,12 +250,7 @@ export default async function RecommandationPage({
           <p className="text-[13.5px] text-charcoal leading-[1.65]">
             Une question sur cette recommandation ? Votre conseiller y répond avant toute décision.
           </p>
-          <Link
-            href="/rendez-vous"
-            className="inline-block mt-4 px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
-          >
-            En parler avec mon conseiller
-          </Link>
+          <DemanderEchange recommendationId={reco.id} />
         </div>
       </AnimateIn>
     </Panel>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,7 +18,6 @@ const inputClass =
  * au back-office.
  */
 export function SetPasswordForm() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -47,8 +45,11 @@ export function SetPasswordForm() {
       return;
     }
 
-    router.push("/admin");
-    router.refresh();
+    // Navigation complète, comme sur la connexion équipe : `updateUser` rend la
+    // main avant que l'adaptateur ait réécrit le cookie de session, et un
+    // `router.push` parti trop tôt se fait renvoyer ici par le proxy.
+    await supabase.auth.getSession();
+    window.location.assign("/admin");
   }
 
   return (

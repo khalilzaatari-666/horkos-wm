@@ -40,7 +40,7 @@ const auditSchema = z.object({
 });
 
 function revalidate(clientId: string) {
-  revalidatePath(`/admin/clients/${clientId}/audits`);
+  revalidatePath(`/admin/clients/${clientId}/patrimoine`);
   revalidatePath(`/admin/clients/${clientId}`);
 }
 

@@ -61,7 +61,7 @@ export function Card({
 
 export function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-heading text-[16px] font-semibold text-ink leading-[1.3] mb-4">
+    <h2 className="font-heading text-[17.5px] font-semibold text-ink leading-[1.3] mb-4">
       {children}
     </h2>
   );

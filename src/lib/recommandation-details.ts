@@ -13,12 +13,30 @@ const sectionSchema = z.object({
   texte: z.string().trim().min(1),
 });
 
+/**
+ * Photos et documents vivent dans le bucket public `media` : ce sont des pièces
+ * de la fiche produit, identiques pour tous les clients, jamais des documents
+ * personnels - ceux-là restent dans le bucket privé `documents`. Seule l'URL est
+ * conservée ici, le fichier n'est pas dupliqué.
+ */
+const photoSchema = z.object({
+  url: z.url(),
+  legende: z.string().trim().min(1).optional(),
+});
+
+const documentSchema = z.object({
+  url: z.url(),
+  label: z.string().trim().min(1),
+});
+
 const detailsSchema = z.object({
   resume: z.string().trim().min(1).optional(),
   pourquoi: z.array(z.string().trim().min(1)).optional(),
   fonctionnement: z.array(sectionSchema).optional(),
   points_attention: z.array(z.string().trim().min(1)).optional(),
   frais: z.string().trim().min(1).optional(),
+  photos: z.array(photoSchema).optional(),
+  documents: z.array(documentSchema).optional(),
 });
 
 export type RecommandationDetails = z.infer<typeof detailsSchema>;
@@ -55,6 +73,12 @@ export function parseDetails(raw: unknown): RecommandationDetails {
   const fonctionnement = z.array(sectionSchema).safeParse(source.fonctionnement);
   if (fonctionnement.success) result.fonctionnement = fonctionnement.data;
 
+  const photos = z.array(photoSchema).safeParse(source.photos);
+  if (photos.success) result.photos = photos.data;
+
+  const documents = z.array(documentSchema).safeParse(source.documents);
+  if (documents.success) result.documents = documents.data;
+
   return result;
 }
 
@@ -65,6 +89,8 @@ export function hasContent(details: RecommandationDetails): boolean {
       details.pourquoi?.length ||
       details.fonctionnement?.length ||
       details.points_attention?.length ||
-      details.frais
+      details.frais ||
+      details.photos?.length ||
+      details.documents?.length
   );
 }

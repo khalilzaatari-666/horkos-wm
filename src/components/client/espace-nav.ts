@@ -1,5 +1,5 @@
 /**
- * Les cinq sections de l'espace client, dans l'ordre de la maquette.
+ * Les sections de l'espace client, dans l'ordre de la maquette.
  *
  * Partagé entre la barre latérale et le tiroir mobile pour que les deux ne
  * puissent pas diverger.
@@ -13,6 +13,7 @@ export const espaceSections: EspaceSection[] = [
   { href: "/espace", label: "Tableau de bord" },
   { href: "/espace/accompagnement", label: "Mon accompagnement" },
   { href: "/espace/patrimoine", label: "Mon patrimoine" },
+  { href: "/espace/recommandations", label: "Recommandations" },
   { href: "/espace/ceder", label: "Céder un actif" },
   { href: "/espace/coffre", label: "Coffre-fort" },
 ];

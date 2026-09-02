@@ -48,7 +48,7 @@ function EtapeCard({ etape, counterDelay = 0 }: { etape: Etape; counterDelay?: n
           {etape.badge}
         </span>
       </div>
-      <h3 className="text-[20px] font-semibold leading-[1.3] mb-2.5">{etape.title}</h3>
+      <h3 className="text-[21.5px] font-semibold leading-[1.3] mb-2.5">{etape.title}</h3>
       <p className="text-[14px] text-warm-grey leading-[1.65] flex-1">{etape.desc}</p>
     </div>
   );
@@ -102,7 +102,7 @@ export default function ModelePage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
               Le premier rendez-vous est toujours gratuit. Ce qui se passe ensuite dépend uniquement de ce que vous décidez - jamais de frais cachés, jamais deux catégories de frais à la fois.
             </p>
           </AnimateIn>

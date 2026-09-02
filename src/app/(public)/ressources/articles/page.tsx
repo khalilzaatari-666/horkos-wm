@@ -51,7 +51,7 @@ export default async function ArticlesPage() {
                       )}
                     </div>
                     <div>
-                      <h2 className="font-heading text-[19px] font-semibold text-ink leading-[1.35] group-hover:text-bronze-dark transition-colors">
+                      <h2 className="font-heading text-[20.5px] font-semibold text-ink leading-[1.35] group-hover:text-bronze-dark transition-colors">
                         {article.title}
                       </h2>
                       {article.excerpt && (

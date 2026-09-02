@@ -16,7 +16,7 @@ export interface ActionState {
  */
 export async function requireStaff(
   supabase: SupabaseServerClient
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; role: "admin" | "conseiller" } | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -29,7 +29,7 @@ export async function requireStaff(
     .maybeSingle();
 
   if (me?.role !== "admin" && me?.role !== "conseiller") return null;
-  return { id: user.id };
+  return { id: user.id, role: me.role };
 }
 
 /** Une écriture bloquée par une contrainte d'unicité (slug déjà pris, etc.). */

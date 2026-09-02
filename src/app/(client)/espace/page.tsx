@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import {
@@ -24,7 +25,8 @@ import {
   type AssetRow,
   type ValuationRow,
 } from "@/lib/patrimoine";
-import { PARCOURS, etatEtape } from "@/lib/parcours";
+import { PARCOURS, etatEtape, libelleType } from "@/lib/parcours";
+import { initials } from "@/components/client/espace-nav";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
@@ -105,6 +107,24 @@ export default async function EspacePage() {
     }));
   }
 
+  // Le conseiller référent, en deux temps : son identifiant est sur le profil du
+  // client, sa fiche est lisible grâce à la policy « Clients see their advisor
+  // profile » (migration 018). Sans référent - ou sans migration - la carte ne
+  // s'affiche simplement pas.
+  const { data: moi } = await supabase
+    .from("profiles")
+    .select("advisor_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const { data: conseiller } = moi?.advisor_id
+    ? await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, phone, avatar_url")
+        .eq("id", moi.advisor_id)
+        .maybeSingle()
+    : { data: null };
+
   const total = totalPatrimoine(assetRows);
   const classes = repartition(assetRows);
   const perf = performance12m(assetRows, valuations);
@@ -143,7 +163,7 @@ export default async function EspacePage() {
             }
             note={
               nextAppointment
-                ? nextAppointment.type
+                ? libelleType(nextAppointment.type)
                 : "Aucun rendez-vous planifié"
             }
           />
@@ -183,6 +203,57 @@ export default async function EspacePage() {
         </AnimateIn>
 
         <div className="flex flex-col gap-3.5">
+          {conseiller && (
+            <AnimateIn variant="fade-up" delay={160}>
+              <Card className="p-5">
+                <CardTitle>Votre conseiller</CardTitle>
+                <div className="flex items-center gap-3.5">
+                  {conseiller.avatar_url ? (
+                    // `unoptimized` : la photo vient du bucket public, dont le
+                    // domaine n'est pas déclaré à l'optimiseur de Next.
+                    <Image
+                      src={conseiller.avatar_url}
+                      alt=""
+                      width={56}
+                      height={56}
+                      unoptimized
+                      className="w-14 h-14 rounded-full object-cover border border-cream-deep shrink-0"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="grid place-items-center w-14 h-14 rounded-full bg-ink text-cream font-heading text-[18px] font-semibold shrink-0"
+                    >
+                      {initials(conseiller.first_name, conseiller.last_name, conseiller.email)}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-[14px] font-medium text-ink truncate">
+                      {[conseiller.first_name, conseiller.last_name].filter(Boolean).join(" ") ||
+                        "Votre conseiller"}
+                    </div>
+                    {conseiller.email && (
+                      <a
+                        href={`mailto:${conseiller.email}`}
+                        className="block text-[12.5px] text-bronze-dark hover:text-bronze transition-colors truncate"
+                      >
+                        {conseiller.email}
+                      </a>
+                    )}
+                    {conseiller.phone && (
+                      <a
+                        href={`tel:${conseiller.phone}`}
+                        className="block text-[12.5px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                      >
+                        {conseiller.phone}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </AnimateIn>
+          )}
+
           {appointments.length > 0 && (
             <AnimateIn variant="fade-up" delay={190}>
               <Link href="/espace/accompagnement" className="block">

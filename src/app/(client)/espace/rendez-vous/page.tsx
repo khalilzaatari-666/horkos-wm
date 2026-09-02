@@ -11,7 +11,7 @@ export default function EspaceRendezVousPage() {
       <PanelHead
         eyebrow="À votre convenance"
         title="Prendre rendez-vous"
-        desc="Choisissez l'heure qui vous arrange : le créneau est confirmé immédiatement avec l'un de nos conseillers."
+        desc="Choisissez le créneau qui vous arrange : il est confirmé immédiatement avec l'un de nos conseillers."
       />
       <AnimateIn variant="fade-up" delay={80}>
         <BookingPanel />

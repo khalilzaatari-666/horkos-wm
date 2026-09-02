@@ -22,6 +22,18 @@ export default async function ClientsPage({
     .slice(0, 80);
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const isAdmin = me?.role === "admin";
 
   let query = supabase
     .from("profiles")
@@ -29,6 +41,14 @@ export default async function ClientsPage({
     .eq("role", "client")
     .order("created_at", { ascending: false })
     .limit(500);
+
+  // Le conseiller ne voit que son portefeuille et les clients encore sans
+  // référent - ceux-là restent visibles de tous, sans quoi personne ne les
+  // reprendrait. La RLS laisse l'équipe lire tous les profils : c'est ce filtre
+  // qui tient la règle, avec le garde d'entrée du dossier.
+  if (!isAdmin) {
+    query = query.or(`advisor_id.eq.${user.id},advisor_id.is.null`);
+  }
 
   if (q) {
     // Recherche simple sur le nom ou l'email.

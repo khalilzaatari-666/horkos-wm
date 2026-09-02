@@ -18,7 +18,7 @@ export default function NotFound() {
           alt="Horkos Wealth Management"
           width={168}
           height={56}
-          className="h-12 w-auto mb-12"
+          className="h-10 w-auto mb-12"
           priority
         />
       </Link>

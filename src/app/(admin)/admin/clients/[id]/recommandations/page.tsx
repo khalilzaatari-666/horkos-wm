@@ -4,7 +4,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { AssignCreate } from "./assign-create";
 import { AssignmentRowActions } from "./assignment-row-actions";
-import { assignmentStatusLabel, assignmentStatusTone } from "./assignment-status";
+import { assignmentStatusLabel, assignmentStatusTone } from "@/lib/recommandation-status";
 
 export const metadata: Metadata = { title: "Recommandations" };
 

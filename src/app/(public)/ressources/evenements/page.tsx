@@ -53,7 +53,7 @@ export default async function EvenementsPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h2 className="font-heading text-[17.5px] font-semibold text-ink leading-[1.35]">
+                        <h2 className="font-heading text-[19px] font-semibold text-ink leading-[1.35]">
                           {event.title}
                         </h2>
                         {(event.description || event.location) && (

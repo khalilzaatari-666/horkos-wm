@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { landingFor, safeRedirect } from "@/lib/landing";
+import { landingFor, safeRedirect, DEFAULT_LANDING } from "@/lib/landing";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -9,7 +9,13 @@ export async function GET(request: Request) {
   // `next` arrives from the query string, so it is attacker-controlled.
   // `safeRedirect` keeps only a single-slash relative path: "//evil.com" is
   // protocol-relative and would turn this route into an open redirect.
-  const next = safeRedirect(searchParams.get("next"));
+  const requested = safeRedirect(searchParams.get("next"));
+
+  // « /espace » n'est pas une destination choisie : c'est le défaut que le
+  // formulaire public accroche à tous ses liens. La retenir comme explicite
+  // déposerait un conseiller dans l'espace client. Même règle que le formulaire
+  // par code, où le rôle reprend la main sur le défaut.
+  const next = requested === DEFAULT_LANDING ? null : requested;
 
   if (code) {
     const supabase = await createClient();

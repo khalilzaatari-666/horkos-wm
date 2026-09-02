@@ -17,6 +17,37 @@ import { TEAM_EMAIL } from "@/lib/site";
  * Repli sur TEAM_EMAIL si la clé manque ou si aucun membre n'a d'adresse, pour
  * qu'une alerte ne parte jamais dans le vide.
  */
+/**
+ * Le conseiller référent d'un client : son nom et son adresse.
+ *
+ * Même raison que ci-dessus pour la clé de service - un client ne lit pas les
+ * profils de l'équipe. Rend `null` si le client n'a pas de référent, si la clé
+ * manque, ou si le référent n'a pas d'adresse : l'appelant retombe alors sur
+ * l'équipe entière.
+ */
+export async function advisorRecipient(
+  advisorId: string | null
+): Promise<{ name: string; email: string } | null> {
+  if (!advisorId) return null;
+
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data, error } = await admin
+    .from("profiles")
+    .select("first_name, last_name, email")
+    .eq("id", advisorId)
+    .maybeSingle();
+
+  const email = (data?.email as string | null)?.trim();
+  if (error || !email) return null;
+
+  return {
+    name: [data?.first_name, data?.last_name].filter(Boolean).join(" ") || "Conseiller",
+    email,
+  };
+}
+
 export async function staffRecipients(): Promise<string[]> {
   const admin = createAdminClient();
   if (!admin) return [TEAM_EMAIL];

@@ -168,7 +168,7 @@ function ProductCard({
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex-1 min-w-0 mr-4">
           <h4
-            className={`text-[15px] font-semibold leading-[1.35] ${
+            className={`text-[16.5px] font-semibold leading-[1.35] ${
               uniform ? "line-clamp-2 min-h-[2.7em]" : ""
             }`}
           >
@@ -209,7 +209,7 @@ function CategoryBlock({ category, delay, variant = "cream" }: { category: Categ
     <div className="mb-10">
       <AnimateIn variant="fade-right" delay={delay}>
         <div className="flex items-baseline justify-between mb-4">
-          <h3 className="text-[18px] font-semibold">{category.name}</h3>
+          <h3 className="text-[19.5px] font-semibold">{category.name}</h3>
           <span className="text-[12px] text-warm-grey font-medium">{category.count}</span>
         </div>
       </AnimateIn>
@@ -236,7 +236,7 @@ function SwipeCategory({ category, variant }: { category: Category; variant: "cr
     <div className="mb-10">
       <AnimateIn variant="fade-up">
         <div className="flex items-baseline justify-between mb-4">
-          <h3 className="text-[18px] font-semibold">{category.name}</h3>
+          <h3 className="text-[19.5px] font-semibold">{category.name}</h3>
           <span className="text-[12px] text-warm-grey font-medium">{category.count}</span>
         </div>
       </AnimateIn>
@@ -268,9 +268,16 @@ function CategorySwipe({ categories, variant }: { categories: Category[]; varian
   );
 }
 
+/** Hauteur de l'en-tête collant : logo de 40px dans un `py-4`, plus le filet. */
+const HEADER_H = 73;
+
 export default function ProduitsPage() {
   return (
     <>
+      {/* Ces deux sections-là s'ouvrent sur un intitulé : sans la hauteur de
+          l'en-tête collant, il arriverait caché derrière. */}
+      <HashScroll id="individuelles" offset={HEADER_H} />
+      <HashScroll id="entreprises" offset={HEADER_H} />
       <HashScroll id="ceder" />
 
       {/* Hero */}
@@ -287,7 +294,7 @@ export default function ProduitsPage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
               Cliquez sur une solution pour comprendre à quoi elle sert, sans jargon. Chaque recommandation reste choisie pour votre situation.
             </p>
           </AnimateIn>
@@ -295,7 +302,7 @@ export default function ProduitsPage() {
       </section>
 
       {/* Solutions individuelles */}
-      <section className="py-16">
+      <section id="individuelles" className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
           <AnimateIn variant="fade-right">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -322,7 +329,7 @@ export default function ProduitsPage() {
       </section>
 
       {/* Solutions entreprises */}
-      <section className="py-16 bg-cream-deep">
+      <section id="entreprises" className="py-16 bg-cream-deep">
         <div className="max-w-[1200px] mx-auto px-7">
           <AnimateIn variant="fade-right">
             <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -336,7 +343,7 @@ export default function ProduitsPage() {
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
-            <p className="text-[14.5px] text-warm-grey max-w-[620px] leading-[1.7] mb-8">
+            <p className="text-[16px] text-warm-grey max-w-[620px] leading-[1.7] mb-8">
               Fidéliser vos collaborateurs, faire fructifier votre trésorerie : nous accompagnons aussi les dirigeants, pas seulement les particuliers.
             </p>
           </AnimateIn>
@@ -376,7 +383,7 @@ export default function ProduitsPage() {
                 delay={100}
               />
               <AnimateIn variant="fade-up" delay={250}>
-                <p className="text-[14.5px] text-warm-grey leading-[1.7] max-w-[480px]">
+                <p className="text-[16px] text-warm-grey leading-[1.7] max-w-[480px]">
                   Bien immobilier, entreprise, participation, œuvre d&apos;art… décrivez l&apos;actif que vous souhaitez céder. Notre équipe l&apos;étudie et le présente de façon sélective aux clients pour qui il est pertinent.
                 </p>
               </AnimateIn>

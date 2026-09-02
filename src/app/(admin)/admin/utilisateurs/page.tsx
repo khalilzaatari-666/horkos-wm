@@ -7,6 +7,9 @@ import { formatDateLong } from "@/lib/dates";
 import { RoleSelect } from "./role-select";
 import { ResendLink } from "./resend-link";
 import { InviteForm } from "./invite-form";
+import { AvatarUpload } from "@/components/admin/avatar-upload";
+import { initials } from "@/components/client/espace-nav";
+import { setPhone } from "../actions";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
 
@@ -36,7 +39,7 @@ export default async function UtilisateursPage() {
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email, phone, role, created_at")
+    .select("id, first_name, last_name, email, phone, role, created_at, avatar_url")
     .order("created_at", { ascending: false });
 
   const rows = profiles ?? [];
@@ -67,12 +70,23 @@ export default async function UtilisateursPage() {
 
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Nom", "Contact", "Inscrit le", "Rôle actuel", "Modifier"]}
+          headers={["Photo", "Nom", "Contact", "Inscrit le", "Rôle actuel", "Modifier"]}
           isEmpty={rows.length === 0}
           empty="Aucun compte enregistré."
         >
           {rows.map((p) => (
             <tr key={p.id} className="hover:bg-cream/40 transition-colors">
+              <Td>
+                {/* Seul le conseiller est vu par ses clients : ailleurs, la
+                    vignette reste un repère, non modifiable. */}
+                <AvatarUpload
+                  userId={p.id}
+                  url={p.avatar_url ?? null}
+                  initials={initials(p.first_name, p.last_name, p.email)}
+                  size={40}
+                  editable={p.role === "conseiller"}
+                />
+              </Td>
               <Td>
                 <div className="font-medium text-ink">
                   {[p.first_name, p.last_name].filter(Boolean).join(" ") || "-"}
@@ -85,7 +99,30 @@ export default async function UtilisateursPage() {
                 >
                   {p.email ?? "-"}
                 </a>
-                {p.phone && <div className="text-[12px] text-warm-grey">{p.phone}</div>}
+                {/* Le téléphone d'un conseiller est lu par ses clients : il se
+                    corrige ici, sans passer par la base. */}
+                {p.role === "conseiller" ? (
+                  <form action={setPhone} className="flex items-center gap-1.5 mt-1">
+                    <input type="hidden" name="userId" value={p.id} />
+                    <input
+                      name="phone"
+                      type="tel"
+                      defaultValue={p.phone ?? ""}
+                      maxLength={40}
+                      placeholder="+212 6 …"
+                      aria-label="Téléphone du conseiller"
+                      className="w-[150px] h-8 px-2 text-[12px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      className="text-[11.5px] text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+                    >
+                      OK
+                    </button>
+                  </form>
+                ) : (
+                  p.phone && <div className="text-[12px] text-warm-grey">{p.phone}</div>
+                )}
               </Td>
               <Td className="whitespace-nowrap">{formatDateLong(p.created_at)}</Td>
               <Td>

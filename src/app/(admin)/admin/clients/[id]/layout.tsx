@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AdminPanel } from "@/components/admin/ui";
 import { ClientTabs } from "@/components/admin/client-tabs";
+import { peutAccederAuDossier } from "@/lib/client-access";
 import { setClientAdvisor } from "./actions";
 
 export default async function ClientDossierLayout({
@@ -31,6 +32,13 @@ export default async function ClientDossierLayout({
   ]);
 
   if (!client) notFound();
+
+  // Le filtre de la liste ne suffit pas : sans ce garde, un conseiller ouvrirait
+  // le dossier d'un confrère en tapant son URL. `notFound` plutôt qu'un message :
+  // l'existence même du dossier ne le regarde pas.
+  if (!peutAccederAuDossier({ id: user.id, role: me?.role ?? "" }, client.advisor_id ?? null)) {
+    notFound();
+  }
 
   const nom = [client.first_name, client.last_name].filter(Boolean).join(" ") || "Client sans nom";
   const isAdmin = me?.role === "admin";

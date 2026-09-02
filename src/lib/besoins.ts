@@ -11,7 +11,11 @@ export interface Besoin {
    * agrandie sur une plaque bronze - un rendu volontaire, pas un trou.
    */
   image?: string;
-  /** Renseigné uniquement pour les besoins qui mènent à un formulaire dédié. */
+  /**
+   * Section de la page produits vers laquelle la carte renvoie : les besoins
+   * particuliers mènent aux solutions individuelles, ceux d'entreprise aux
+   * solutions entreprises, et « Céder un actif » garde sa propre section.
+   */
   href?: string;
 }
 
@@ -27,36 +31,42 @@ export const besoinsParticuliers: (Besoin & { title: BesoinOption })[] = [
     image: "/images/besoins/diversifier.svg",
     title: "Diversifier mes investissements",
     desc: "Répartir un patrimoine trop concentré sur une seule classe d'actifs.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "fiscalite",
     image: "/images/besoins/fiscalite.svg",
     title: "Optimiser ma fiscalité",
     desc: "Choisir les enveloppes et structures adaptées à votre situation.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "retraite",
     image: "/images/besoins/retraite.svg",
     title: "Préparer ma retraite",
     desc: "Construire un capital ou un revenu complémentaire dans la durée.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "transmettre",
     image: "/images/besoins/transmettre.svg",
     title: "Transmettre à mes enfants",
     desc: "Anticiper une succession ou une donation dans de bonnes conditions.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "patrimoine",
     image: "/images/besoins/patrimoine.svg",
     title: "Structurer mon patrimoine",
     desc: "Organiser des actifs dispersés dans une logique cohérente.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "societe",
     image: "/images/besoins/societe.svg",
     title: "Structurer une société patrimoniale",
     desc: "Créer ou réorganiser une société patrimoniale ou d'exploitation.",
+    href: "/cabinet/produits#individuelles",
   },
   {
     icon: "ceder",
@@ -73,11 +83,13 @@ export const besoinsEntreprises: Besoin[] = [
     image: "/images/besoins/collaborateurs.svg",
     title: "Fidéliser mes collaborateurs",
     desc: "Mettre en place une épargne salariale (PER collectif) pour mon entreprise.",
+    href: "/cabinet/produits#entreprises",
   },
   {
     icon: "tresorerie",
     image: "/images/besoins/tresorerie.svg",
     title: "Investir ma trésorerie excédentaire",
     desc: "Faire fructifier ma trésorerie d'entreprise sans l'immobiliser.",
+    href: "/cabinet/produits#entreprises",
   },
 ];

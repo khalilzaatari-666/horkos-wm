@@ -5,12 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminSections, isAdminSectionActive } from "./admin-nav";
 import { signOut } from "@/components/client/actions";
+import { AvatarUpload } from "./avatar-upload";
+import { initials } from "@/components/client/espace-nav";
 
 export interface AdminProfile {
+  id: string;
   first_name: string | null;
   last_name: string | null;
   email: string | null;
   role: string;
+  avatar_url: string | null;
 }
 
 /**
@@ -54,13 +58,27 @@ export function AdminShell({
 
   const nav = (
     <>
-      <div className="px-5 py-5 border-b border-white/10">
-        <span className="font-heading text-[17px] font-semibold text-white tracking-[2px] block">
-          HORKOS
-        </span>
-        <span className="block text-[11px] text-white/50 mt-0.5 tracking-[1px] uppercase">
-          Back-office
-        </span>
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+        {/* Seul le conseiller a une photo : c'est lui que le client voit sur son
+            tableau de bord. Pour les autres rôles, la vignette n'aurait aucune
+            destination - la place reste au titre. */}
+        {profile.role === "conseiller" && (
+          <AvatarUpload
+            userId={profile.id}
+            url={profile.avatar_url}
+            initials={initials(profile.first_name, profile.last_name, profile.email)}
+            size={40}
+            compact
+          />
+        )}
+        <div className="min-w-0">
+          <span className="font-heading text-[17px] font-semibold text-white tracking-[2px] block">
+            HORKOS
+          </span>
+          <span className="block text-[11px] text-white/50 mt-0.5 tracking-[1px] uppercase">
+            Back-office
+          </span>
+        </div>
       </div>
 
       <nav className="p-3 flex-1" aria-label="Sections du back-office">

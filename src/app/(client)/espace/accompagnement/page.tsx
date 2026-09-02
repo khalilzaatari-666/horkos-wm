@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, PanelHead, Card, CardGrid, EmptyPanel, Badge } from "@/components/client/ui";
 import { formatDateTime } from "@/lib/dates";
-import { PARCOURS, etatEtape, progressionParcours } from "@/lib/parcours";
+import {
+  PARCOURS,
+  etatEtape,
+  progressionParcours,
+  libelleType,
+  estJalonParcours,
+} from "@/lib/parcours";
 
 export const metadata: Metadata = { title: "Mon accompagnement" };
 
@@ -140,7 +145,14 @@ function RendezVousGroup({
               <Card key={a.id} center className={`p-5 h-full ${passe ? "bg-cream/40" : ""}`}>
                 <div className="flex items-start gap-2.5 mb-2">
                   <span className="font-heading text-[17px] font-semibold text-ink leading-none flex-1">
-                    {a.type}
+                    {libelleType(a.type)}
+                    {/* Le code ne se suffit pas à lui-même, mais il rattache la
+                        carte au jalon correspondant de la barre du parcours. */}
+                    {estJalonParcours(a.type) && (
+                      <span className="font-sans text-[12px] font-medium text-warm-grey ml-2">
+                        {a.type}
+                      </span>
+                    )}
                   </span>
                   <Badge
                     tone={
@@ -222,7 +234,7 @@ export default async function AccompagnementPage() {
       <PanelHead
         eyebrow="Où j'en suis"
         title="Mon accompagnement"
-        desc="Trois étapes, du premier échange à la gouvernance dans la durée."
+        desc="Trois étapes, du premier échange à la gouvernance dans la durée, et tous vos rendez-vous au fil de l'eau."
       />
 
       <AnimateIn variant="fade-up" delay={80}>
@@ -231,24 +243,12 @@ export default async function AccompagnementPage() {
         </Card>
       </AnimateIn>
 
-      {/* Visible même sans rendez-vous : c'est ici qu'on vient pour en prendre un. */}
-      <AnimateIn variant="fade-up" delay={110}>
-        <div className="flex justify-end mt-5">
-          <Link
-            href="/espace/rendez-vous"
-            className="inline-block px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
-          >
-            Prendre rendez-vous →
-          </Link>
-        </div>
-      </AnimateIn>
-
       <div className="space-y-9 mt-4">
         <RendezVousGroup
           titre="À venir"
           rendezVous={avenir}
           delay={140}
-          vide="Aucun rendez-vous planifié. Choisissez un créneau via « Prendre rendez-vous » ci-dessus."
+          vide="Aucun rendez-vous planifié pour l'instant."
         />
         <RendezVousGroup
           titre="Passés"
@@ -264,7 +264,7 @@ export default async function AccompagnementPage() {
           <div className="mt-3.5">
             <EmptyPanel
               title="Votre parcours n'a pas encore commencé"
-              desc="Le premier rendez-vous, l'audit patrimonial, est gratuit et sans engagement. Choisissez l'heure qui vous arrange."
+              desc="Le premier rendez-vous, l'audit patrimonial, est gratuit et sans engagement. Choisissez le créneau qui vous arrange : il est confirmé aussitôt, au cabinet ou en visioconférence."
               action={{ href: "/espace/rendez-vous", label: "Prendre rendez-vous" }}
             />
           </div>

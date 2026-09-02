@@ -77,14 +77,14 @@ function BesoinCard({ icon, title, desc, image, href }: Besoin) {
         {/* Pas de hauteur minimale ici : elle réservait deux lignes pour tous les
             titres et creusait un blanc sous ceux qui n'en prennent qu'une. Les
             cartes gardent la même hauteur par l'étirement du flex. */}
-        <h4 className="text-[14.5px] font-semibold text-ink leading-[1.35]">{title}</h4>
+        <h4 className="text-[16px] font-semibold text-ink leading-[1.35]">{title}</h4>
         <p className="text-[12.5px] text-warm-grey leading-[1.55] mt-1.5">{desc}</p>
       </div>
     </>
   );
 
-  // Seule la carte qui mène quelque part devient un lien. Les autres restent de
-  // la présentation : rien à survoler au curseur main, rien dans la tabulation.
+  // Une carte sans destination reste de la présentation : rien à survoler au
+  // curseur main, rien dans la tabulation.
   if (!href) return <div className={shell}>{body}</div>;
 
   return (
@@ -122,7 +122,7 @@ function RowLabel({
 function TrustCard({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="bg-white p-[26px] border border-cream-deep h-full rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-      <h4 className="text-[16.5px] font-semibold mb-2">{title}</h4>
+      <h4 className="text-[18px] font-semibold mb-2">{title}</h4>
       <p className="text-[13px] text-warm-grey leading-[1.6]">{desc}</p>
     </div>
   );
@@ -250,12 +250,12 @@ export function HomeContent() {
           </AnimateIn>
           <DrawLine className="w-[44px] h-px bg-bronze mb-6" delay={200} />
           <SplitHeading
-            text="Le conseil qui structure l'ensemble de votre patrimoine."
+            text="Le conseil qui structure votre patrimoine."
             className="text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.22] font-medium text-cream max-w-[680px]"
             delay={300}
           />
           <AnimateIn variant="fade-up" delay={500} duration={0.7}>
-            <p className="text-[16px] text-[#D8CDBC] max-w-[560px] mt-5 mb-[30px] leading-[1.75]">
+            <p className="text-[17.5px] text-[#D8CDBC] max-w-[560px] mt-5 mb-[30px] leading-[1.75]">
               Horkos centralise vos besoins patrimoniaux et s&apos;appuie sur un réseau de professionnels pour construire une stratégie d&apos;investissement cohérente.
             </p>
           </AnimateIn>
@@ -293,7 +293,7 @@ export function HomeContent() {
             delay={100}
           />
           <AnimateIn variant="fade-up" delay={200}>
-            <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-[34px] leading-[1.65]">
+            <p className="text-warm-grey text-[16px] max-w-[640px] mb-[34px] leading-[1.65]">
               Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.
             </p>
           </AnimateIn>
@@ -379,7 +379,7 @@ export function HomeContent() {
                       className="font-heading text-[28px] text-bronze font-medium mb-3 block"
                       delay={i * 150 + 300}
                     />
-                    <h3 className="text-[16px] font-semibold mb-2">{s.title}</h3>
+                    <h3 className="text-[17.5px] font-semibold mb-2">{s.title}</h3>
                     <p className="text-[13.5px] text-warm-grey leading-[1.6]">{s.desc}</p>
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export function HomeContent() {
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={300}>
-              <p className="text-[#D8CDBC] text-[15px] leading-[1.75] max-w-[480px]">
+              <p className="text-[#D8CDBC] text-[16px] leading-[1.75] max-w-[480px]">
                 Ce qui fait la différence, ce n&apos;est pas un algorithme ni un catalogue de produits. C&apos;est la personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à vos côtés.
               </p>
             </AnimateIn>
@@ -465,7 +465,7 @@ export function HomeContent() {
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
                 Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent - et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
               </p>
             </AnimateIn>
@@ -480,7 +480,7 @@ export function HomeContent() {
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[18px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
+              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc - et d&apos;envisager, selon les cas, un accompagnement adapté à votre réalité à l&apos;étranger.
               </p>
@@ -505,7 +505,7 @@ export function HomeContent() {
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
                 Une fois votre besoin identifié, nous mobilisons les solutions adaptées - placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
               </p>
             </AnimateIn>
@@ -520,7 +520,7 @@ export function HomeContent() {
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[18px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
+              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : nous mobilisons les bons partenaires pour chaque dossier.
               </p>
@@ -548,7 +548,7 @@ export function HomeContent() {
               delay={100}
             />
             <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[14.5px] max-w-[640px] mb-6 leading-[1.65]">
+              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
                 Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée - un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
               </p>
             </AnimateIn>
@@ -563,7 +563,7 @@ export function HomeContent() {
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[18px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
+              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Un bien immobilier détenu en nom propre, apporté au capital d&apos;une SARL immobilière, avec un expert-comptable dédié à sa gestion.
               </p>

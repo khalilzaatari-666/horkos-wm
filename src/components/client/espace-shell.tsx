@@ -17,7 +17,7 @@ export interface EspaceProfile {
  * Barre latérale de l'espace client, tiroir coulissant sous `lg`.
  *
  * La maquette ne propose aucune version mobile. Un tiroir plutôt qu'une barre
- * d'onglets en bas : cinq entrées y tiendraient mal, et le tiroir accueillera
+ * d'onglets en bas : six entrées y tiendraient mal, et le tiroir accueillera
  * les sections à venir sans être repensé.
  */
 export function EspaceShell({

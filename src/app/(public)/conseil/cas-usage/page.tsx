@@ -74,7 +74,7 @@ function CaseCard({ useCase }: { useCase: UseCase }) {
       <span className="inline-block bg-bronze/10 text-bronze text-[11px] font-semibold tracking-[1px] uppercase px-2.5 py-1 rounded-md mb-3">
         {useCase.tag}
       </span>
-      <h3 className="text-[20px] font-semibold mb-2 leading-[1.3]">{useCase.title}</h3>
+      <h3 className="text-[21.5px] font-semibold mb-2 leading-[1.3]">{useCase.title}</h3>
       <p className="text-[14px] text-warm-grey italic leading-[1.6] mb-4 flex-1">{useCase.punch}</p>
 
       <span className="text-[13px] text-bronze-dark font-medium flex items-center gap-1.5">
@@ -151,7 +151,7 @@ export default function CasUsagePage() {
             delay={200}
           />
           <AnimateIn variant="fade-up" delay={400}>
-            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[14.5px] leading-[1.7]">
+            <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
               Chaque client a un objectif différent. Cliquez sur une situation pour voir comment nous l&apos;avons accompagnée.
             </p>
           </AnimateIn>

@@ -63,7 +63,7 @@ export function Footer() {
               alt="Horkos Wealth Management"
               width={168}
               height={56}
-              className="h-16 w-auto"
+              className="h-12 w-auto"
             />
             <p className="mt-4 text-sm text-warm-grey leading-relaxed">
               Cabinet de gestion de patrimoine au Maroc. Accompagnement
