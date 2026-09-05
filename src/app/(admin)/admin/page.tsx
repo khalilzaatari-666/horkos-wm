@@ -6,6 +6,7 @@ import { AdminPanel, AdminHead, AdminCard, AdminKpi, AdminBadge } from "@/compon
 import { RDV_STATUT_STYLES, type RdvStatut } from "./rendez-vous/constants";
 import { formatDateTime, formatDateLong, formatDateShort, formatRelative } from "@/lib/dates";
 import { marquerDemandeTraitee } from "./actions";
+import { getUmamiStats30j, umamiConfigured } from "@/lib/umami";
 import {
   TuileActivite,
   TuileTaux,
@@ -330,6 +331,11 @@ export default async function AdminDashboardPage() {
     at: d.created_at as string,
   }));
 
+  // Umami est une instance externe : sa disponibilité ne doit jamais retarder
+  // ni faire tomber le reste du tableau de bord, d'où l'appel à part.
+  const umamiStats = umamiConfigured() ? await getUmamiStats30j(now) : null;
+  const umamiDashboardUrl = process.env.NEXT_PUBLIC_UMAMI_DASHBOARD_URL;
+
   return (
     <AdminPanel>
       <AdminHead
@@ -537,6 +543,60 @@ export default async function AdminDashboardPage() {
             ]}
           />
         </div>
+      </AnimateIn>
+
+      {/* Visiteurs du site : lu depuis Umami, pas depuis la base - ce sont de
+          vraies visites, pas des actes qui laissent une ligne quelque part. */}
+      <AnimateIn variant="fade-up" delay={160}>
+        <div className="flex items-center justify-between gap-3 mt-8 mb-3.5">
+          <h2 className="font-heading text-[17.5px] font-semibold text-ink">Visiteurs du site</h2>
+          {umamiDashboardUrl && (
+            <a
+              href={umamiDashboardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
+            >
+              Tableau Umami complet →
+            </a>
+          )}
+        </div>
+      </AnimateIn>
+
+      <AnimateIn variant="fade-up" delay={170}>
+        {umamiStats ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <TuileActivite
+              label="Visiteurs uniques"
+              actuel={umamiStats.visitors}
+              precedent={umamiStats.comparison.visitors}
+            />
+            <TuileActivite
+              label="Visites"
+              actuel={umamiStats.visits}
+              precedent={umamiStats.comparison.visits}
+            />
+            <TuileActivite
+              label="Pages vues"
+              actuel={umamiStats.pageviews}
+              precedent={umamiStats.comparison.pageviews}
+            />
+            <TuileTaux
+              label="Taux de rebond"
+              numerateur={umamiStats.bounces}
+              denominateur={umamiStats.visits}
+              detail="visites à une seule page · 30 j"
+            />
+          </div>
+        ) : (
+          <AdminCard className="p-5">
+            <p className="text-[13px] text-warm-grey leading-[1.65]">
+              {umamiConfigured()
+                ? "Statistiques indisponibles pour l'instant - l'instance Umami ne répond pas."
+                : "Analytics non configurées. Renseignez NEXT_PUBLIC_UMAMI_WEBSITE_ID, UMAMI_API_URL et UMAMI_API_KEY pour afficher la fréquentation du site."}
+            </p>
+          </AdminCard>
+        )}
       </AnimateIn>
 
       {/* Frise d'activité (large) + derniers inscrits (étroit). */}

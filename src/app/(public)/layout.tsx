@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { UmamiAnalytics } from "@/components/layout/umami-analytics";
 import { OrganisationJsonLd } from "@/components/public/structured-data";
 import { ScrollRefresh } from "@/components/ui/scroll-refresh";
 
@@ -12,6 +13,7 @@ export default function PublicLayout({
     // Colonne d'au moins une hauteur d'écran : `main` s'étire (flex-1) et pousse
     // le footer tout en bas, même quand la page est plus courte que l'écran.
     <div className="min-h-screen flex flex-col">
+      <UmamiAnalytics />
       <OrganisationJsonLd />
       <ScrollRefresh />
       <Header />

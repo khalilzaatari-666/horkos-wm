@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EspaceShell } from "@/components/client/espace-shell";
+import { UmamiAnalytics } from "@/components/layout/umami-analytics";
 
 /**
  * Le profil est chargé ici une seule fois : la barre latérale l'affiche, et
@@ -27,15 +28,18 @@ export default async function ClientLayout({ children }: { children: React.React
     .maybeSingle();
 
   return (
-    <EspaceShell
-      profile={{
-        first_name: profile?.first_name ?? null,
-        last_name: profile?.last_name ?? null,
-        email: profile?.email ?? user.email ?? null,
-        role: profile?.role ?? "client",
-      }}
-    >
-      {children}
-    </EspaceShell>
+    <>
+      <UmamiAnalytics />
+      <EspaceShell
+        profile={{
+          first_name: profile?.first_name ?? null,
+          last_name: profile?.last_name ?? null,
+          email: profile?.email ?? user.email ?? null,
+          role: profile?.role ?? "client",
+        }}
+      >
+        {children}
+      </EspaceShell>
+    </>
   );
 }
