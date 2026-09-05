@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
@@ -15,6 +16,7 @@ import { peutAccederAuDossier } from "@/lib/client-access";
 import { RDV_STATUT_STYLES, type RdvStatut } from "../../../rendez-vous/constants";
 import { RdvActions } from "./rdv-actions";
 import { EtapeSuivanteButton } from "./etape-suivante";
+import { OuvrirFicheButton } from "../audits/ouvrir-fiche";
 
 export const metadata: Metadata = { title: "Suivi" };
 
@@ -62,15 +64,18 @@ export default async function ClientSuiviPage({
   } = await supabase.auth.getUser();
   if (!user) notFound();
 
-  const [{ data: client }, { data: me }, { data: rdvData }] = await Promise.all([
-    supabase.from("profiles").select("advisor_id").eq("id", id).maybeSingle(),
-    supabase.from("profiles").select("id, role").eq("id", user.id).maybeSingle(),
-    supabase
-      .from("appointments")
-      .select("id, type, status, date, mode, meeting_url, notes, advisor_id")
-      .eq("client_id", id)
-      .order("date", { ascending: false }),
-  ]);
+  const [{ data: client }, { data: me }, { data: rdvData }, { data: auditData }] =
+    await Promise.all([
+      supabase.from("profiles").select("advisor_id").eq("id", id).maybeSingle(),
+      supabase.from("profiles").select("id, role").eq("id", user.id).maybeSingle(),
+      supabase
+        .from("appointments")
+        .select("id, type, status, date, mode, meeting_url, notes, advisor_id")
+        .eq("client_id", id)
+        .order("date", { ascending: false }),
+      // Les fiches d'audit, pour savoir si le R0 a déjà la sienne.
+      supabase.from("audits").select("id, appointment_id").eq("client_id", id),
+    ]);
 
   if (!client) notFound();
 
@@ -91,6 +96,14 @@ export default async function ClientSuiviPage({
       a.id,
       [a.first_name, a.last_name].filter(Boolean).join(" ") || "Conseiller",
     ])
+  );
+
+  // La fiche d'audit se remplit au R0 : on la retrouve par le rendez-vous
+  // auquel elle est rattachée.
+  const ficheParRdv = new Map(
+    (auditData ?? [])
+      .filter((a): a is { id: string; appointment_id: string } => !!a.appointment_id)
+      .map((a) => [a.appointment_id, a.id])
   );
 
   const pilote = peutAccederAuDossier(
@@ -162,6 +175,28 @@ export default async function ClientSuiviPage({
                   <div className="text-[12px] text-warm-grey mt-1">
                     {dernier ? formatDateTime(dernier.date) : "Pas encore posée"}
                   </div>
+                  {/* La fiche d'audit se remplit au R0 : le conseiller la trouve
+                      sur l'étape qui la produit, pas dans un autre onglet. */}
+                  {etape.type === "R0" && dernier && (
+                    <div className="mt-3">
+                      {ficheParRdv.has(dernier.id) ? (
+                        <Link
+                          href={`/admin/clients/${id}/audits/${ficheParRdv.get(dernier.id)}`}
+                          className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                        >
+                          Fiche d&apos;audit →
+                        </Link>
+                      ) : (
+                        pilote && (
+                          <OuvrirFicheButton
+                            clientId={id}
+                            appointmentId={dernier.id}
+                            libelle="Ouvrir la fiche d'audit"
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
                 </li>
               );
             })}

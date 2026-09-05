@@ -43,6 +43,15 @@ const nextConfig: NextConfig = {
      */
     ignoreBuildErrors: true,
   },
+  /**
+   * L'export de la fiche d'audit lit le classeur modèle du cabinet à
+   * l'exécution. Il ne fait partie d'aucun import : sans cette déclaration, le
+   * traceur de fichiers ne l'embarque pas dans la fonction déployée et l'export
+   * échoue en production, jamais en local.
+   */
+  outputFileTracingIncludes: {
+    "/admin/clients/[id]/audits/[auditId]/export": ["./docs/modele-audit.xlsx"],
+  },
   async redirects() {
     return [
       // The mockup called this route /questionnaire; the site standardised on

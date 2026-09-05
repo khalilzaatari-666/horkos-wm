@@ -18,51 +18,9 @@ const assetSchema = z.object({
     .max(1e12, "Valeur hors limite."),
 });
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function revalidate(clientId: string) {
   revalidatePath(`/admin/clients/${clientId}/patrimoine`);
   revalidatePath(`/admin/clients/${clientId}`);
-}
-
-export async function createAsset(
-  _previous: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const parsed = assetSchema.safeParse({
-    clientId: formData.get("clientId"),
-    type: formData.get("type"),
-    label: formData.get("label"),
-    value: formData.get("value"),
-  });
-  if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
-
-  const supabase = await createClient();
-  if (!(await requireStaff(supabase)))
-    return { status: "error", message: "Seule l'équipe peut modifier un patrimoine." };
-
-  const d = parsed.data;
-  const { data: created, error } = await supabase
-    .from("assets")
-    .insert({ client_id: d.clientId, type: d.type, label: d.label, value: d.value })
-    .select("id")
-    .single();
-
-  if (error || !created) return { status: "error", message: "Enregistrement impossible. Réessayez." };
-
-  // On amorce l'historique avec un premier relevé daté d'aujourd'hui, sinon la
-  // performance 12 mois n'aurait aucun point de comparaison.
-  await supabase
-    .from("asset_valuations")
-    .upsert(
-      { asset_id: created.id, value: d.value, valued_at: today() },
-      { onConflict: "asset_id,valued_at" }
-    );
-
-  revalidate(d.clientId);
-  return { status: "success" };
 }
 
 export async function updateAsset(

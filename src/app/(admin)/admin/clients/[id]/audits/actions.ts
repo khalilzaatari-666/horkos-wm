@@ -77,44 +77,6 @@ export async function createAudit(
   return { status: "success" };
 }
 
-export async function updateAudit(
-  _previous: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const id = z.uuid().safeParse(formData.get("id"));
-  if (!id.success) return { status: "error", message: "Audit introuvable." };
-
-  const parsed = auditSchema.safeParse({
-    clientId: formData.get("clientId"),
-    status: formData.get("status"),
-    path: formData.get("doc_path") || undefined,
-  });
-  if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
-
-  const d = parsed.data;
-  if (d.path && !d.path.startsWith(`${d.clientId}/`)) {
-    return { status: "error", message: "Chemin de fichier invalide." };
-  }
-
-  const supabase = await createClient();
-  if (!(await requireStaff(supabase)))
-    return { status: "error", message: "Seule l'équipe peut modifier un audit." };
-
-  // Un champ PDF laissé vide ne doit pas effacer le rapport déjà en place : on ne
-  // touche `pdf_url` que si un nouveau fichier a été déposé.
-  const patch: Record<string, unknown> = {
-    status: d.status,
-    updated_at: new Date().toISOString(),
-  };
-  if (d.path) patch.pdf_url = d.path;
-
-  const { error } = await supabase.from("audits").update(patch).eq("id", id.data);
-  if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
-
-  revalidate(d.clientId);
-  return { status: "success" };
-}
-
 export async function setAuditStatus(formData: FormData): Promise<void> {
   const id = z.uuid().safeParse(formData.get("id"));
   const clientId = z.uuid().safeParse(formData.get("clientId"));

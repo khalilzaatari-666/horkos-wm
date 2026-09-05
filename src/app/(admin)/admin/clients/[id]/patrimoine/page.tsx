@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminCard, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
@@ -17,8 +18,10 @@ import {
 import { AuditCreate } from "../audits/audit-create";
 import { AuditOpenButton } from "../audits/audit-open-button";
 import { AuditRowActions } from "../audits/audit-row-actions";
-import { AssetCreate } from "./asset-create";
 import { AssetRowActions } from "./asset-row-actions";
+
+/** Un audit par an : ouvrir le suivant avant ce délai n'a pas de sens pour le cabinet. */
+const UN_AN_MS = 365 * 86_400_000;
 
 export const metadata: Metadata = { title: "Audits" };
 
@@ -55,6 +58,19 @@ export default async function ClientPatrimoinePage({
     value: Number(a.value) || 0,
   }));
   const audits = auditData ?? [];
+
+  // Le premier de la liste est le plus récent (triée par `created_at` décroissant) -
+  // rien à comparer tant qu'aucun audit n'existe encore.
+  const maintenant = new Date();
+  const dernierAudit = audits[0] ?? null;
+  const depuisDernier = dernierAudit
+    ? maintenant.getTime() - new Date(dernierAudit.created_at).getTime()
+    : null;
+  const peutOuvrirAudit = depuisDernier === null || depuisDernier >= UN_AN_MS;
+  const prochainAuditLe =
+    !peutOuvrirAudit && dernierAudit
+      ? formatDateLong(new Date(new Date(dernierAudit.created_at).getTime() + UN_AN_MS).toISOString())
+      : null;
 
   const lastValued = new Map<string, string>();
   let valuations: ValuationRow[] = [];
@@ -93,12 +109,16 @@ export default async function ClientPatrimoinePage({
               reste privé (lien signé).
             </p>
           </div>
-          <AuditCreate clientId={id} />
+          <AuditCreate
+            clientId={id}
+            peutOuvrir={peutOuvrirAudit}
+            prochainAuditLe={prochainAuditLe}
+          />
         </div>
 
         <AnimateIn variant="fade-up" delay={60}>
           <AdminTable
-            headers={["Statut", "Rapport", "Ouvert le", "Mis à jour", ""]}
+            headers={["Statut", "Fiche", "Rapport", "Ouvert le", "Mis à jour", ""]}
             isEmpty={audits.length === 0}
             empty="Aucun audit. Ouvrez-en un — le client verra son statut sur sa page patrimoine."
           >
@@ -110,6 +130,16 @@ export default async function ClientPatrimoinePage({
                     <AdminBadge tone={a.status === "termine" ? "succes" : "attente"}>
                       {a.status === "termine" ? "Terminé" : "En cours"}
                     </AdminBadge>
+                  </Td>
+                  {/* La fiche saisie sur la plateforme, distincte du PDF joint :
+                      l'une se remplit ici, l'autre vient du dossier du client. */}
+                  <Td className="whitespace-nowrap">
+                    <Link
+                      href={`/admin/clients/${id}/audits/${a.id}`}
+                      className="text-[13px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                    >
+                      Ouvrir
+                    </Link>
                   </Td>
                   <Td className="whitespace-nowrap">
                     {hasReport ? (
@@ -157,7 +187,6 @@ export default async function ClientPatrimoinePage({
               )}
             </div>
           </div>
-          <AssetCreate clientId={id} />
         </div>
 
         {classes.length > 0 && (
@@ -172,7 +201,7 @@ export default async function ClientPatrimoinePage({
           <AdminTable
             headers={["Type", "Intitulé", "Valeur", "Dernier relevé", ""]}
             isEmpty={assetRows.length === 0}
-            empty="Aucun actif. Ajoutez le premier avec « Ajouter un actif » — il apparaîtra aussitôt dans l'espace du client."
+            empty="Aucun actif. La fiche d'audit établit le patrimoine — ouvrez ou remplissez un audit pour le faire apparaître ici."
           >
             {assetRows.map((a) => (
               <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
