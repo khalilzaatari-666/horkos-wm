@@ -17,11 +17,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect("/connexion/equipe?redirect=/admin");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, email, role, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  // Les non-lus des deux tables de demandes voyagent avec le profil : c'est la
+  // barre latérale qui les affiche, et elle est rendue sur chaque page du
+  // back-office. Deux `count … head: true` sur un index partiel - voir la
+  // migration 020 - plutôt qu'une lecture des lignes.
+  const [{ data: profile }, { count: contactsNonLus }, { count: partenairesNonLus }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, role, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase.from("contacts").select("*", { count: "exact", head: true }).is("read_at", null),
+      supabase
+        .from("partner_submissions")
+        .select("*", { count: "exact", head: true })
+        .is("read_at", null),
+    ]);
 
   if (!profile || (profile.role !== "admin" && profile.role !== "conseiller")) {
     redirect("/espace");
@@ -29,6 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <AdminShell
+      badges={{ "/admin/demandes": (contactsNonLus ?? 0) + (partenairesNonLus ?? 0) }}
       profile={{
         id: user.id,
         first_name: profile.first_name,

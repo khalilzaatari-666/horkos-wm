@@ -6,9 +6,17 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * Client Supabase à clé de service - contourne INTÉGRALEMENT la sécurité au
  * niveau des lignes.
  *
- * Réservé à la seule opération qui l'exige : créer un compte pour un membre de
- * l'équipe, ce qu'aucune clé publique ne permet. Toute autre lecture ou
- * écriture doit passer par `@/lib/supabase/server`, où les policies s'appliquent.
+ * Réservé aux seules opérations qui l'exigent, c'est-à-dire celles où aucune
+ * session d'utilisateur n'existe par nature :
+ *   - créer un compte pour un membre de l'équipe, ce qu'aucune clé publique ne
+ *     permet ;
+ *   - lire les destinataires d'une alerte interne (`lib/email/recipients.ts`),
+ *     que l'expéditeur soit un visiteur anonyme ou personne ;
+ *   - le cron des rappels (`app/api/cron/rappels`), appelé par Vercel et non
+ *     par quelqu'un de connecté.
+ *
+ * Toute autre lecture ou écriture doit passer par `@/lib/supabase/server`, où
+ * les policies s'appliquent.
  *
  * Règles de sécurité, non négociables :
  *   - `server-only` : l'import casse la compilation si ce module atteint un

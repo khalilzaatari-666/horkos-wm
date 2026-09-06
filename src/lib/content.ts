@@ -38,6 +38,11 @@ export interface HorkosEvent {
   location: string | null;
 }
 
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
 export async function getArticles(): Promise<Article[]> {
   const supabase = createPublicClient();
   const { data } = await supabase
@@ -90,6 +95,24 @@ export async function getEvents(): Promise<HorkosEvent[]> {
   const past = events.filter((e: HorkosEvent) => new Date(e.date).getTime() < now);
 
   return [...upcoming, ...past];
+}
+
+/**
+ * La FAQ de la page d'accueil, dans l'ordre choisi depuis le back-office.
+ *
+ * `sort_order` d'abord, puis l'ancienneté : deux questions au même rang gardent
+ * un ordre stable plutôt que celui, arbitraire, de la base.
+ */
+export async function getFaqs(): Promise<Faq[]> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("faqs")
+    .select("question, answer")
+    .eq("is_published", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  return data ?? [];
 }
 
 const longDate = new Intl.DateTimeFormat("fr-FR", {

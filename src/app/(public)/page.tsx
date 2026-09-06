@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { HomeContent } from "./home-content";
+import { HomeContent, type FaqPublique } from "./home-content";
+import { getFaqs } from "@/lib/content";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
 // The page itself is a client component (GSAP), which cannot export metadata,
@@ -13,6 +14,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function HomePage() {
-  return <HomeContent />;
+/**
+ * Même cadence que les pages Ressources, et pour la même raison : la FAQ vient
+ * de la base via le client sans cookie de `getFaqs`, ce qui laisse la page
+ * préproduite plutôt que recalculée à chaque visite. Une modification depuis le
+ * back-office l'invalide sans attendre ce délai (`revalidatePath("/")`).
+ */
+export const revalidate = 300;
+
+export default async function HomePage() {
+  const faqs: FaqPublique[] = (await getFaqs()).map((f) => ({ q: f.question, a: f.answer }));
+
+  // Liste vide - table encore vierge, ou lecture en échec : `HomeContent`
+  // retombe alors sur sa propre liste plutôt que d'afficher une section creuse.
+  return <HomeContent faqs={faqs.length ? faqs : undefined} />;
 }

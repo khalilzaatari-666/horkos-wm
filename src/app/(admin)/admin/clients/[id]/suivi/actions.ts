@@ -8,6 +8,7 @@ import { requireStaff, type ActionState } from "@/lib/staff";
 import { peutAccederAuDossier } from "@/lib/client-access";
 import { cabinetLocalToIso } from "@/lib/cabinet-time";
 import { jalonSuivant } from "@/lib/parcours";
+import { echeance, QUANTITE_MAX, UNITES } from "@/lib/rappels";
 
 /** Les statuts qu'une commande du suivi peut poser. */
 const STATUTS = ["confirme", "termine", "annule"] as const;
@@ -216,4 +217,131 @@ export async function planifierEtape(
   if (cree?.id) await journaliser(allowed.staff.id, cree.id, "appointment.planifie");
   revalidate(parsed.data.clientId);
   return { status: "success" };
+}
+
+// ---------------------------------------------------------------------------
+// Rappels de relance R1
+// ---------------------------------------------------------------------------
+
+const rappelSchema = z.object({
+  clientId: z.uuid(),
+  /** Le R0 qui motive la relance. */
+  appointmentId: z.uuid(),
+  quantite: z.coerce.number().int(),
+  unite: z.enum(UNITES),
+  note: z.string().trim().max(500).optional(),
+});
+
+/**
+ * Le R0 est-il terminé, et sa fiche d'audit clôturée ?
+ *
+ * La carte du suivi n'affiche le formulaire que dans ce cas, mais un formulaire
+ * trafiqué ne doit pas contourner la condition : on la revérifie ici, sur la
+ * base, avant d'écrire quoi que ce soit.
+ */
+async function relanceOuverte(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string,
+  appointmentId: string
+): Promise<boolean> {
+  const [{ data: rdv }, { data: audit }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("type, status")
+      .eq("id", appointmentId)
+      .eq("client_id", clientId)
+      .maybeSingle(),
+    supabase
+      .from("audits")
+      .select("status")
+      .eq("appointment_id", appointmentId)
+      .eq("client_id", clientId)
+      .maybeSingle(),
+  ]);
+
+  return rdv?.type === "R0" && rdv.status === "termine" && audit?.status === "termine";
+}
+
+/**
+ * Pose le pense-bête de relance. L'échéance est recalculée ici et jamais reçue
+ * du navigateur : ce que le formulaire affiche n'est qu'un aperçu.
+ */
+export async function poserRappel(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = rappelSchema.safeParse({
+    clientId: formData.get("clientId"),
+    appointmentId: formData.get("appointmentId"),
+    quantite: formData.get("quantite"),
+    unite: formData.get("unite"),
+    note: formData.get("note") || undefined,
+  });
+  if (!parsed.success) return { status: "error", message: "Choisissez un délai valide." };
+
+  const due = echeance(new Date(), parsed.data.quantite, parsed.data.unite);
+  if (!due) {
+    return {
+      status: "error",
+      message: `Le délai doit être compris entre 1 et ${QUANTITE_MAX[parsed.data.unite]} ${parsed.data.unite}.`,
+    };
+  }
+
+  const allowed = await autoriser(parsed.data.clientId);
+  if (!allowed) return { status: "error", message: REFUS };
+
+  if (!(await relanceOuverte(allowed.supabase, parsed.data.clientId, parsed.data.appointmentId))) {
+    return {
+      status: "error",
+      message: "Le R0 doit être terminé et sa fiche d'audit clôturée.",
+    };
+  }
+
+  const { data: cree, error } = await allowed.supabase
+    .from("reminders")
+    .insert({
+      client_id: parsed.data.clientId,
+      appointment_id: parsed.data.appointmentId,
+      due_at: due.toISOString(),
+      note: parsed.data.note ?? null,
+      created_by: allowed.staff.id,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    // L'index unique partiel : un rappel est déjà en attente sur ce R0. Le cas
+    // arrive avec deux onglets ouverts, et n'est pas une erreur à afficher
+    // comme un échec technique.
+    if (error.code === "23505") {
+      return { status: "error", message: "Un rappel est déjà prévu pour ce rendez-vous." };
+    }
+    return { status: "error", message: "Enregistrement impossible. Réessayez." };
+  }
+
+  if (cree?.id) await journaliser(allowed.staff.id, cree.id, "reminder.pose");
+  revalidate(parsed.data.clientId);
+  return { status: "success" };
+}
+
+/** Annule un rappel en attente. Le statut change, ce qui libère le R0. */
+export async function annulerRappel(formData: FormData): Promise<void> {
+  const parsed = z
+    .object({ id: z.uuid(), clientId: z.uuid() })
+    .safeParse({ id: formData.get("id"), clientId: formData.get("clientId") });
+  if (!parsed.success) return;
+
+  const allowed = await autoriser(parsed.data.clientId);
+  if (!allowed) return;
+
+  const { error } = await allowed.supabase
+    .from("reminders")
+    .update({ status: "annule" })
+    .eq("id", parsed.data.id)
+    .eq("client_id", parsed.data.clientId)
+    .eq("status", "en_attente");
+  if (error) return;
+
+  await journaliser(allowed.staff.id, parsed.data.id, "reminder.annule");
+  revalidate(parsed.data.clientId);
 }

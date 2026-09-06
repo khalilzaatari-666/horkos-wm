@@ -28,7 +28,20 @@ const trustCards = [
   { title: "Rigueur réglementaire", desc: "Horkos Wealth Management structure son activité en conformité avec les cadres AMMC et ACAPS." },
 ];
 
-const faqs = [
+export interface FaqPublique {
+  q: string;
+  a: string;
+}
+
+/**
+ * La FAQ affichée quand la table `faqs` est vide ou illisible.
+ *
+ * Ce n'est pas un doublon oublié : la section fait partie de l'argumentaire de
+ * la page d'accueil, et la laisser disparaître au premier hoquet de la base
+ * abîmerait la page. Le cabinet reprend la main dès qu'il publie ses propres
+ * questions depuis le back-office.
+ */
+const FAQS_DE_SECOURS: FaqPublique[] = [
   { q: "Horkos, c'est quoi ?", a: "Un cabinet de conseil en gestion de patrimoine qui centralise vos besoins et s'appuie sur un réseau de professionnels spécialisés." },
   { q: "Est-ce que vous poussez des produits ?", a: "Non. Chaque recommandation part d'un besoin identifié avec vous." },
   { q: "Horkos gère-t-il mon argent directement ?", a: "Non. Horkos formule des recommandations, vous restez seul décisionnaire." },
@@ -128,7 +141,7 @@ function TrustCard({ title, desc }: { title: string; desc: string }) {
   );
 }
 
-export function HomeContent() {
+export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const stepsRef = useRef<HTMLDivElement>(null);

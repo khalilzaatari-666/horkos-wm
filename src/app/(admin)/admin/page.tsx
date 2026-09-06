@@ -37,10 +37,14 @@ type FeedKind = "inscription" | "demande" | "contact" | "cession" | "guide" | "p
 const FEED_META: Record<FeedKind, { label: string; dot: string; href?: string }> = {
   inscription: { label: "Nouvelle inscription", dot: "bg-bronze", href: "/admin/utilisateurs" },
   demande: { label: "Demande de rendez-vous", dot: "bg-blue-500", href: "/admin/rendez-vous" },
-  contact: { label: "Message de contact", dot: "bg-emerald-500" },
+  contact: { label: "Message de contact", dot: "bg-emerald-500", href: "/admin/demandes/contacts" },
   cession: { label: "Dossier de cession", dot: "bg-amber-500", href: "/admin/soumissions" },
-  guide: { label: "Guide téléchargé", dot: "bg-violet-500" },
-  partenariat: { label: "Demande de partenariat", dot: "bg-rose-500" },
+  guide: { label: "Guide téléchargé", dot: "bg-violet-500", href: "/admin/contenu/guides" },
+  partenariat: {
+    label: "Demande de partenariat",
+    dot: "bg-rose-500",
+    href: "/admin/demandes/partenariats",
+  },
 };
 
 interface FeedItem {
@@ -441,6 +445,7 @@ export default async function AdminDashboardPage() {
             label="Demandes de partenariat"
             value={String(partenairesNouveaux ?? 0)}
             note="À traiter"
+            href="/admin/demandes/partenariats"
             emphasis={(partenairesNouveaux ?? 0) > 0}
           />
           <AdminKpi
@@ -454,6 +459,7 @@ export default async function AdminDashboardPage() {
             label="Messages de contact"
             value={String(contactsNouveaux ?? 0)}
             note="Non traités"
+            href="/admin/demandes/contacts"
             emphasis={(contactsNouveaux ?? 0) > 0}
           />
           <AdminKpi

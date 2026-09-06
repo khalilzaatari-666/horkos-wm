@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable } from "@/components/admin/ui";
 import { RendezVousFilters, type ConseillerOption } from "./filters";
+import { VueSwitch } from "./vue-switch";
 import { RdvRow, type RdvRowData } from "./rdv-row";
 import {
   RDV_STATUTS,
@@ -283,6 +284,17 @@ export default async function AdminRendezVousPage({
         title="Rendez-vous"
         desc="Les créneaux réservés, tous conseillers confondus. Chaque ligne porte le contexte du questionnaire ; « visiteur » signale un rendez-vous pris sans compte client."
       />
+
+      <div className="flex justify-end mb-4">
+        <VueSwitch
+          active="liste"
+          params={{
+            statut: single("statut"),
+            mode: single("mode"),
+            conseiller: single("conseiller"),
+          }}
+        />
+      </div>
 
       <AnimateIn variant="fade-up" delay={40}>
         <RendezVousFilters conseillers={conseillers} total={sorted.length} />

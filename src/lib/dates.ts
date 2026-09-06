@@ -15,7 +15,8 @@ const MOIS = [
   "décembre",
 ];
 
-const MOIS_COURTS = [
+/** Exporté pour les vues qui composent leurs propres libellés (l'agenda). */
+export const MOIS_COURTS = [
   "janv.",
   "févr.",
   "mars",

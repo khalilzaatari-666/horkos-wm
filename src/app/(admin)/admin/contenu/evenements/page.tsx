@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateTime } from "@/lib/dates";
 import { EventCreate } from "./event-create";
@@ -21,7 +21,7 @@ export default async function AdminEventsPage() {
   const rows = data ?? [];
 
   return (
-    <AdminPanel>
+    <>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <AdminHead
           title="Événements"
@@ -98,6 +98,6 @@ export default async function AdminEventsPage() {
           })}
         </AdminTable>
       </AnimateIn>
-    </AdminPanel>
+    </>
   );
 }

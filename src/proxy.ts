@@ -13,5 +13,7 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/espace/:path*", "/admin/:path*"],
+  // `/` y figure pour l'aiguillage de l'accueil : le proxy s'en écarte aussitôt
+  // quand aucun cookie de session n'est posé, et la page reste servie statique.
+  matcher: ["/", "/espace/:path*", "/admin/:path*"],
 };

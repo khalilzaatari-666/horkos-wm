@@ -24,9 +24,16 @@ export interface AdminProfile {
  */
 export function AdminShell({
   profile,
+  badges,
   children,
 }: {
   profile: AdminProfile;
+  /**
+   * Nombre d'éléments en attente par entrée de menu, indexé par `href`. La
+   * liste des sections reste une constante statique : c'est ici que les
+   * chiffres arrivent, depuis le layout qui les a comptés.
+   */
+  badges?: Record<string, number>;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -84,6 +91,7 @@ export function AdminShell({
       <nav className="p-3 flex-1" aria-label="Sections du back-office">
         {visible.map((section) => {
           const active = isAdminSectionActive(section.href, pathname);
+          const enAttente = badges?.[section.href] ?? 0;
           return (
             <Link
               key={section.href}
@@ -96,13 +104,23 @@ export function AdminShell({
                   : "text-white/60 hover:bg-white/5 hover:text-white"
               }`}
             >
+              {/* La puce de section vire au rouge quand quelque chose attend :
+                  c'est le même point, pas un ornement de plus. */}
               <span
                 aria-hidden="true"
                 className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                  active ? "bg-bronze-light" : "bg-white/20"
+                  enAttente > 0 ? "bg-red-500" : active ? "bg-bronze-light" : "bg-white/20"
                 }`}
               />
-              {section.label}
+              <span className="flex-1 min-w-0 truncate">{section.label}</span>
+              {enAttente > 0 && (
+                <span
+                  aria-label={`${enAttente} non lue${enAttente > 1 ? "s" : ""}`}
+                  className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[10.5px] font-semibold text-white bg-red-500 rounded-full tabular-nums shrink-0"
+                >
+                  {enAttente}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AdminPanel, AdminHead } from "@/components/admin/ui";
+import { AdminHead } from "@/components/admin/ui";
 import { EventForm, type EventInitial } from "../event-form";
 import { updateEvent } from "../actions";
 
@@ -33,9 +33,9 @@ export default async function EventEditPage({ params }: PageProps) {
   };
 
   return (
-    <AdminPanel>
+    <>
       <AdminHead title="Modifier l'événement" desc="Les changements sont visibles dès l'enregistrement." />
       <EventForm action={updateEvent} initial={initial} />
-    </AdminPanel>
+    </>
   );
 }

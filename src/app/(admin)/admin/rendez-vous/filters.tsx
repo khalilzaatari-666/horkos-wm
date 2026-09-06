@@ -17,7 +17,8 @@ export interface ConseillerOption {
   name: string;
 }
 
-const select =
+/** Partagé avec la barre de filtres de la vue semaine. */
+export const CLASSE_SELECT =
   "h-9 px-3 pr-8 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer appearance-none";
 
 /**
@@ -58,7 +59,7 @@ export function RendezVousFilters({
       <Wrapper>
         <select
           aria-label="Période"
-          className={select}
+          className={CLASSE_SELECT}
           value={current("periode", DEFAULTS.periode)}
           onChange={(e) => set("periode", e.target.value)}
         >
@@ -73,7 +74,7 @@ export function RendezVousFilters({
       <Wrapper>
         <select
           aria-label="Statut"
-          className={select}
+          className={CLASSE_SELECT}
           value={current("statut")}
           onChange={(e) => set("statut", e.target.value)}
         >
@@ -89,7 +90,7 @@ export function RendezVousFilters({
       <Wrapper>
         <select
           aria-label="Format"
-          className={select}
+          className={CLASSE_SELECT}
           value={current("mode")}
           onChange={(e) => set("mode", e.target.value)}
         >
@@ -106,7 +107,7 @@ export function RendezVousFilters({
         <Wrapper>
           <select
             aria-label="Conseiller"
-            className={select}
+            className={CLASSE_SELECT}
             value={current("conseiller")}
             onChange={(e) => set("conseiller", e.target.value)}
           >
@@ -138,7 +139,7 @@ export function RendezVousFilters({
 }
 
 /** Le chevron du système disparaît avec `appearance-none` : on le redessine. */
-function Wrapper({ children }: { children: React.ReactNode }) {
+export function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative inline-flex items-center">
       {children}

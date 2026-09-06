@@ -16,11 +16,9 @@ export const adminSections: AdminSection[] = [
   { href: "/admin", label: "Tableau de bord" },
   { href: "/admin/rendez-vous", label: "Rendez-vous" },
   { href: "/admin/clients", label: "Clients" },
-  { href: "/admin/soumissions", label: "Soumissions d'actifs" },
   { href: "/admin/recommandations", label: "Recommandations" },
-  { href: "/admin/contenu/articles", label: "Articles" },
-  { href: "/admin/contenu/guides", label: "Guides" },
-  { href: "/admin/contenu/evenements", label: "Événements" },
+  { href: "/admin/demandes", label: "Demandes" },
+  { href: "/admin/contenu", label: "Contenu" },
   { href: "/admin/utilisateurs", label: "Utilisateurs", adminOnly: true },
 ];
 

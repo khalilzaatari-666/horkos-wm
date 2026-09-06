@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { aUneSessionProbable, estArriveeDirecte, espaceDuRole } from "@/lib/accueil";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -25,11 +26,43 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  const pathname = request.nextUrl.pathname;
+
+  // L'accueil aiguille selon le rôle, mais seulement pour une adresse saisie :
+  // le lien « Retour au site » des deux espaces pointe sur `/` et doit continuer
+  // d'y mener. Voir `@/lib/accueil` pour la règle et ses raisons.
+  //
+  // Le raccourci du cookie est ce qui garde la page d'accueil gratuite : sans
+  // session, on rend le site public sans un seul aller-retour vers Supabase.
+  const accueil = pathname === "/";
+  if (accueil) {
+    const direct = estArriveeDirecte(
+      request.headers.get("sec-fetch-site"),
+      request.headers.get("sec-fetch-dest")
+    );
+    const connecte = aUneSessionProbable(request.cookies.getAll().map((c) => c.name));
+    if (!direct || !connecte) return supabaseResponse;
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+  if (accueil) {
+    // Le cookie pouvait être périmé : sans utilisateur, le site public reste
+    // la bonne réponse.
+    if (!user) return supabaseResponse;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const url = request.nextUrl.clone();
+    url.pathname = espaceDuRole(profile?.role);
+    return NextResponse.redirect(url);
+  }
 
   // Protected routes: /espace/* requires auth
   if (pathname.startsWith("/espace") && !user) {

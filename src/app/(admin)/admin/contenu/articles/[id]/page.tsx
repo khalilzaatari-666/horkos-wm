@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AdminPanel, AdminHead } from "@/components/admin/ui";
+import { AdminHead } from "@/components/admin/ui";
 import { ArticleForm, type ArticleInitial } from "../article-form";
 import { updateArticle } from "../actions";
 
@@ -35,9 +35,9 @@ export default async function ArticleEditPage({ params }: PageProps) {
   };
 
   return (
-    <AdminPanel>
+    <>
       <AdminHead title="Modifier l'article" desc="Les changements sont visibles dès l'enregistrement." />
       <ArticleForm action={updateArticle} initial={initial} />
-    </AdminPanel>
+    </>
   );
 }

@@ -16,9 +16,25 @@ import { peutAccederAuDossier } from "@/lib/client-access";
 import { RDV_STATUT_STYLES, type RdvStatut } from "../../../rendez-vous/constants";
 import { RdvActions } from "./rdv-actions";
 import { EtapeSuivanteButton } from "./etape-suivante";
+import { RappelForm } from "./rappel-form";
+import { annulerRappel } from "./actions";
 import { OuvrirFicheButton } from "../audits/ouvrir-fiche";
 
 export const metadata: Metadata = { title: "Suivi" };
+
+/** L'échéance d'un rappel se lit à l'heure du cabinet, pas à celle du serveur. */
+const rappelFmt = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Africa/Casablanca",
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+/** Au-delà, le cron cesse de réessayer : voir `app/api/cron/rappels`. */
+const TENTATIVES_MAX = 5;
 
 interface Rdv {
   id: string;
@@ -73,9 +89,18 @@ export default async function ClientSuiviPage({
         .select("id, type, status, date, mode, meeting_url, notes, advisor_id")
         .eq("client_id", id)
         .order("date", { ascending: false }),
-      // Les fiches d'audit, pour savoir si le R0 a déjà la sienne.
-      supabase.from("audits").select("id, appointment_id").eq("client_id", id),
+      // Les fiches d'audit, pour savoir si le R0 a déjà la sienne - et si elle
+      // est clôturée, ce qui conditionne le rappel de relance.
+      supabase.from("audits").select("id, appointment_id, status").eq("client_id", id),
     ]);
+
+  // Le rappel de relance en attente, s'il y en a un. Un seul par R0 : c'est
+  // l'index unique partiel de la migration 021 qui le garantit.
+  const { data: rappelData } = await supabase
+    .from("reminders")
+    .select("id, appointment_id, due_at, note, attempts, last_error")
+    .eq("client_id", id)
+    .eq("status", "en_attente");
 
   if (!client) notFound();
 
@@ -102,8 +127,14 @@ export default async function ClientSuiviPage({
   // auquel elle est rattachée.
   const ficheParRdv = new Map(
     (auditData ?? [])
-      .filter((a): a is { id: string; appointment_id: string } => !!a.appointment_id)
-      .map((a) => [a.appointment_id, a.id])
+      .filter((a): a is { id: string; appointment_id: string; status: string } => !!a.appointment_id)
+      .map((a) => [a.appointment_id, { id: a.id, status: a.status }])
+  );
+
+  const rappelParRdv = new Map(
+    (rappelData ?? [])
+      .filter((r): r is NonNullable<typeof r> & { appointment_id: string } => !!r.appointment_id)
+      .map((r) => [r.appointment_id, r])
   );
 
   const pilote = peutAccederAuDossier(
@@ -179,22 +210,73 @@ export default async function ClientSuiviPage({
                       sur l'étape qui la produit, pas dans un autre onglet. */}
                   {etape.type === "R0" && dernier && (
                     <div className="mt-3">
-                      {ficheParRdv.has(dernier.id) ? (
-                        <Link
-                          href={`/admin/clients/${id}/audits/${ficheParRdv.get(dernier.id)}`}
-                          className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
-                        >
-                          Fiche d&apos;audit →
-                        </Link>
-                      ) : (
-                        pilote && (
-                          <OuvrirFicheButton
-                            clientId={id}
-                            appointmentId={dernier.id}
-                            libelle="Ouvrir la fiche d'audit"
-                          />
-                        )
-                      )}
+                      {(() => {
+                        const fiche = ficheParRdv.get(dernier.id);
+                        const rappel = rappelParRdv.get(dernier.id);
+                        // La relance n'a de sens qu'une fois le R0 tenu et son
+                        // audit rendu : avant, il n'y a rien à relancer.
+                        const relanceOuverte =
+                          dernier.status === "termine" && fiche?.status === "termine";
+
+                        return (
+                          <>
+                            {fiche ? (
+                              <Link
+                                href={`/admin/clients/${id}/audits/${fiche.id}`}
+                                className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                              >
+                                Fiche d&apos;audit →
+                              </Link>
+                            ) : (
+                              pilote && (
+                                <OuvrirFicheButton
+                                  clientId={id}
+                                  appointmentId={dernier.id}
+                                  libelle="Ouvrir la fiche d'audit"
+                                />
+                              )
+                            )}
+
+                            {/* Le pense-bête de relance : posé ici parce que
+                                c'est ici qu'on constate que le R0 est derrière
+                                soi et que la balle est dans le camp du cabinet. */}
+                            {pilote && rappel && (
+                              <div className="mt-3 pt-3 border-t border-cream-deep">
+                                <div className="text-[12.5px] text-ink">
+                                  Relance prévue le {rappelFmt.format(new Date(rappel.due_at))}
+                                </div>
+                                {rappel.note && (
+                                  <div className="text-[11.5px] text-warm-grey mt-0.5">
+                                    « {rappel.note} »
+                                  </div>
+                                )}
+                                {rappel.attempts >= TENTATIVES_MAX && (
+                                  <div className="text-[11.5px] text-red-600 mt-1">
+                                    Envoi impossible après {TENTATIVES_MAX} tentatives
+                                    {rappel.last_error ? ` : ${rappel.last_error}` : "."}
+                                  </div>
+                                )}
+                                <form action={annulerRappel} className="mt-1.5">
+                                  <input type="hidden" name="id" value={rappel.id} />
+                                  <input type="hidden" name="clientId" value={id} />
+                                  <button
+                                    type="submit"
+                                    className="text-[12px] text-warm-grey hover:text-red-600 transition-colors cursor-pointer"
+                                  >
+                                    Annuler le rappel
+                                  </button>
+                                </form>
+                              </div>
+                            )}
+
+                            {pilote && !rappel && relanceOuverte && (
+                              <div className="pt-3 mt-3 border-t border-cream-deep">
+                                <RappelForm clientId={id} appointmentId={dernier.id} />
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </li>
