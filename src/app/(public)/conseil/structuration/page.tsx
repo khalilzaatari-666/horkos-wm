@@ -26,7 +26,7 @@ const processSteps = [
   {
     n: "3",
     title: "Implémentation & suivi",
-    desc: "Le professionnel met en œuvre, nous restons impliqués dans le suivi et la gouvernance (étape R2).",
+    desc: "Le professionnel met en œuvre, nous restons impliqués dans le suivi et la gouvernance.",
   },
 ];
 
