@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { UmamiAnalytics } from "@/components/layout/umami-analytics";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { OrganisationJsonLd } from "@/components/public/structured-data";
 import { ScrollRefresh } from "@/components/ui/scroll-refresh";
 
@@ -25,6 +26,7 @@ export default function PublicLayout({
         <div className="my-auto w-full">{children}</div>
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }

@@ -26,6 +26,7 @@ export const patrimoineOptions = [
 ] as const;
 
 export const investissementOptions = [
+  "100K - 1M MAD",
   "1M - 3M MAD",
   "3M - 5M MAD",
   "5M - 10M MAD",

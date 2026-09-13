@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EspaceShell } from "@/components/client/espace-shell";
 import { UmamiAnalytics } from "@/components/layout/umami-analytics";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { profilComplet, CHEMIN_QUESTIONNAIRE } from "@/lib/intake";
 
 /**
@@ -65,6 +66,7 @@ export default async function ClientLayout({ children }: { children: React.React
       >
         {children}
       </EspaceShell>
+      <WhatsAppButton />
     </>
   );
 }
