@@ -126,7 +126,7 @@ export function AssetForm({
 
   return (
     <Shell bare={bare}>
-      {!bare && <h4 className="text-[16px] font-semibold mb-1.5">Formulaire de soumission</h4>}
+      {!bare && <h4 className="text-[16px] font-semibold mb-1.5">Formulaire de cession</h4>}
       <p className="text-[12.5px] text-warm-grey mb-5">
         Les champs suivis de <span className="text-bronze font-semibold">*</span> sont
         obligatoires.

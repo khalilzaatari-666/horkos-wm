@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireStaff } from "@/lib/staff";
+import { jourCabinet, lundiDeLaSemaine, lundiCourant } from "@/lib/cabinet-time";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable } from "@/components/admin/ui";
 import { RendezVousFilters, type ConseillerOption } from "./filters";
 import { VueSwitch } from "./vue-switch";
 import { RdvRow, type RdvRowData } from "./rdv-row";
+import { StatsConseillers } from "./stats-conseillers";
+import { chargerStatsConseillers } from "./stats-data";
 import {
   RDV_STATUTS,
+  RDV_TYPES,
   PERIODES,
   MODES,
   TRIS,
   DEFAULTS,
   MAX_ROWS,
   type RdvStatut,
+  type RdvType,
   type Periode,
   type Tri,
 } from "./constants";
@@ -133,13 +139,22 @@ export default async function AdminRendezVousPage({
 
   const periode = pick<Periode>(single("periode"), PERIODES, DEFAULTS.periode)!;
   const statut = pick<RdvStatut>(single("statut"), RDV_STATUTS, null);
+  const type = pick<RdvType>(single("type"), RDV_TYPES, null);
   const mode = pick(single("mode"), MODES, null);
   const conseiller = single("conseiller") ?? null;
   const tri = pick<Tri>(single("tri"), TRIS, DEFAULTS.tri)!;
   const sens = single("sens") === "desc" ? "desc" : "asc";
 
   const supabase = await createClient();
-  const nowIso = new Date().toISOString();
+  const staff = await requireStaff(supabase);
+  const maintenant = new Date();
+  const nowIso = maintenant.toISOString();
+
+  // Les statistiques d'équipe ne sont montrées qu'à l'admin. La semaine
+  // observée se choisit par `stats=` (un lundi) ; sans lui, la semaine en cours.
+  const estAdmin = staff?.role === "admin";
+  const semaineCourante = lundiCourant(jourCabinet(maintenant))!;
+  const lundiStats = lundiDeLaSemaine(single("stats") ?? "") ?? semaineCourante;
 
   // Filtres appliqués par Postgres : inutile de rapatrier ce qu'on va jeter.
   //
@@ -151,6 +166,7 @@ export default async function AdminRendezVousPage({
   // de Next au moment du build.
   const egalites: Record<string, string> = {};
   if (statut) egalites.status = statut;
+  if (type) egalites.type = type;
   if (mode) egalites.mode = mode;
   if (conseiller) egalites.advisor_id = conseiller;
 
@@ -181,7 +197,7 @@ export default async function AdminRendezVousPage({
         ? base.lt("date", nowIso)
         : base;
 
-  const [{ data }, { data: staff }, { count: totalMatch }] = await Promise.all([
+  const [{ data }, { data: equipe }, { count: totalMatch }] = await Promise.all([
     query,
     supabase
       .from("profiles")
@@ -222,10 +238,30 @@ export default async function AdminRendezVousPage({
     return sens === "asc" ? diff : -diff;
   });
 
-  const conseillers: ConseillerOption[] = (staff ?? []).map((c) => ({
+  const conseillers: ConseillerOption[] = (equipe ?? []).map((c) => ({
     id: c.id,
     name: [c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom",
   }));
+
+  // Le filtre conseiller de la liste restreint aussi les statistiques.
+  const stats = estAdmin
+    ? await chargerStatsConseillers(supabase, {
+        lundi: lundiStats,
+        equipe: conseillers.map((c) => ({ id: c.id, nom: c.name })),
+        conseillerId: conseiller,
+      })
+    : null;
+
+  // Changer de semaine ne touche pas aux filtres de la liste.
+  const lienStats = (lundi: string) => {
+    const query = new URLSearchParams();
+    for (const [k, v] of Object.entries(raw)) {
+      const valeur = Array.isArray(v) ? v[0] : v;
+      if (valeur && k !== "stats") query.set(k, valeur);
+    }
+    query.set("stats", lundi);
+    return `?${query.toString()}`;
+  };
 
   // Tout le calcul d'affichage se fait ici, côté serveur : la ligne cliente ne
   // reçoit que des chaînes prêtes. L'heure surtout est formatée ici pour que le
@@ -267,6 +303,7 @@ export default async function AdminRendezVousPage({
     periode === "tous" ? 0 : Math.max(0, (totalMatch ?? 0) - sorted.length);
   const toutePeriode = new URLSearchParams();
   if (statut) toutePeriode.set("statut", statut);
+  if (type) toutePeriode.set("type", type);
   if (mode) toutePeriode.set("mode", mode);
   if (conseiller) toutePeriode.set("conseiller", conseiller);
   toutePeriode.set("periode", "tous");
@@ -274,6 +311,7 @@ export default async function AdminRendezVousPage({
   const triParams: Record<string, string | undefined> = {
     periode: single("periode"),
     statut: single("statut"),
+    type: single("type"),
     mode: single("mode"),
     conseiller: single("conseiller"),
   };
@@ -290,11 +328,23 @@ export default async function AdminRendezVousPage({
           active="liste"
           params={{
             statut: single("statut"),
+            type: single("type"),
             mode: single("mode"),
             conseiller: single("conseiller"),
           }}
         />
       </div>
+
+      {stats && (
+        <AnimateIn variant="fade-up" delay={20}>
+          <StatsConseillers
+            stats={stats}
+            lundi={lundiStats}
+            semaineCourante={semaineCourante}
+            lienSemaine={lienStats}
+          />
+        </AnimateIn>
+      )}
 
       <AnimateIn variant="fade-up" delay={40}>
         <RendezVousFilters conseillers={conseillers} total={sorted.length} />

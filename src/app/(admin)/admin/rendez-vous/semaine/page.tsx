@@ -8,7 +8,8 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead } from "@/components/admin/ui";
 import { MOIS_COURTS, formatDateLong } from "@/lib/dates";
 import { PARCOURS, etatEtape } from "@/lib/parcours";
-import { formatMinutes, DUREE_RDV_MIN } from "@/components/booking/grille";
+import { formatMinutes } from "@/components/booking/grille";
+import { dureeRendezVous } from "@/lib/rendez-vous";
 import {
   partsCabinet,
   jourCabinet,
@@ -18,10 +19,12 @@ import {
   rangDansLaSemaine,
   bornesSemaine,
 } from "@/lib/cabinet-time";
-import { RDV_STATUTS, MODES, type RdvStatut } from "../constants";
+import { RDV_STATUTS, RDV_TYPES, MODES, type RdvStatut } from "../constants";
 import { VueSwitch } from "../vue-switch";
 import type { ConseillerOption } from "../filters";
 import type { RdvContexte, RdvDetailData } from "../rdv-detail";
+import { StatsConseillers } from "../stats-conseillers";
+import { chargerStatsConseillers } from "../stats-data";
 import { FiltresSemaine } from "./filtres";
 import { Calendrier, type BlocSemaine, type JourSemaine } from "./calendrier";
 
@@ -117,6 +120,9 @@ export default async function AdminSemainePage({
       ? (single("statut") as RdvStatut)
       : null;
   const mode = (MODES as readonly string[]).includes(single("mode") ?? "") ? single("mode")! : null;
+  const type = (RDV_TYPES as readonly string[]).includes(single("type") ?? "")
+    ? single("type")!
+    : null;
 
   // Absence de paramètre = « mon agenda » pour un conseiller, « tout le cabinet »
   // pour un admin. « tous » s'écrit explicitement pour élargir.
@@ -132,6 +138,7 @@ export default async function AdminSemainePage({
 
   const egalites: Record<string, string> = {};
   if (statut) egalites.status = statut;
+  if (type) egalites.type = type;
   if (mode) egalites.mode = mode;
   if (conseiller) egalites.advisor_id = conseiller;
 
@@ -142,7 +149,7 @@ export default async function AdminSemainePage({
     supabase
       .from("appointments")
       .select(
-        "id, client_id, type, status, date, mode, meeting_url, " +
+        "id, client_id, type, status, date, duration_minutes, mode, meeting_url, " +
           "client:client_id(first_name, last_name, email, phone, advisor_id), " +
           "advisor:advisor_id(first_name, last_name), " +
           "demande:appointment_requests!appointment_id(first_name, last_name, email, phone, besoins, besoin_autre, patrimoine, investissement, message)"
@@ -164,6 +171,7 @@ export default async function AdminSemainePage({
     type: r.type as string,
     status: r.status as string,
     date: r.date as string,
+    duree: (r.duration_minutes as number) ?? null,
     mode: (r.mode as string) ?? null,
     meetingUrl: (r.meeting_url as string) ?? null,
     client: one(r.client as Personne & { advisor_id: string | null }),
@@ -256,7 +264,10 @@ export default async function AdminSemainePage({
     blocs.push({
       rang,
       debut: p.minutes,
-      fin: p.minutes + DUREE_RDV_MIN,
+      // La hauteur du bloc suit la durée réelle du rendez-vous : depuis que le
+      // R0 tient en 45 minutes et le R1 en 1 h 30, une hauteur fixe ferait
+      // mentir l'agenda sur ce qui est libre.
+      fin: p.minutes + (r.duree ?? dureeRendezVous(r.type)),
       heureCourte: formatMinutes(p.minutes),
       detail,
     });
@@ -276,10 +287,22 @@ export default async function AdminSemainePage({
     name: [c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom",
   }));
 
+  // Les chiffres de la semaine affichée, pour l'admin seulement, restreints au
+  // conseiller choisi comme l'est l'agenda.
+  const stats =
+    staff.role === "admin"
+      ? await chargerStatsConseillers(supabase, {
+          lundi,
+          equipe: conseillers.map((c) => ({ id: c.id, nom: c.name })),
+          conseillerId: conseiller,
+        })
+      : null;
+
   // Les liens de navigation conservent les filtres en cours.
   const lienSemaine = (jour: string) => {
     const query = new URLSearchParams();
     if (statut) query.set("statut", statut);
+    if (type) query.set("type", type);
     if (mode) query.set("mode", mode);
     if (conseillerParam) query.set("conseiller", conseillerParam);
     query.set("du", jour);
@@ -321,6 +344,7 @@ export default async function AdminSemainePage({
           active="semaine"
           params={{
             statut: single("statut"),
+            type: single("type"),
             mode: single("mode"),
             conseiller: single("conseiller"),
           }}
@@ -334,6 +358,12 @@ export default async function AdminSemainePage({
           total={blocs.length}
         />
       </AnimateIn>
+
+      {stats && (
+        <AnimateIn variant="fade-up" delay={50}>
+          <StatsConseillers stats={stats} lundi={lundi} semaineCourante={semaineCourante} />
+        </AnimateIn>
+      )}
 
       <AnimateIn variant="fade-up" delay={60}>
         <Calendrier jours={jours} blocs={blocs} />
