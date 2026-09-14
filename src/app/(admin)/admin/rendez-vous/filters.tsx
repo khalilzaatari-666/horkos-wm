@@ -7,6 +7,8 @@ import {
   PERIODE_LABELS,
   RDV_STATUTS,
   RDV_STATUT_STYLES,
+  RDV_TYPES,
+  RDV_TYPE_LABELS,
   MODES,
   MODE_LABELS,
   DEFAULTS,
@@ -52,7 +54,7 @@ export function RendezVousFilters({
   };
 
   const current = (key: string, fallback = "tous") => params.get(key) ?? fallback;
-  const actifs = ["periode", "statut", "mode", "conseiller"].filter((k) => params.get(k));
+  const actifs = ["periode", "type", "statut", "mode", "conseiller"].filter((k) => params.get(k));
 
   return (
     <div className={`flex flex-wrap items-center gap-2.5 mb-5 ${pending ? "opacity-60" : ""}`}>
@@ -66,6 +68,22 @@ export function RendezVousFilters({
           {PERIODES.map((p) => (
             <option key={p} value={p}>
               {PERIODE_LABELS[p]}
+            </option>
+          ))}
+        </select>
+      </Wrapper>
+
+      <Wrapper>
+        <select
+          aria-label="Étape du parcours"
+          className={CLASSE_SELECT}
+          value={current("type")}
+          onChange={(e) => set("type", e.target.value)}
+        >
+          <option value="tous">Toutes les étapes</option>
+          {RDV_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {RDV_TYPE_LABELS[t]}
             </option>
           ))}
         </select>

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { RDV_STATUT_STYLES, type RdvStatut } from "./constants";
 import { libelleType, type EtapeState } from "@/lib/parcours";
+import { titreRendezVous, dureeRendezVous, libelleDuree } from "@/lib/rendez-vous";
 
 export interface RdvQuestionnaire {
   besoins: string[];
@@ -139,10 +140,15 @@ export function RdvDetailModal({
                 </span>
               )}
             </div>
+            {/* L'intitulé exact du rendez-vous - celui de l'agenda du cabinet et
+                des emails. Sans le nom du client : il est déjà au-dessus. */}
+            <div className="text-[12.5px] text-charcoal mt-1 truncate">
+              {titreRendezVous(data.type)}
+            </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-[12px] text-warm-grey">
               <span>{data.heure}</span>
               <span aria-hidden="true">·</span>
-              <span>{data.type}</span>
+              <span>{libelleDuree(dureeRendezVous(data.type))}</span>
               <span aria-hidden="true">·</span>
               <span>{MODE_LABEL[data.mode ?? ""] ?? "Au cabinet"}</span>
               {data.advisorName && (

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminCard, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { RepartitionBar } from "@/components/client/repartition-bar";
 import { formatDateLong } from "@/lib/dates";
 import {
@@ -15,6 +17,7 @@ import {
   type AssetRow,
   type ValuationRow,
 } from "@/lib/patrimoine";
+import { param, pick, sensDe, trier, instant } from "@/lib/liste";
 import { AuditCreate } from "../audits/audit-create";
 import { AuditOpenButton } from "../audits/audit-open-button";
 import { AuditRowActions } from "../audits/audit-row-actions";
@@ -30,12 +33,29 @@ export const metadata: Metadata = { title: "Audits" };
  * patrimoine du client, les séparer obligeait à lire deux onglets pour une
  * seule réalité. L'audit vient en premier, le détail des actifs en dessous.
  */
+/**
+ * Deux tableaux sur une page, donc deux jeux de paramètres : `triA` pour les
+ * audits, `tri` pour les actifs. Sans cette distinction, trier l'un
+ * réordonnerait l'autre.
+ */
+const TRIS_AUDIT = ["statut", "ouvert", "maj"] as const;
+const TRIS_ACTIF = ["type", "intitule", "valeur", "releve"] as const;
+
 export default async function ClientPatrimoinePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const raw = await searchParams;
+  const triAudit = pick(param(raw, "triA"), TRIS_AUDIT, "ouvert")!;
+  const sensAudit = sensDe(param(raw, "sensA"), triAudit === "statut" ? "asc" : "desc");
+  const triActif = pick(param(raw, "tri"), TRIS_ACTIF, "valeur")!;
+  const sensActif = sensDe(param(raw, "sens"), triActif === "valeur" ? "desc" : "asc");
+  const type = param(raw, "type") ?? null;
+
   const supabase = await createClient();
 
   const [{ data: assets }, { data: auditData }] = await Promise.all([
@@ -93,9 +113,42 @@ export default async function ClientPatrimoinePage({
     }
   }
 
+  // Les agrégats se calculent sur la totalité du patrimoine : un filtre est une
+  // loupe sur le tableau, il ne redéfinit pas ce que le client possède.
   const total = totalPatrimoine(assetRows);
   const classes = repartition(assetRows);
   const perf = performance12m(assetRows, valuations);
+
+  const typesPresents = [...new Set(assetRows.map((a) => a.type))];
+
+  const actifs = trier(
+    assetRows.filter((a) => type === null || a.type === type),
+    (a) =>
+      triActif === "type"
+        ? assetTypeLabel(a.type)
+        : triActif === "intitule"
+          ? a.label
+          : triActif === "releve"
+            ? instant(lastValued.get(a.id))
+            : a.value,
+    sensActif,
+    (a) => a.label
+  );
+
+  const lignesAudit = trier(
+    audits,
+    (a) =>
+      triAudit === "statut"
+        ? a.status
+        : triAudit === "maj"
+          ? instant(a.updated_at)
+          : instant(a.created_at),
+    sensAudit
+  );
+
+  const qsAudit = { tri: param(raw, "tri"), sens: param(raw, "sens"), type: type ?? undefined };
+  const qsActif = { triA: param(raw, "triA"), sensA: param(raw, "sensA"), type: type ?? undefined };
+
 
   return (
     <>
@@ -118,11 +171,49 @@ export default async function ClientPatrimoinePage({
 
         <AnimateIn variant="fade-up" delay={60}>
           <AdminTable
-            headers={["Statut", "Fiche", "Rapport", "Ouvert le", "Mis à jour", ""]}
-            isEmpty={audits.length === 0}
+            headers={[
+              // `triA`/`sensA` : ce tableau partage la page avec celui des
+              // actifs, et trier l'un ne doit pas réordonner l'autre.
+              <TriHeader
+                key="s"
+                label="Statut"
+                colonne="statut"
+                tri={triAudit}
+                sens={sensAudit}
+                params={qsAudit}
+                cleTri="triA"
+                cleSens="sensA"
+              />,
+              "Fiche",
+              "Rapport",
+              <TriHeader
+                key="o"
+                label="Ouvert le"
+                colonne="ouvert"
+                tri={triAudit}
+                sens={sensAudit}
+                params={qsAudit}
+                sensInitial="desc"
+                cleTri="triA"
+                cleSens="sensA"
+              />,
+              <TriHeader
+                key="m"
+                label="Mis à jour"
+                colonne="maj"
+                tri={triAudit}
+                sens={sensAudit}
+                params={qsAudit}
+                sensInitial="desc"
+                cleTri="triA"
+                cleSens="sensA"
+              />,
+              "",
+            ]}
+            isEmpty={lignesAudit.length === 0}
             empty="Aucun audit. Ouvrez-en un — le client verra son statut sur sa page patrimoine."
           >
-            {audits.map((a) => {
+            {lignesAudit.map((a) => {
               const hasReport = Boolean(a.pdf_url);
               return (
                 <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
@@ -198,12 +289,67 @@ export default async function ClientPatrimoinePage({
         )}
 
         <AnimateIn variant="fade-up" delay={60}>
+          {assetRows.length > 0 && (
+            <FiltresListe
+              champs={[
+                {
+                  cle: "type",
+                  aria: "Type d'actif",
+                  toutes: "Tous les types",
+                  options: typesPresents.map((t) => ({ value: t, label: assetTypeLabel(t) })),
+                },
+              ]}
+              total={actifs.length}
+              unite="actif"
+            />
+          )}
+
           <AdminTable
-            headers={["Type", "Intitulé", "Valeur", "Dernier relevé", ""]}
-            isEmpty={assetRows.length === 0}
-            empty="Aucun actif. La fiche d'audit établit le patrimoine — ouvrez ou remplissez un audit pour le faire apparaître ici."
+            headers={[
+              <TriHeader
+                key="t"
+                label="Type"
+                colonne="type"
+                tri={triActif}
+                sens={sensActif}
+                params={qsActif}
+              />,
+              <TriHeader
+                key="i"
+                label="Intitulé"
+                colonne="intitule"
+                tri={triActif}
+                sens={sensActif}
+                params={qsActif}
+              />,
+              <TriHeader
+                key="v"
+                label="Valeur"
+                colonne="valeur"
+                tri={triActif}
+                sens={sensActif}
+                params={qsActif}
+                sensInitial="desc"
+              />,
+              <TriHeader
+                key="r"
+                label="Dernier relevé"
+                colonne="releve"
+                tri={triActif}
+                sens={sensActif}
+                params={qsActif}
+                sensInitial="desc"
+              />,
+              "",
+            ]}
+            isEmpty={actifs.length === 0}
+            empty={
+              type
+                ? "Aucun actif de ce type."
+                : "Aucun actif. La fiche d'audit établit le patrimoine — ouvrez ou remplissez un audit pour le faire apparaître ici."
+            }
           >
-            {assetRows.map((a) => (
+            {actifs.map((a) => (
               <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
                 <Td className="whitespace-nowrap text-bronze-dark font-medium">
                   {assetTypeLabel(a.type)}

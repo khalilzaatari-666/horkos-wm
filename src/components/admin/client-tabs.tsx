@@ -13,7 +13,7 @@ export function ClientTabs({ id }: { id: string }) {
     // recommande, on suit - les pièces jointes fermant la marche.
     { href: base, label: "Vue d'ensemble" },
     { href: `${base}/patrimoine`, label: "Audits" },
-    { href: `${base}/soumissions`, label: "Soumissions" },
+    { href: `${base}/soumissions`, label: "Cession d'actifs" },
     { href: `${base}/recommandations`, label: "Recommandations" },
     { href: `${base}/suivi`, label: "Suivi" },
     { href: `${base}/documents`, label: "Documents" },

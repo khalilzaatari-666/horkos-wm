@@ -189,7 +189,11 @@ export async function addEventAttendee(
   }
 }
 
-/** Nettoyage d'un événement orphelin quand la réservation a finalement échoué. */
+/**
+ * Retire un événement de l'agenda : une réservation finalement échouée, ou une
+ * relance annulée. Silencieux comme le reste du module - un événement resté en
+ * trop se corrige à la main, il ne doit pas faire échouer l'acte qui l'efface.
+ */
 export async function deleteAppointmentEvent(eventId: string): Promise<void> {
   const token = await accessToken();
   if (!token) return;
@@ -202,5 +206,70 @@ export async function deleteAppointmentEvent(eventId: string): Promise<void> {
     });
   } catch (error) {
     console.error("[calendar] suppression impossible (événement orphelin):", eventId, error);
+  }
+}
+
+/**
+ * Pose le pense-bête de relance dans l'agenda.
+ *
+ * Ce n'est pas un rendez-vous : personne n'est convoqué, rien n'est à confirmer.
+ * D'où l'absence de Meet, et des rappels explicites (une notification la veille,
+ * une à l'heure dite) plutôt que ceux de l'agenda - le conseiller a demandé à
+ * être prévenu à une date précise, pas trente minutes avant.
+ *
+ * Même contrat d'échec que le reste du module : `null` et un log. L'email de
+ * l'échéance reste la garantie ; l'agenda n'est qu'un confort de plus.
+ */
+export async function createReminderEvent(options: {
+  summary: string;
+  description: string;
+  startIso: string;
+  durationMin: number;
+  attendees: EventAttendee[];
+}): Promise<string | null> {
+  const token = await accessToken();
+  if (!token) return null;
+
+  const start = new Date(options.startIso);
+  const end = new Date(start.getTime() + options.durationMin * 60_000);
+
+  try {
+    const response = await fetch(`${API}?sendUpdates=none`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        summary: options.summary,
+        description: options.description,
+        start: { dateTime: start.toISOString(), timeZone: TZ },
+        end: { dateTime: end.toISOString(), timeZone: TZ },
+        attendees: options.attendees.map((a) => ({
+          email: a.email,
+          displayName: a.displayName,
+        })),
+        // Interne au cabinet : l'événement ne dit rien d'un dossier client à
+        // qui consulterait l'agenda partagé.
+        visibility: "private",
+        transparency: "transparent",
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: "popup", minutes: 0 },
+            { method: "popup", minutes: 24 * 60 },
+          ],
+        },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      console.error("[calendar] rappel refusé:", response.status, await response.text());
+      return null;
+    }
+
+    const data = (await response.json()) as { id?: string };
+    return data.id ?? null;
+  } catch (error) {
+    console.error("[calendar] rappel impossible:", error);
+    return null;
   }
 }

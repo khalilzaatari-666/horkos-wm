@@ -3,21 +3,31 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminHead, AdminTable, Td } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateTime } from "@/lib/dates";
 import { GuideForm, type GuideInitial } from "../guide-form";
 import { updateGuide } from "../actions";
+import { param, pick, sensDe, recherche, trier, instant, contient } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "Guide" };
 
 /** Au-delà, la page deviendrait un export déguisé plutôt qu'un historique. */
 const MAX_DEMANDES = 200;
 
+const TRIS = ["adresse", "demande"] as const;
+
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function GuideEditPage({ params }: PageProps) {
+export default async function GuideEditPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "demande")!;
+  const sens = sensDe(param(raw, "sens"), tri === "demande" ? "desc" : "asc");
+  const q = recherche(raw);
 
   const supabase = await createClient();
 
@@ -51,11 +61,18 @@ export default async function GuideEditPage({ params }: PageProps) {
     is_published: guide.is_published ?? false,
   };
 
-  const lignes = demandes ?? [];
-  const total = count ?? lignes.length;
+  const toutes = demandes ?? [];
+  const total = count ?? toutes.length;
+
+  const lignes = trier(
+    toutes.filter((d) => contient([d.email], q)),
+    (d) => (tri === "adresse" ? d.email : instant(d.sent_at)),
+    sens,
+    (d) => d.email
+  );
   // Une même adresse peut redemander le guide : le nombre de personnes n'est pas
   // le nombre de demandes, et confondre les deux gonflerait le chiffre.
-  const adresses = new Set(lignes.map((d) => d.email.trim().toLowerCase())).size;
+  const adresses = new Set(toutes.map((d) => d.email.trim().toLowerCase())).size;
 
   return (
     <>
@@ -75,9 +92,37 @@ export default async function GuideEditPage({ params }: PageProps) {
             : "Les adresses qui demandent ce guide depuis la page Ressources apparaîtront ici."}
         </p>
 
+        {toutes.length > 0 && (
+          <AnimateIn variant="fade-up" delay={40}>
+            <FiltresListe
+              recherche={{ placeholder: "Rechercher une adresse…" }}
+              total={lignes.length}
+              unite="demande"
+            />
+          </AnimateIn>
+        )}
+
         <AnimateIn variant="fade-up" delay={60}>
           <AdminTable
-            headers={["Adresse", "Demandé le"]}
+            headers={[
+              <TriHeader
+                key="a"
+                label="Adresse"
+                colonne="adresse"
+                tri={tri}
+                sens={sens}
+                params={{ q: q || undefined }}
+              />,
+              <TriHeader
+                key="d"
+                label="Demandé le"
+                colonne="demande"
+                tri={tri}
+                sens={sens}
+                params={{ q: q || undefined }}
+                sensInitial="desc"
+              />,
+            ]}
             isEmpty={lignes.length === 0}
             empty="Aucune demande pour ce guide."
           >

@@ -48,6 +48,34 @@ export async function advisorRecipient(
   };
 }
 
+/**
+ * Les adresses des seuls administrateurs.
+ *
+ * Sert aux alertes qui visent un conseiller nommé mais dont la direction doit
+ * garder la trace - un rappel de relance, par exemple. Pas de repli sur
+ * TEAM_EMAIL ici, contrairement à `staffRecipients` : l'appelant a déjà un
+ * destinataire principal, et rien ne se perdrait à ce que la liste soit vide.
+ */
+export async function adminRecipients(): Promise<string[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data, error } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("role", "admin")
+    .not("email", "is", null);
+
+  if (error || !data) {
+    console.error("[email] lecture des administrateurs échouée:", error?.message);
+    return [];
+  }
+
+  return data
+    .map((r) => (r.email as string | null)?.trim())
+    .filter((e): e is string => Boolean(e));
+}
+
 export async function staffRecipients(): Promise<string[]> {
   const admin = createAdminClient();
   if (!admin) return [TEAM_EMAIL];

@@ -5,10 +5,32 @@ import { Panel, PanelHead, CardGrid, EmptyPanel } from "@/components/client/ui";
 import { DocumentRow } from "@/components/client/document-row";
 import { formatDateLong } from "@/lib/dates";
 import { DOCUMENT_RUBRIQUES as RUBRIQUES } from "@/lib/documents";
+import { FiltresListe } from "@/components/ui/filtres-liste";
+import { param, pick, recherche, trier, instant, contient } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "Coffre-fort" };
 
-export default async function CoffrePage() {
+/**
+ * Les rubriques restent des sections, comme toujours : ce que le tri règle,
+ * c'est l'ordre des pièces à l'intérieur de chacune. Un client cherche « le
+ * relevé de mars », pas « le douzième document déposé ».
+ */
+const ORDRES = [
+  { value: "ancien", label: "Du plus ancien" },
+  { value: "nom", label: "Par nom" },
+];
+const CLES = RUBRIQUES.map((r) => r.key);
+
+export default async function CoffrePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const ordre = pick(param(raw, "ordre"), ["ancien", "nom"] as const, null);
+  const rubrique = pick(param(raw, "rubrique"), CLES, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -22,9 +44,18 @@ export default async function CoffrePage() {
     .order("created_at", { ascending: false });
 
   const documents = data ?? [];
-  const remplies = RUBRIQUES.map((rubrique) => ({
-    ...rubrique,
-    documents: documents.filter((d) => d.category === rubrique.key),
+  const retenus = documents.filter(
+    (d) => (rubrique === null || d.category === rubrique) && contient([d.name], q)
+  );
+
+  const remplies = RUBRIQUES.map((r) => ({
+    ...r,
+    documents: trier(
+      retenus.filter((d) => d.category === r.key),
+      (d) => (ordre === "nom" ? d.name : instant(d.created_at)),
+      ordre === null ? "desc" : "asc",
+      (d) => d.name
+    ),
   })).filter((r) => r.documents.length > 0);
 
   return (
@@ -35,11 +66,36 @@ export default async function CoffrePage() {
         desc="Vos documents, classés et accessibles à tout moment. Ils ne quittent jamais nos serveurs sans votre action."
       />
 
+      {documents.length > 0 && (
+        <AnimateIn variant="fade-up" delay={60}>
+          <FiltresListe
+            champs={[
+              {
+                cle: "rubrique",
+                aria: "Rubrique",
+                toutes: "Toutes les rubriques",
+                options: RUBRIQUES.map((r) => ({ value: r.key, label: r.label })),
+              },
+              { cle: "ordre", aria: "Ordre", toutes: "Du plus récent", options: ORDRES },
+            ]}
+            recherche={{ placeholder: "Rechercher un document…" }}
+            total={retenus.length}
+            unite="document"
+          />
+        </AnimateIn>
+      )}
+
       {remplies.length === 0 ? (
         <AnimateIn variant="fade-up" delay={80}>
           <EmptyPanel
-            title="Votre coffre-fort est vide"
-            desc="Votre conseiller y dépose vos relevés, contrats et comptes rendus au fil de l'accompagnement. Vous serez prévenu à chaque nouveau document."
+            title={
+              documents.length > 0 ? "Aucun document ne correspond" : "Votre coffre-fort est vide"
+            }
+            desc={
+              documents.length > 0
+                ? "Élargissez la rubrique ou effacez la recherche pour retrouver vos pièces."
+                : "Votre conseiller y dépose vos relevés, contrats et comptes rendus au fil de l'accompagnement. Vous serez prévenu à chaque nouveau document."
+            }
           />
         </AnimateIn>
       ) : (

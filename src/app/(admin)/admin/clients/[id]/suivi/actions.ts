@@ -6,9 +6,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff, type ActionState } from "@/lib/staff";
 import { peutAccederAuDossier } from "@/lib/client-access";
-import { cabinetLocalToIso } from "@/lib/cabinet-time";
+import { cabinetLocalToIso, partsCabinet } from "@/lib/cabinet-time";
 import { jalonSuivant } from "@/lib/parcours";
 import { echeance, QUANTITE_MAX, UNITES } from "@/lib/rappels";
+import { createReminderEvent, deleteAppointmentEvent } from "@/lib/google-calendar";
+import { dureeRendezVous, libelleDuree, titreRendezVous } from "@/lib/rendez-vous";
+import { OUVERTURE, FERMETURE, DEJEUNER_DEBUT, DEJEUNER_FIN } from "@/components/booking/grille";
+import { advisorRecipient } from "@/lib/email/recipients";
+import { SITE_URL } from "@/lib/site";
 
 /** Les statuts qu'une commande du suivi peut poser. */
 const STATUTS = ["confirme", "termine", "annule"] as const;
@@ -205,7 +210,8 @@ export async function planifierEtape(
       type: parsed.data.type,
       status: "planifie",
       date,
-      duration_minutes: 60,
+      // La durée tient à l'étape : 1 h 30 pour un R1, 1 h pour un R2.
+      duration_minutes: dureeRendezVous(parsed.data.type),
       mode: parsed.data.mode,
       notes: parsed.data.notes ?? null,
     })
@@ -260,6 +266,84 @@ async function relanceOuverte(
   ]);
 
   return rdv?.type === "R0" && rdv.status === "termine" && audit?.status === "termine";
+}
+
+/** Durée de la case posée dans l'agenda : le temps d'un appel de reprise. */
+const RAPPEL_DUREE_MIN = 30;
+
+/**
+ * À qui appartient la relance ? Le conseiller référent, et à défaut celui qui
+ * pose le rappel - sans quoi l'événement n'atterrirait sur l'agenda de personne.
+ */
+async function porteurDuRappel(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  advisorId: string | null,
+  auteurId: string
+): Promise<{ name: string; email: string } | null> {
+  const referent = await advisorRecipient(advisorId);
+  if (referent) return referent;
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("first_name, last_name, email")
+    .eq("id", auteurId)
+    .maybeSingle();
+
+  const email = (data?.email as string | null)?.trim();
+  if (!email) return null;
+  return {
+    name: [data?.first_name, data?.last_name].filter(Boolean).join(" ") || "Conseiller",
+    email,
+  };
+}
+
+/**
+ * Inscrit la relance dans l'agenda du conseiller, en plus de l'email que le cron
+ * enverra à l'échéance.
+ *
+ * L'email prévient le jour dit ; l'événement, lui, se voit à l'avance - c'est en
+ * préparant sa semaine que le conseiller doit découvrir ses relances, pas en
+ * ouvrant sa boîte le matin même.
+ *
+ * Rend l'identifiant de l'événement, ou `null` : agenda non configuré, référent
+ * sans adresse, refus de Google. Aucun de ces cas ne remet en cause le rappel
+ * lui-même, déjà enregistré quand on arrive ici.
+ */
+async function inscrireAuCalendrier(input: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  clientId: string;
+  advisorId: string | null;
+  auteurId: string;
+  due: Date;
+  note: string | null;
+}): Promise<string | null> {
+  const [porteur, { data: client }] = await Promise.all([
+    porteurDuRappel(input.supabase, input.advisorId, input.auteurId),
+    input.supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", input.clientId)
+      .maybeSingle(),
+  ]);
+  if (!porteur) return null;
+
+  const nom =
+    [client?.first_name, client?.last_name].filter(Boolean).join(" ") || "un client";
+
+  const description = [
+    `Reprendre contact avec ${nom} pour convenir du R1.`,
+    ...(input.note ? [``, `Votre note : ${input.note}`] : []),
+    ``,
+    `Suivi du dossier : ${SITE_URL}/admin/clients/${input.clientId}/suivi`,
+  ].join("\n");
+
+  return createReminderEvent({
+    summary: `Relance R1 - ${nom}`,
+    description,
+    startIso: input.due.toISOString(),
+    durationMin: RAPPEL_DUREE_MIN,
+    attendees: [{ email: porteur.email, displayName: porteur.name }],
+  });
 }
 
 /**
@@ -320,6 +404,27 @@ export async function poserRappel(
   }
 
   if (cree?.id) await journaliser(allowed.staff.id, cree.id, "reminder.pose");
+
+  // L'agenda vient après l'écriture, et volontairement : le rappel doit tenir
+  // même si Google est indisponible. L'identifiant n'est rattaché qu'ensuite,
+  // pour qu'une annulation sache quoi retirer.
+  if (cree?.id) {
+    const eventId = await inscrireAuCalendrier({
+      supabase: allowed.supabase,
+      clientId: parsed.data.clientId,
+      advisorId: allowed.advisorId,
+      auteurId: allowed.staff.id,
+      due,
+      note: parsed.data.note ?? null,
+    });
+    if (eventId) {
+      await allowed.supabase
+        .from("reminders")
+        .update({ calendar_event_id: eventId })
+        .eq("id", cree.id);
+    }
+  }
+
   revalidate(parsed.data.clientId);
   return { status: "success" };
 }
@@ -334,14 +439,147 @@ export async function annulerRappel(formData: FormData): Promise<void> {
   const allowed = await autoriser(parsed.data.clientId);
   if (!allowed) return;
 
-  const { error } = await allowed.supabase
+  const { data: annule, error } = await allowed.supabase
     .from("reminders")
     .update({ status: "annule" })
     .eq("id", parsed.data.id)
     .eq("client_id", parsed.data.clientId)
-    .eq("status", "en_attente");
+    .eq("status", "en_attente")
+    .select("calendar_event_id")
+    .maybeSingle();
   if (error) return;
+
+  // Une relance à laquelle on a renoncé n'a plus à occuper l'agenda.
+  if (annule?.calendar_event_id) await deleteAppointmentEvent(annule.calendar_event_id);
 
   await journaliser(allowed.staff.id, parsed.data.id, "reminder.annule");
   revalidate(parsed.data.clientId);
+}
+
+// ---------------------------------------------------------------------------
+// Disponibilité du conseiller pour l'étape qu'on s'apprête à poser
+// ---------------------------------------------------------------------------
+
+/** Un rendez-vous déjà présent sur l'agenda, qui empiète sur l'heure choisie. */
+export interface Conflit {
+  /** « 10:00 - 11:30 », heure du cabinet. */
+  creneau: string;
+  /** L'intitulé du rendez-vous qui occupe déjà la place. */
+  intitule: string;
+  /** Le dossier concerné, ou null pour un rendez-vous sans compte rattaché. */
+  client: string | null;
+}
+
+export type Disponibilite =
+  | { etat: "inconnu" }
+  | {
+      etat: "libre" | "occupe";
+      /** « 1 h 30 », pour que l'écran dise sur quoi porte la vérification. */
+      duree: string;
+      conflits: Conflit[];
+      /** Hors jour ouvré, avant l'ouverture, sur le déjeuner ou après la fermeture. */
+      horsHoraires: boolean;
+    };
+
+const heureFmt = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: "Africa/Casablanca",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+/** Le rendez-vous tient-il dans une plage ouverte du cabinet ? */
+function dansLesHoraires(debut: Date, dureeMin: number): boolean {
+  const p = partsCabinet(debut);
+  const jour = new Date(debut).getUTCDay();
+  // `partsCabinet` ne rend pas le jour de la semaine ; le décalage de
+  // Casablanca ne change jamais la date à une heure ouvrable, l'UTC suffit donc.
+  if (jour === 0 || jour === 6) return false;
+
+  const fin = p.minutes + dureeMin;
+  const matin = p.minutes >= OUVERTURE && fin <= DEJEUNER_DEBUT;
+  const apresMidi = p.minutes >= DEJEUNER_FIN && fin <= FERMETURE;
+  return matin || apresMidi;
+}
+
+/**
+ * Le créneau choisi est-il libre sur l'agenda du conseiller qui prendra ce
+ * rendez-vous ?
+ *
+ * Appelée pendant la saisie, à chaque changement d'heure : le conseiller doit
+ * l'apprendre en choisissant, pas après avoir enregistré. C'est un avis, jamais
+ * un verrou - un R1 posé volontairement en face d'autre chose reste possible,
+ * et `planifierEtape` n'en tient pas compte.
+ *
+ * L'agenda consulté est celui de la personne connectée - celle qui pose l'étape
+ * et qui tiendra le rendez-vous. C'est la seule question qu'elle se pose en
+ * choisissant une heure : « suis-je libre à ce moment-là ? »
+ *
+ * La règle de `client-access` fait qu'un conseiller n'intervient que sur ses
+ * propres dossiers ou sur ceux sans référent : son agenda est donc bien celui
+ * du titulaire du rendez-vous. Un admin, lui, voit le sien, qui ne porte
+ * normalement aucun rendez-vous client.
+ */
+export async function verifierCreneau(
+  clientId: string,
+  type: string,
+  quand: string
+): Promise<Disponibilite> {
+  const parsed = z
+    .object({ clientId: z.uuid(), type: z.enum(["R1", "R2"]), quand: z.string() })
+    .safeParse({ clientId, type, quand });
+  if (!parsed.success) return { etat: "inconnu" };
+
+  const iso = cabinetLocalToIso(parsed.data.quand);
+  if (!iso) return { etat: "inconnu" };
+
+  const allowed = await autoriser(parsed.data.clientId);
+  if (!allowed) return { etat: "inconnu" };
+
+  const duree = dureeRendezVous(parsed.data.type);
+  const debut = new Date(iso);
+  const fin = new Date(debut.getTime() + duree * 60_000);
+
+  // Fenêtre de lecture volontairement large : un rendez-vous commencé avant
+  // celui-ci peut encore empiéter dessus. Quatre heures couvrent largement la
+  // plus longue durée du cabinet (1 h 30).
+  const depuis = new Date(debut.getTime() - 4 * 3_600_000).toISOString();
+
+  const { data: rdvs } = await allowed.supabase
+    .from("appointments")
+    .select("id, type, date, duration_minutes, client_id, client:client_id(first_name, last_name)")
+    .eq("advisor_id", allowed.staff.id)
+    .in("status", ["planifie", "confirme"])
+    .gte("date", depuis)
+    .lt("date", fin.toISOString());
+
+  type Personne = { first_name: string | null; last_name: string | null };
+  const nom = (p: Personne | Personne[] | null | undefined) => {
+    const one = Array.isArray(p) ? (p[0] ?? null) : (p ?? null);
+    return one ? [one.first_name, one.last_name].filter(Boolean).join(" ") : "";
+  };
+
+  const conflits: Conflit[] = (rdvs ?? [])
+    .filter((r) => {
+      const d = new Date(r.date);
+      const f = new Date(d.getTime() + (r.duration_minutes ?? 60) * 60_000);
+      // Chevauchement strict : deux rendez-vous qui se touchent bout à bout
+      // (11 h 30 après un 10 h 00 - 11 h 30) n'en sont pas un.
+      return d < fin && f > debut;
+    })
+    .map((r) => {
+      const d = new Date(r.date);
+      const f = new Date(d.getTime() + (r.duration_minutes ?? 60) * 60_000);
+      return {
+        creneau: `${heureFmt.format(d)} - ${heureFmt.format(f)}`,
+        intitule: titreRendezVous(r.type),
+        client: nom(r.client as Personne | Personne[] | null) || null,
+      };
+    });
+
+  return {
+    etat: conflits.length > 0 ? "occupe" : "libre",
+    duree: libelleDuree(duree),
+    conflits,
+    horsHoraires: !dansLesHoraires(debut, duree),
+  };
 }

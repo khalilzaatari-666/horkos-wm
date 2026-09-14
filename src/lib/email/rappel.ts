@@ -2,16 +2,18 @@ import "server-only";
 
 import { Resend } from "resend";
 import { emailHtml, escapeHtml } from "./template";
-import { advisorRecipient, staffRecipients } from "./recipients";
+import { advisorRecipient, adminRecipients, staffRecipients } from "./recipients";
+import { destinatairesRappel } from "@/lib/rappels";
 import { SITE_NAME, CABINET_EMAIL, SITE_URL } from "@/lib/site";
 
 /**
  * Le pense-bête que le conseiller s'est posé après le R0, renvoyé à l'échéance.
  *
- * Même règle de destinataire que les autres alertes internes : le référent
- * seul quand il existe, car c'est lui qui suit le dossier et diffuser à toute
- * l'équipe diluerait la responsabilité de la reprise. Faute de référent - ou
- * d'adresse - on retombe sur l'équipe, pour qu'un rappel ne se perde jamais.
+ * La règle de destinataire est propre à ce message et vit dans
+ * `destinatairesRappel` : la direction est toujours en copie, et côté
+ * conseillers seul le référent est visé - sauf si le client n'en a pas, auquel
+ * cas personne n'est nommément responsable et le rappel part à toute l'équipe
+ * plutôt que de se perdre.
  *
  * Contrat d'échec différent des autres modules, en revanche : ici le résultat
  * est **retourné**. Le cron doit savoir s'il peut marquer le rappel envoyé, et
@@ -45,7 +47,18 @@ export async function sendRappelR1(input: RappelInput): Promise<ResultatEnvoi> {
 
   const resend = new Resend(apiKey);
   const advisor = await advisorRecipient(input.advisorId);
-  const to = advisor ? [advisor.email] : await staffRecipients();
+  const [admins, equipe] = await Promise.all([
+    adminRecipients(),
+    // Le repli n'est lu que sans référent, mais le calculer d'avance évite un
+    // aller-retour de plus sur le chemin qui en a le plus besoin.
+    advisor ? Promise.resolve<string[]>([]) : staffRecipients(),
+  ]);
+  const to = destinatairesRappel(advisor?.email ?? null, admins, equipe);
+
+  if (to.length === 0) {
+    console.error("[email] rappel sans destinataire : ni référent ni équipe joignable.");
+    return { ok: false, erreur: "Aucun destinataire" };
+  }
 
   const rows: [string, string][] = [
     ["Client", escapeHtml(input.client.name)],

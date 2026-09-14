@@ -3,10 +3,17 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateLong } from "@/lib/dates";
 import { formatMAD } from "@/lib/patrimoine";
+import { param, pick, sensDe, recherche, trier, instant } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "Clients" };
+
+const TRIS = ["nom", "patrimoine", "referent", "inscrit"] as const;
+/** Valeur du filtre « référent » désignant les dossiers que personne ne pilote. */
+const SANS_REFERENT = "aucun";
 
 export default async function ClientsPage({
   searchParams,
@@ -14,12 +21,13 @@ export default async function ClientsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const raw = await searchParams;
-  // On neutralise les caractères qui ont un sens dans un filtre PostgREST
-  // (`,`, `()`, `%`, `*`, `:`) avant de l'interpoler dans le `.or(...)`.
-  const q = ((Array.isArray(raw.q) ? raw.q[0] : raw.q) ?? "")
-    .replace(/[,()%*:]/g, " ")
-    .trim()
-    .slice(0, 80);
+  // `recherche` neutralise les caractères qui ont un sens dans un filtre
+  // PostgREST (`,`, `()`, `%`, `*`, `:`) : le terme finit interpolé dans le
+  // `.or(...)` ci-dessous.
+  const q = recherche(raw);
+  const tri = pick(param(raw, "tri"), TRIS, "inscrit")!;
+  const sens = sensDe(param(raw, "sens"), tri === "inscrit" ? "desc" : "asc");
+  const referent = param(raw, "referent") ?? null;
 
   const supabase = await createClient();
   const {
@@ -62,7 +70,16 @@ export default async function ClientsPage({
     supabase.from("profiles").select("id, first_name, last_name").eq("role", "conseiller"),
   ]);
 
-  const rows = clients ?? [];
+  // Le filtre par référent s'applique après la requête : la clause `or` du
+  // conseiller occupe déjà le seul `.or()` disponible sur ce constructeur, et
+  // en empiler un second changerait le sens du premier.
+  const rows = (clients ?? []).filter((c) =>
+    referent === null
+      ? true
+      : referent === SANS_REFERENT
+        ? !c.advisor_id
+        : c.advisor_id === referent
+  );
 
   // Total du patrimoine par client, agrégé en mémoire à partir d'une requête.
   const ids = rows.map((r) => r.id);
@@ -84,6 +101,22 @@ export default async function ClientsPage({
     ])
   );
 
+  const lignes = trier(
+    rows,
+    (c) =>
+      tri === "nom"
+        ? [c.first_name, c.last_name].filter(Boolean).join(" ")
+        : tri === "patrimoine"
+          ? (totals.get(c.id) ?? null)
+          : tri === "referent"
+            ? (c.advisor_id ? advisorName.get(c.advisor_id) : null)
+            : instant(c.created_at),
+    sens,
+    (c) => c.email
+  );
+
+  const params = { q: q || undefined, referent: referent ?? undefined };
+
   return (
     <AdminPanel>
       <AdminHead
@@ -92,24 +125,64 @@ export default async function ClientsPage({
       />
 
       <AnimateIn variant="fade-up" delay={40}>
-        <form method="get" className="mb-4">
-          <input
-            type="search"
-            name="q"
-            defaultValue={q}
-            placeholder="Rechercher par nom ou email…"
-            className="w-full sm:max-w-xs h-10 px-3.5 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
-          />
-        </form>
+        <FiltresListe
+          champs={[
+            {
+              cle: "referent",
+              aria: "Conseiller référent",
+              toutes: "Tous les référents",
+              options: [
+                ...[...advisorName].map(([id, name]) => ({ value: id, label: name })),
+                { value: SANS_REFERENT, label: "Sans référent" },
+              ],
+            },
+          ]}
+          recherche={{ placeholder: "Rechercher par nom ou email…" }}
+          total={lignes.length}
+          unite="client"
+        />
       </AnimateIn>
 
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Nom", "Contact", "Patrimoine", "Conseiller référent", "Inscrit le"]}
-          isEmpty={rows.length === 0}
-          empty={q ? "Aucun client ne correspond à cette recherche." : "Aucun client inscrit."}
+          headers={[
+            <TriHeader key="n" label="Nom" colonne="nom" tri={tri} sens={sens} params={params} />,
+            "Contact",
+            <TriHeader
+              key="p"
+              label="Patrimoine"
+              colonne="patrimoine"
+              tri={tri}
+              sens={sens}
+              params={params}
+              sensInitial="desc"
+            />,
+            <TriHeader
+              key="r"
+              label="Conseiller référent"
+              colonne="referent"
+              tri={tri}
+              sens={sens}
+              params={params}
+            />,
+            <TriHeader
+              key="i"
+              label="Inscrit le"
+              colonne="inscrit"
+              tri={tri}
+              sens={sens}
+              params={params}
+              sensInitial="desc"
+            />,
+          ]}
+          isEmpty={lignes.length === 0}
+          empty={
+            q || referent
+              ? "Aucun client ne correspond à ces critères."
+              : "Aucun client inscrit."
+          }
         >
-          {rows.map((c) => {
+          {lignes.map((c) => {
             const nom = [c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom";
             return (
               <tr key={c.id} className="hover:bg-cream/40 transition-colors align-top">

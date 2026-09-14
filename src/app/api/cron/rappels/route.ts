@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { etatEtape } from "@/lib/parcours";
 import { sendRappelR1 } from "@/lib/email/rappel";
+import { deleteAppointmentEvent } from "@/lib/google-calendar";
 
 /**
  * Envoi des rappels de relance arrivés à échéance.
@@ -49,6 +50,7 @@ interface Rappel {
   due_at: string;
   created_at: string;
   attempts: number;
+  calendar_event_id: string | null;
 }
 
 export async function GET(request: Request) {
@@ -68,7 +70,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await admin
     .from("reminders")
-    .select("id, client_id, note, due_at, created_at, attempts")
+    .select("id, client_id, note, due_at, created_at, attempts, calendar_event_id")
     .eq("status", "en_attente")
     .lte("due_at", new Date().toISOString())
     .lt("attempts", TENTATIVES_MAX)
@@ -95,6 +97,8 @@ export async function GET(request: Request) {
       .eq("client_id", rappel.client_id);
 
     if (etatEtape("R1", rdvs ?? []) !== "avenir") {
+      // Le R1 est posé : la case de relance n'a plus lieu d'être dans l'agenda.
+      if (rappel.calendar_event_id) await deleteAppointmentEvent(rappel.calendar_event_id);
       await admin
         .from("reminders")
         .update({ status: "sans_objet", sent_at: new Date().toISOString() })
@@ -111,6 +115,7 @@ export async function GET(request: Request) {
 
     if (!client) {
       // Le dossier a disparu sous le rappel : il n'a plus d'objet non plus.
+      if (rappel.calendar_event_id) await deleteAppointmentEvent(rappel.calendar_event_id);
       await admin.from("reminders").update({ status: "sans_objet" }).eq("id", rappel.id);
       sansObjet += 1;
       continue;

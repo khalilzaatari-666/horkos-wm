@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateLong } from "@/lib/dates";
 import { formatMAD } from "@/lib/patrimoine";
+import { param, pick, sensDe, recherche, trier, instant, contient, LIMITE_LISTE } from "@/lib/liste";
 
-export const metadata: Metadata = { title: "Soumissions d'actifs" };
+export const metadata: Metadata = { title: "Cession d'actifs" };
 
 const STATUS: Record<string, { label: string; tone: "neutre" | "attente" | "succes" | "refus" }> = {
   soumis: { label: "Soumis", tone: "attente" },
@@ -14,7 +17,27 @@ const STATUS: Record<string, { label: string; tone: "neutre" | "attente" | "succ
   rejete: { label: "Non retenu", tone: "refus" },
 };
 
-export default async function SoumissionsPage() {
+const TRIS = ["actif", "valeur", "deposant", "recu", "statut"] as const;
+const STATUTS = ["soumis", "en_revue", "accepte", "rejete"] as const;
+/** Un dossier de visiteur n'a pas de dossier client à ouvrir : la distinction
+ *  change la façon de le traiter, elle mérite son filtre. */
+const ORIGINES = [
+  { value: "client", label: "Déposés par un client" },
+  { value: "visiteur", label: "Déposés par un visiteur" },
+];
+
+export default async function SoumissionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "recu")!;
+  const sens = sensDe(param(raw, "sens"), tri === "recu" ? "desc" : "asc");
+  const statut = pick(param(raw, "statut"), STATUTS, null);
+  const origine = pick(param(raw, "origine"), ["client", "visiteur"] as const, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
 
   const { data: soumissions } = await supabase
@@ -22,22 +45,100 @@ export default async function SoumissionsPage() {
     .select(
       "id, asset_type, description, estimated_value, reason, horizon, status, created_at, client_id, contact_name, contact_email, contact_phone"
     )
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(LIMITE_LISTE);
 
-  const rows = soumissions ?? [];
+  const rows = trier(
+    (soumissions ?? []).filter(
+      (d) =>
+        (statut === null || d.status === statut) &&
+        (origine === null || (origine === "client") === Boolean(d.client_id)) &&
+        contient([d.asset_type, d.description, d.contact_name, d.contact_email, d.reason], q)
+    ),
+    (d) =>
+      tri === "actif"
+        ? d.asset_type
+        : tri === "valeur"
+          ? Number(d.estimated_value) || null
+          : tri === "deposant"
+            ? d.contact_name
+            : tri === "statut"
+              ? d.status
+              : instant(d.created_at),
+    sens,
+    (d) => d.asset_type
+  );
+
+  const qs = {
+    statut: statut ?? undefined,
+    origine: origine ?? undefined,
+    q: q || undefined,
+  };
 
   return (
     <AdminPanel>
       <AdminHead
-        title="Soumissions d'actifs"
+        title="Cession d'actifs"
         desc="Les dossiers de cession déposés depuis le site public ou l'espace client. Un dossier rattaché à un compte porte la mention « Client »."
       />
 
+      <AnimateIn variant="fade-up" delay={40}>
+        <FiltresListe
+          champs={[
+            {
+              cle: "statut",
+              aria: "Statut",
+              toutes: "Tous les statuts",
+              options: STATUTS.map((v) => ({ value: v, label: STATUS[v].label })),
+            },
+            { cle: "origine", aria: "Déposant", toutes: "Tous les déposants", options: ORIGINES },
+          ]}
+          recherche={{ placeholder: "Rechercher un actif, un déposant…" }}
+          total={rows.length}
+          unite="dossier"
+        />
+      </AnimateIn>
+
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Actif", "Valeur estimée", "Motif", "Horizon", "Déposant", "Reçu le", "Statut"]}
+          headers={[
+            <TriHeader key="a" label="Actif" colonne="actif" tri={tri} sens={sens} params={qs} />,
+            <TriHeader
+              key="v"
+              label="Valeur estimée"
+              colonne="valeur"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            "Motif",
+            "Horizon",
+            <TriHeader
+              key="d"
+              label="Déposant"
+              colonne="deposant"
+              tri={tri}
+              sens={sens}
+              params={qs}
+            />,
+            <TriHeader
+              key="r"
+              label="Reçu le"
+              colonne="recu"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            <TriHeader key="s" label="Statut" colonne="statut" tri={tri} sens={sens} params={qs} />,
+          ]}
           isEmpty={rows.length === 0}
-          empty="Aucune soumission pour l'instant. Elles apparaîtront ici dès qu'un visiteur ou un client déposera un dossier de cession."
+          empty={
+            q || statut || origine
+              ? "Aucun dossier ne correspond à ces critères."
+              : "Aucun dossier pour l'instant. Ils apparaîtront ici dès qu'un visiteur ou un client déposera un dossier de cession."
+          }
         >
           {rows.map((s) => {
             const status = STATUS[s.status] ?? { label: s.status, tone: "neutre" as const };

@@ -21,12 +21,12 @@ export function AuditReportButton({ auditId }: { auditId: string }) {
   }, [state]);
 
   return (
-    <form action={formAction} className="mt-4">
+    <form action={formAction}>
       <input type="hidden" name="auditId" value={auditId} />
       <button
         type="submit"
         disabled={pending}
-        className="inline-block px-5 py-2.5 text-[13px] font-medium bg-ink text-cream rounded-lg hover:bg-navy transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+        className="inline-block px-5 py-2.5 text-[13px] font-medium text-ink border border-cream-deep rounded-lg hover:border-bronze transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
       >
         {pending ? "Ouverture…" : "Télécharger le rapport"}
       </button>

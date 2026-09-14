@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** Les filtres qui ont un sens dans les deux vues, et qui les suivent donc. */
-const PARTAGES = ["statut", "mode", "conseiller"] as const;
+const PARTAGES = ["statut", "type", "mode", "conseiller"] as const;
 
 /**
  * Bascule Liste / Semaine.

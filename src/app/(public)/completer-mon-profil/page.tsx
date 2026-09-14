@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { profilComplet } from "@/lib/intake";
+import { capitaliseName } from "@/lib/validation";
 import { signOut } from "@/components/client/actions";
 import { IntakeForm } from "./intake-form";
 
@@ -57,12 +58,27 @@ export default async function CompleterProfilPage() {
    * reste. Ce n'est pas une reprise silencieuse - c'est un brouillon que la
    * personne relit et valide.
    */
-  const meta = user.user_metadata ?? {};
-  const nomComplet = String(meta.full_name ?? meta.name ?? "").trim();
-  const [premierMot, ...restants] = nomComplet.split(/\s+/).filter(Boolean);
+  const meta: Record<string, unknown> = user.user_metadata ?? {};
+  // `user_metadata` n'est pas typé : tout ce qui n'est pas une chaîne devient
+  // une chaîne vide, jamais `String(undefined)` - qui écrirait « undefined »
+  // dans le champ. Et `||` plutôt que `??` : une chaîne vide doit elle aussi
+  // laisser la place au repli suivant.
+  const texte = (valeur: unknown): string =>
+    typeof valeur === "string" ? valeur.trim() : "";
 
-  const prenom = String(profile?.first_name ?? meta.given_name ?? premierMot ?? "");
-  const nom = String(profile?.last_name ?? meta.family_name ?? restants.join(" ") ?? "");
+  // Ni Google ni Azure ne renvoient `given_name` / `family_name` sur ce projet :
+  // c'est `full_name` qu'il faut découper. Le premier mot vaut prénom, le reste
+  // nom - faux pour un prénom composé, mais c'est un brouillon que la personne
+  // corrige, pas une donnée qu'on enregistre dans son dos.
+  const nomComplet = texte(meta.full_name) || texte(meta.name);
+  const [premierMot = "", ...restants] = nomComplet.split(/\s+/).filter(Boolean);
+
+  // Les fournisseurs rendent parfois le nom en capitales : on le remet dans la
+  // casse des champs de saisie, qui l'appliquent de toute façon à la frappe.
+  const prenom = capitaliseName(texte(profile?.first_name) || texte(meta.given_name) || premierMot);
+  const nom = capitaliseName(
+    texte(profile?.last_name) || texte(meta.family_name) || restants.join(" ")
+  );
 
   return (
     <div className="flex justify-center px-4 py-14">

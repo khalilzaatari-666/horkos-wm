@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { buildIcs } from "./ics";
 import { emailHtml, escapeHtml } from "./template";
 import { SITE_NAME, CABINET_EMAIL, CABINET_ADDRESS } from "@/lib/site";
+import { titreRendezVous, dureeRendezVous, libelleDuree } from "@/lib/rendez-vous";
 
 /**
  * Emails de confirmation d'un rendez-vous - un au client, un au conseiller.
@@ -25,6 +26,8 @@ export interface AppointmentEmailInput {
   appointmentId: string;
   /** Début du rendez-vous, ISO. */
   slotIso: string;
+  /** L'étape du parcours : elle donne l'intitulé et la durée. */
+  type: string;
   mode: "presentiel" | "visio";
   /** Lien Meet - null si la création a échoué, l'email l'annonce alors. */
   meetingUrl: string | null;
@@ -57,6 +60,8 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
   const resend = new Resend(apiKey);
   const when = formatSlot(input.slotIso);
   const isVisio = input.mode === "visio";
+  const titre = titreRendezVous(input.type, input.client.name);
+  const duree = dureeRendezVous(input.type);
   const location = isVisio ? (input.meetingUrl ?? "Visioconférence") : CABINET_ADDRESS;
 
   const attendees = [
@@ -67,8 +72,8 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
   const ics = buildIcs({
     uid: input.appointmentId,
     startIso: input.slotIso,
-    durationMin: 60,
-    summary: `Rendez-vous ${SITE_NAME}`,
+    durationMin: duree,
+    summary: titre,
     description: isVisio
       ? input.meetingUrl
         ? `Rendez-vous en visioconférence.\nRejoindre : ${input.meetingUrl}`
@@ -96,7 +101,7 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
   const clientEmail = resend.emails.send({
     from: `${SITE_NAME} <${CABINET_EMAIL}>`,
     to: input.client.email,
-    subject: `Votre rendez-vous Horkos - ${when}`,
+    subject: `${titre} - ${when}`,
     html: emailHtml({
       title: "Votre rendez-vous est confirmé",
       intro: `Bonjour ${escapeHtml(input.client.name)}, votre rendez-vous avec notre cabinet est confirmé. L'invitation jointe l'ajoute à votre calendrier.`,
@@ -104,7 +109,7 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
         ["Date", when],
         modeRow,
         ["Conseiller", escapeHtml(input.advisor.name)],
-        ["Durée", "1 heure"],
+        ["Durée", libelleDuree(duree)],
       ],
       note: "Un empêchement ? Répondez simplement à cet email, nous vous proposerons une autre heure. Le premier rendez-vous est gratuit et sans engagement.",
     }),
@@ -117,13 +122,14 @@ export async function sendAppointmentEmails(input: AppointmentEmailInput): Promi
     ? resend.emails.send({
         from: `${SITE_NAME} <${CABINET_EMAIL}>`,
         to: input.advisor.email,
-        subject: `Nouveau rendez-vous - ${escapeHtml(input.client.name)} - ${when}`,
+        subject: `${titre} - ${when}`,
         html: emailHtml({
           title: "Nouveau rendez-vous réservé",
           intro: `${escapeHtml(input.client.name)} vient de réserver un créneau avec vous.`,
           rows: [
             ["Date", when],
             modeRow,
+            ["Durée", libelleDuree(duree)],
             ["Client", escapeHtml(input.client.name)],
             ["Email", escapeHtml(input.client.email)],
           ],

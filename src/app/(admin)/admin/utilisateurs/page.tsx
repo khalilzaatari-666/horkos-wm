@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateLong } from "@/lib/dates";
 import { RoleSelect } from "./role-select";
 import { ResendLink } from "./resend-link";
@@ -10,6 +12,7 @@ import { InviteForm } from "./invite-form";
 import { AvatarUpload } from "@/components/admin/avatar-upload";
 import { initials } from "@/components/client/espace-nav";
 import { setPhone } from "../actions";
+import { param, pick, sensDe, recherche, trier, instant, contient, LIMITE_LISTE } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
 
@@ -19,7 +22,24 @@ const ROLE_TONES: Record<string, "neutre" | "attente" | "succes" | "info"> = {
   admin: "info",
 };
 
-export default async function UtilisateursPage() {
+const TRIS = ["nom", "contact", "inscrit", "role"] as const;
+const ROLES = [
+  { value: "client", label: "Clients" },
+  { value: "conseiller", label: "Conseillers" },
+  { value: "admin", label: "Administrateurs" },
+];
+
+export default async function UtilisateursPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "inscrit")!;
+  const sens = sensDe(param(raw, "sens"), tri === "inscrit" ? "desc" : "asc");
+  const role = pick(param(raw, "role"), ["client", "conseiller", "admin"] as const, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,10 +60,33 @@ export default async function UtilisateursPage() {
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email, phone, role, created_at, avatar_url")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(LIMITE_LISTE);
 
-  const rows = profiles ?? [];
-  const conseillers = rows.filter((p) => p.role === "conseiller").length;
+  const tous = profiles ?? [];
+  // Le garde-fou compte sur l'ensemble des comptes, jamais sur la vue filtrée :
+  // masquer les conseillers d'un clic ne doit pas déclencher l'alerte.
+  const conseillers = tous.filter((p) => p.role === "conseiller").length;
+
+  const rows = trier(
+    tous.filter(
+      (p) =>
+        (role === null || p.role === role) &&
+        contient([p.first_name, p.last_name, p.email, p.phone], q)
+    ),
+    (p) =>
+      tri === "contact"
+        ? p.email
+        : tri === "role"
+          ? p.role
+          : tri === "nom"
+            ? [p.first_name, p.last_name].filter(Boolean).join(" ")
+            : instant(p.created_at),
+    sens,
+    (p) => p.email
+  );
+
+  const qs = { role: role ?? undefined, q: q || undefined };
 
   return (
     <AdminPanel>
@@ -68,11 +111,51 @@ export default async function UtilisateursPage() {
         <InviteForm />
       </AnimateIn>
 
+      <AnimateIn variant="fade-up" delay={50}>
+        <FiltresListe
+          champs={[{ cle: "role", aria: "Rôle", toutes: "Tous les rôles", options: ROLES }]}
+          recherche={{ placeholder: "Rechercher un nom, un email…" }}
+          total={rows.length}
+          unite="compte"
+        />
+      </AnimateIn>
+
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Photo", "Nom", "Contact", "Inscrit le", "Rôle actuel", "Modifier"]}
+          headers={[
+            "Photo",
+            <TriHeader key="n" label="Nom" colonne="nom" tri={tri} sens={sens} params={qs} />,
+            <TriHeader
+              key="c"
+              label="Contact"
+              colonne="contact"
+              tri={tri}
+              sens={sens}
+              params={qs}
+            />,
+            <TriHeader
+              key="i"
+              label="Inscrit le"
+              colonne="inscrit"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            <TriHeader
+              key="r"
+              label="Rôle actuel"
+              colonne="role"
+              tri={tri}
+              sens={sens}
+              params={qs}
+            />,
+            "Modifier",
+          ]}
           isEmpty={rows.length === 0}
-          empty="Aucun compte enregistré."
+          empty={
+            q || role ? "Aucun compte ne correspond à ces critères." : "Aucun compte enregistré."
+          }
         >
           {rows.map((p) => (
             <tr key={p.id} className="hover:bg-cream/40 transition-colors">

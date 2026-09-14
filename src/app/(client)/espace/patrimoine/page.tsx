@@ -4,6 +4,8 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, PanelHead, Card, CardTitle, CardGrid, EmptyPanel, Badge } from "@/components/client/ui";
 import { RepartitionBar } from "@/components/client/repartition-bar";
 import { AuditReportButton } from "./audit-report-button";
+import { FiltresListe } from "@/components/ui/filtres-liste";
+import { param, pick, trier } from "@/lib/liste";
 import { formatDateLong } from "@/lib/dates";
 import {
   repartition,
@@ -15,7 +17,22 @@ import {
 
 export const metadata: Metadata = { title: "Mon patrimoine" };
 
-export default async function PatrimoinePage() {
+/** Le détail par actif s'ouvre sur les plus gros montants : c'est l'ordre dans
+ *  lequel un patrimoine se lit. */
+const ORDRES = [
+  { value: "faible", label: "Du plus faible" },
+  { value: "intitule", label: "Par intitulé" },
+];
+
+export default async function PatrimoinePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const ordre = pick(param(raw, "ordre"), ["faible", "intitule"] as const, null);
+  const type = param(raw, "type") ?? null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -44,8 +61,18 @@ export default async function PatrimoinePage() {
     value: Number(a.value) || 0,
   }));
 
+  // Répartition et total portent sur tout le patrimoine : un filtre est une
+  // loupe sur le détail, il ne change pas ce que le client possède.
   const classes = repartition(assetRows);
   const total = totalPatrimoine(assetRows);
+
+  const typesPresents = [...new Set(assetRows.map((a) => a.type))];
+  const detail = trier(
+    assetRows.filter((a) => type === null || a.type === type),
+    (a) => (ordre === "intitule" ? a.label : a.value),
+    ordre === null ? "desc" : "asc",
+    (a) => a.label
+  );
 
   return (
     <Panel>
@@ -102,7 +129,20 @@ export default async function PatrimoinePage() {
                         ? "Votre audit est disponible. Il détaille votre situation, les points d'attention relevés et la structuration proposée."
                         : "Votre conseiller travaille sur votre audit. Vous serez prévenu dès qu'il sera disponible."}
                     </p>
-                    {audit.pdf_url && <AuditReportButton auditId={audit.id} />}
+                    {/* Deux documents distincts : la fiche, générée depuis la
+                        saisie du conseiller, et le rapport, un PDF qu'il a
+                        déposé. La fiche n'est remise qu'une fois l'audit clos. */}
+                    <div className="flex flex-wrap items-center gap-3 mt-4">
+                      {audit.status === "termine" && (
+                        <a
+                          href={`/espace/patrimoine/audit/${audit.id}/pdf`}
+                          className="inline-block px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
+                        >
+                          Télécharger ma fiche d&apos;audit
+                        </a>
+                      )}
+                      {audit.pdf_url && <AuditReportButton auditId={audit.id} />}
+                    </div>
                   </>
                 ) : (
                   <p className="text-[13px] text-warm-grey leading-[1.65]">
@@ -120,8 +160,21 @@ export default async function PatrimoinePage() {
                 <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
                   Détail par actif
                 </h2>
+                <FiltresListe
+                  champs={[
+                    {
+                      cle: "type",
+                      aria: "Type d'actif",
+                      toutes: "Tous les types",
+                      options: typesPresents.map((t) => ({ value: t, label: assetTypeLabel(t) })),
+                    },
+                    { cle: "ordre", aria: "Ordre", toutes: "Du plus élevé", options: ORDRES },
+                  ]}
+                  total={detail.length}
+                  unite="actif"
+                />
                 <CardGrid min="260px">
-                  {assetRows.map((a) => (
+                  {detail.map((a) => (
                     <Card key={a.id} className="p-5 h-full flex flex-col">
                       <div className="text-[11px] font-semibold tracking-[1.3px] uppercase text-bronze-dark">
                         {assetTypeLabel(a.type)}

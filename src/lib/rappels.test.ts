@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   echeance,
   libelleDelai,
+  destinatairesRappel,
   QUANTITE_MAX,
   HORIZON_MAX_MOIS,
   UNITES,
@@ -78,6 +79,57 @@ describe("echeance", () => {
     const depart = new Date(LE_8_SEPT.getTime());
     echeance(depart, 5, "mois");
     expect(depart.toISOString()).toBe(LE_8_SEPT.toISOString());
+  });
+});
+
+describe("destinatairesRappel", () => {
+  const ADMINS = ["direction@horkos-wm.com", "associe@horkos-wm.com"];
+  const EQUIPE = [...ADMINS, "conseiller1@horkos-wm.com", "conseiller2@horkos-wm.com"];
+
+  it("vise le référent et met la direction en copie", () => {
+    expect(destinatairesRappel("conseiller1@horkos-wm.com", ADMINS, EQUIPE)).toEqual([
+      "conseiller1@horkos-wm.com",
+      ...ADMINS,
+    ]);
+  });
+
+  it("n'écrit pas aux autres conseillers quand un référent est nommé", () => {
+    const to = destinatairesRappel("conseiller1@horkos-wm.com", ADMINS, EQUIPE);
+    expect(to).not.toContain("conseiller2@horkos-wm.com");
+  });
+
+  it("écrit à toute l'équipe quand le client n'a pas de référent", () => {
+    // Personne n'est nommément responsable : mieux vaut trop de monde qu'un
+    // rappel qui n'arrive nulle part.
+    expect(destinatairesRappel(null, ADMINS, EQUIPE)).toEqual(EQUIPE);
+  });
+
+  it("ne double pas un référent qui est aussi administrateur", () => {
+    const to = destinatairesRappel("direction@horkos-wm.com", ADMINS, EQUIPE);
+    expect(to).toEqual(["direction@horkos-wm.com", "associe@horkos-wm.com"]);
+  });
+
+  it("garde le référent seul si aucun administrateur n'est joignable", () => {
+    expect(destinatairesRappel("conseiller1@horkos-wm.com", [], EQUIPE)).toEqual([
+      "conseiller1@horkos-wm.com",
+    ]);
+  });
+
+  it("traite un référent vide comme absent", () => {
+    expect(destinatairesRappel("", ADMINS, EQUIPE)).toEqual(EQUIPE);
+    expect(destinatairesRappel("   ", ADMINS, EQUIPE)).toEqual(EQUIPE);
+  });
+
+  it("nettoie les espaces et les entrées vides", () => {
+    expect(destinatairesRappel(" a@x.ma ", [" b@x.ma", "", "  "], [])).toEqual([
+      "a@x.ma",
+      "b@x.ma",
+    ]);
+  });
+
+  it("rend une liste vide quand personne n'est joignable", () => {
+    // L'appelant refuse alors l'envoi plutôt que d'appeler Resend sans `to`.
+    expect(destinatairesRappel(null, [], [])).toEqual([]);
   });
 });
 

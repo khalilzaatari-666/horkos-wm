@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminPanel, AdminHead, AdminCard, AdminKpi, AdminBadge } from "@/components/admin/ui";
 import { RDV_STATUT_STYLES, type RdvStatut } from "./rendez-vous/constants";
 import { formatDateTime, formatDateLong, formatDateShort, formatRelative } from "@/lib/dates";
 import { marquerDemandeTraitee } from "./actions";
-import { getUmamiStats30j, umamiConfigured } from "@/lib/umami";
+import { getUmamiStats30j, umamiConfigured, umamiMissingVars } from "@/lib/umami";
 import {
   TuileActivite,
   TuileTaux,
@@ -383,15 +384,25 @@ export default async function AdminDashboardPage() {
                   key={d.id}
                   className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2.5"
                 >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/clients/${d.clientId}/recommandations`}
-                      className="text-[13px] font-medium text-ink hover:text-bronze-dark transition-colors"
-                    >
+                  {/* Toute la ligne mène à l'onglet Recommandations du client :
+                      n'ouvrir que sur le nom laissait le titre de la fiche en
+                      texte mort, et la demande semblait alors sans suite. */}
+                  <Link
+                    href={`/admin/clients/${d.clientId}/recommandations`}
+                    className="group min-w-0 flex items-baseline gap-1.5"
+                    title={`Ouvrir les recommandations de ${d.who}`}
+                  >
+                    <span className="text-[13px] font-medium text-ink group-hover:text-bronze-dark underline decoration-transparent group-hover:decoration-bronze-dark underline-offset-[3px] transition-colors">
                       {d.who}
-                    </Link>
-                    <span className="text-[12.5px] text-charcoal"> — {d.titre}</span>
-                  </div>
+                    </span>
+                    <span className="text-[12.5px] text-charcoal truncate group-hover:text-bronze-dark transition-colors">
+                      — {d.titre}
+                    </span>
+                    <ChevronRight
+                      className="w-3.5 h-3.5 shrink-0 self-center text-bronze-dark opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-hidden="true"
+                    />
+                  </Link>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-[11.5px] text-warm-grey">
                       {formatRelative(d.at, now)}
@@ -599,7 +610,11 @@ export default async function AdminDashboardPage() {
             <p className="text-[13px] text-warm-grey leading-[1.65]">
               {umamiConfigured()
                 ? "Statistiques indisponibles pour l'instant - l'instance Umami ne répond pas."
-                : "Analytics non configurées. Renseignez NEXT_PUBLIC_UMAMI_WEBSITE_ID, UMAMI_API_URL et UMAMI_API_KEY pour afficher la fréquentation du site."}
+                : `Analytics non configurées. ${
+                    umamiMissingVars().length === 1
+                      ? "Il manque la variable"
+                      : "Il manque les variables"
+                  } ${umamiMissingVars().join(", ")} — à renseigner dans Vercel, puis redéployer.`}
             </p>
           </AdminCard>
         )}

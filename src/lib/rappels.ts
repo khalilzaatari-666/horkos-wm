@@ -69,6 +69,29 @@ export function echeance(depuis: Date, quantite: number, unite: Unite): Date | n
   return d;
 }
 
+/**
+ * Qui reçoit le rappel.
+ *
+ * La direction est toujours en copie : c'est elle qui répond du suivi des
+ * dossiers. Côté conseillers, un seul est concerné quand le client a un
+ * référent ; sans référent, personne n'est nommément responsable et le rappel
+ * part à toute l'équipe plutôt que de se perdre.
+ *
+ * Les doublons sont écartés - un référent qui serait aussi administrateur ne
+ * doit pas recevoir deux fois le même message.
+ */
+export function destinatairesRappel(
+  referent: string | null,
+  admins: string[],
+  equipe: string[]
+): string[] {
+  const propres = (liste: string[]) => liste.map((e) => e.trim()).filter(Boolean);
+  const retenus = referent?.trim()
+    ? [referent.trim(), ...propres(admins)]
+    : propres(equipe);
+  return [...new Set(retenus)];
+}
+
 /** « 3 jours », « 1 heure », « 2 mois » - l'accord se fait ici, une seule fois. */
 export function libelleDelai(quantite: number, unite: Unite): string {
   const mots = UNITE_LABELS[unite];

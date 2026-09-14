@@ -2,7 +2,14 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
-import { RDV_STATUTS, RDV_STATUT_STYLES, MODES, MODE_LABELS } from "../constants";
+import {
+  RDV_STATUTS,
+  RDV_STATUT_STYLES,
+  RDV_TYPES,
+  RDV_TYPE_LABELS,
+  MODES,
+  MODE_LABELS,
+} from "../constants";
 import { CLASSE_SELECT, Wrapper, type ConseillerOption } from "../filters";
 
 /**
@@ -53,10 +60,26 @@ export function FiltresSemaine({
   const current = (key: string) => params.get(key) ?? "tous";
   // La semaine affichée ne se réinitialise pas avec les filtres : on remet les
   // critères à zéro sans être renvoyé à la semaine courante.
-  const actifs = ["statut", "mode", "conseiller"].filter((k) => params.get(k));
+  const actifs = ["statut", "type", "mode", "conseiller"].filter((k) => params.get(k));
 
   return (
     <div className={`flex flex-wrap items-center gap-2.5 mb-5 ${pending ? "opacity-60" : ""}`}>
+      <Wrapper>
+        <select
+          aria-label="Étape du parcours"
+          className={CLASSE_SELECT}
+          value={current("type")}
+          onChange={(e) => set("type", e.target.value)}
+        >
+          <option value="tous">Toutes les étapes</option>
+          {RDV_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {RDV_TYPE_LABELS[t]}
+            </option>
+          ))}
+        </select>
+      </Wrapper>
+
       <Wrapper>
         <select
           aria-label="Statut"

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminCard, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateTime } from "@/lib/dates";
 import {
   PARCOURS,
@@ -13,6 +15,7 @@ import {
   type EtapeState,
 } from "@/lib/parcours";
 import { peutAccederAuDossier } from "@/lib/client-access";
+import { param, pick, sensDe, trier, instant } from "@/lib/liste";
 import { RDV_STATUT_STYLES, type RdvStatut } from "../../../rendez-vous/constants";
 import { RdvActions } from "./rdv-actions";
 import { EtapeSuivanteButton } from "./etape-suivante";
@@ -64,12 +67,21 @@ const MODE_LABELS: Record<string, string> = {
   visio: "En visio",
 };
 
+const TRIS = ["quand", "etape", "statut"] as const;
+const STATUTS = ["planifie", "confirme", "termine", "annule"] as const;
+
 export default async function ClientSuiviPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "quand")!;
+  const sens = sensDe(param(raw, "sens"), tri === "quand" ? "desc" : "asc");
+  const statut = pick(param(raw, "statut"), STATUTS, null);
   const supabase = await createClient();
   // Un seul instant de référence, comme sur le tableau de bord : `Date.now`
   // est rejeté par la règle de pureté des composants.
@@ -98,7 +110,7 @@ export default async function ClientSuiviPage({
   // l'index unique partiel de la migration 021 qui le garantit.
   const { data: rappelData } = await supabase
     .from("reminders")
-    .select("id, appointment_id, due_at, note, attempts, last_error")
+    .select("id, appointment_id, due_at, note, attempts, last_error, calendar_event_id")
     .eq("client_id", id)
     .eq("status", "en_attente");
 
@@ -161,6 +173,18 @@ export default async function ClientSuiviPage({
   const suivanteApresCloture = aCloturer
     ? jalonSuivant(rdvs.map((r) => (r.id === aCloturer.id ? { ...r, status: "termine" } : r)))
     : null;
+
+  // Le tableau se trie et se filtre ; le parcours au-dessus, lui, garde
+  // `rdvs` en entier. Un filtre d'affichage ne doit pas faire croire qu'une
+  // étape n'a pas eu lieu.
+  const lignes = trier(
+    rdvs.filter((r) => statut === null || r.status === statut),
+    (r) => (tri === "etape" ? r.type : tri === "statut" ? r.status : instant(r.date)),
+    sens,
+    (r) => r.date
+  );
+
+  const qs = { statut: statut ?? undefined };
 
   return (
     <>
@@ -250,6 +274,11 @@ export default async function ClientSuiviPage({
                                     « {rappel.note} »
                                   </div>
                                 )}
+                                {rappel.calendar_event_id && (
+                                  <div className="text-[11.5px] text-warm-grey mt-0.5">
+                                    Inscrite dans l&apos;agenda du référent.
+                                  </div>
+                                )}
                                 {rappel.attempts >= TENTATIVES_MAX && (
                                   <div className="text-[11.5px] text-red-600 mt-1">
                                     Envoi impossible après {TENTATIVES_MAX} tentatives
@@ -300,13 +329,49 @@ export default async function ClientSuiviPage({
       </AnimateIn>
 
       {/* Rendez-vous */}
+      {rdvs.length > 0 && (
+        <AnimateIn variant="fade-up" delay={110}>
+          <FiltresListe
+            champs={[
+              {
+                cle: "statut",
+                aria: "Statut",
+                toutes: "Tous les statuts",
+                options: STATUTS.map((v) => ({ value: v, label: RDV_STATUT_STYLES[v].label })),
+              },
+            ]}
+            total={lignes.length}
+            unite="rendez-vous"
+          />
+        </AnimateIn>
+      )}
+
       <AnimateIn variant="fade-up" delay={120}>
         <AdminTable
-          headers={["Quand", "Étape", "Format", "Conseiller", "Statut", pilote ? "" : "Note"]}
-          isEmpty={rdvs.length === 0}
-          empty="Aucun rendez-vous. Le client peut en réserver un depuis son espace, ou vous posez ici la première étape."
+          headers={[
+            <TriHeader
+              key="q"
+              label="Quand"
+              colonne="quand"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            <TriHeader key="e" label="Étape" colonne="etape" tri={tri} sens={sens} params={qs} />,
+            "Format",
+            "Conseiller",
+            <TriHeader key="s" label="Statut" colonne="statut" tri={tri} sens={sens} params={qs} />,
+            pilote ? "" : "Note",
+          ]}
+          isEmpty={lignes.length === 0}
+          empty={
+            statut
+              ? "Aucun rendez-vous dans cet état."
+              : "Aucun rendez-vous. Le client peut en réserver un depuis son espace, ou vous posez ici la première étape."
+          }
         >
-          {rdvs.map((r) => {
+          {lignes.map((r) => {
             const style = RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
             return (
               <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">

@@ -56,7 +56,7 @@ export async function sendAssetSubmissionNotification(
 
   const note = input.description
     ? `Description :<br/>${escapeHtml(input.description).replace(/\n/g, "<br/>")}`
-    : "Aucune description fournie. Retrouvez le dossier dans le back-office (Soumissions).";
+    : "Aucune description fournie. Retrouvez le dossier dans le back-office (Cession d'actifs).";
 
   try {
     const result = await resend.emails.send({

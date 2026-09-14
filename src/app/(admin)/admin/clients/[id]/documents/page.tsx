@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminTable, Td } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
-import { documentCategoryLabel } from "@/lib/documents";
+import { documentCategoryLabel, DOCUMENT_RUBRIQUES } from "@/lib/documents";
+import { param, pick, sensDe, recherche, trier, instant, contient } from "@/lib/liste";
 import { DocumentCreate } from "./document-create";
 import { DocumentOpenButton } from "./document-open-button";
 import { deleteDocument } from "./actions";
@@ -17,12 +20,23 @@ function formatSize(bytes: number | null): string {
   return `${Math.max(1, Math.round(bytes / 1024))} Ko`;
 }
 
+const TRIS = ["document", "rubrique", "taille", "depose"] as const;
+const RUBRIQUES = DOCUMENT_RUBRIQUES.map((r) => r.key);
+
 export default async function ClientDocumentsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "depose")!;
+  const sens = sensDe(param(raw, "sens"), tri === "depose" ? "desc" : "asc");
+  const rubrique = pick(param(raw, "rubrique"), RUBRIQUES, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -31,7 +45,26 @@ export default async function ClientDocumentsPage({
     .eq("client_id", id)
     .order("created_at", { ascending: false });
 
-  const rows = data ?? [];
+  const toutes = data ?? [];
+  const rows = trier(
+    toutes.filter(
+      (d) =>
+        (rubrique === null || d.category === rubrique) &&
+        contient([d.name, documentCategoryLabel(d.category)], q)
+    ),
+    (d) =>
+      tri === "document"
+        ? d.name
+        : tri === "rubrique"
+          ? documentCategoryLabel(d.category)
+          : tri === "taille"
+            ? (d.file_size ?? null)
+            : instant(d.created_at),
+    sens,
+    (d) => d.name
+  );
+
+  const qs = { rubrique: rubrique ?? undefined, q: q || undefined };
 
   return (
     <>
@@ -43,11 +76,69 @@ export default async function ClientDocumentsPage({
         <DocumentCreate clientId={id} />
       </div>
 
+      {toutes.length > 0 && (
+        <AnimateIn variant="fade-up" delay={40}>
+          <FiltresListe
+            champs={[
+              {
+                cle: "rubrique",
+                aria: "Rubrique",
+                toutes: "Toutes les rubriques",
+                options: DOCUMENT_RUBRIQUES.map((r) => ({ value: r.key, label: r.label })),
+              },
+            ]}
+            recherche={{ placeholder: "Rechercher un document…" }}
+            total={rows.length}
+            unite="document"
+          />
+        </AnimateIn>
+      )}
+
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Document", "Rubrique", "Taille", "Déposé le", ""]}
+          headers={[
+            <TriHeader
+              key="doc"
+              label="Document"
+              colonne="document"
+              tri={tri}
+              sens={sens}
+              params={qs}
+            />,
+            <TriHeader
+              key="rub"
+              label="Rubrique"
+              colonne="rubrique"
+              tri={tri}
+              sens={sens}
+              params={qs}
+            />,
+            <TriHeader
+              key="tai"
+              label="Taille"
+              colonne="taille"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            <TriHeader
+              key="dep"
+              label="Déposé le"
+              colonne="depose"
+              tri={tri}
+              sens={sens}
+              params={qs}
+              sensInitial="desc"
+            />,
+            "",
+          ]}
           isEmpty={rows.length === 0}
-          empty="Aucun document. Déposez le premier — le client le retrouvera dans son coffre-fort."
+          empty={
+            q || rubrique
+              ? "Aucun document ne correspond à ces critères."
+              : "Aucun document. Déposez le premier — le client le retrouvera dans son coffre-fort."
+          }
         >
           {rows.map((d) => (
             <tr key={d.id} className="hover:bg-cream/40 transition-colors align-top">

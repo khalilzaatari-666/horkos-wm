@@ -7,7 +7,8 @@ import {
   deleteAppointmentEvent,
 } from "@/lib/google-calendar";
 import { sendAppointmentEmails } from "@/lib/email/appointment";
-import { SITE_NAME, CABINET_ADDRESS } from "@/lib/site";
+import { CABINET_ADDRESS } from "@/lib/site";
+import { titreRendezVous, dureeRendezVous } from "@/lib/rendez-vous";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -58,14 +59,18 @@ export async function bookAndNotify(
 ): Promise<BookSlotResult | null> {
   const { supabase, slotStart, holdToken, mode, type, requestId, client } = input;
   const isVisio = mode === "visio";
+  // L'intitulé et la durée viennent de l'étape, pas du mode : c'est la même
+  // règle dans l'agenda, dans l'invitation ICS et dans les emails.
+  const titre = titreRendezVous(type, client.name);
+  const duree = dureeRendezVous(type);
 
   const event = await createAppointmentEvent({
-    summary: `${SITE_NAME} - rendez-vous ${client.name}`,
+    summary: titre,
     description: isVisio
       ? "Rendez-vous en visioconférence avec votre conseiller Horkos."
       : `Rendez-vous au cabinet Horkos.\n${CABINET_ADDRESS}`,
     startIso: slotStart,
-    durationMin: 60,
+    durationMin: duree,
     attendees: [{ email: client.email, displayName: client.name }],
     location: isVisio ? undefined : CABINET_ADDRESS,
     withMeet: isVisio,
@@ -106,6 +111,7 @@ export async function bookAndNotify(
   await sendAppointmentEmails({
     appointmentId: booked.appointment_id,
     slotIso: slotStart,
+    type,
     mode,
     meetingUrl,
     client,

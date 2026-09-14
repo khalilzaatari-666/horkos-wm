@@ -3,21 +3,66 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
 import { GuideCreate } from "./guide-create";
 import { setGuidePublished, deleteGuide } from "./actions";
+import { param, pick, sensDe, recherche, trier, instant, contient } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "Guides" };
 
-export default async function AdminGuidesPage() {
+const TRIS = ["titre", "pdf", "statut", "date"] as const;
+const ETATS = [
+  { value: "publies", label: "Publiés" },
+  { value: "brouillons", label: "Brouillons" },
+];
+/** Un guide publié sans PDF est une promesse qu'on ne peut pas tenir : ce filtre
+ *  sert à les retrouver d'un coup. */
+const PDFS = [
+  { value: "avec", label: "Avec PDF" },
+  { value: "sans", label: "PDF manquant" },
+];
+
+export default async function AdminGuidesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "date")!;
+  const sens = sensDe(param(raw, "sens"), tri === "date" ? "desc" : "asc");
+  const etat = pick(param(raw, "etat"), ["publies", "brouillons"] as const, null);
+  const pdf = pick(param(raw, "pdf"), ["avec", "sans"] as const, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("guides")
     .select("id, title, slug, partner, pdf_url, is_published, created_at")
     .order("created_at", { ascending: false });
 
-  const rows = data ?? [];
+  const rows = trier(
+    (data ?? []).filter(
+      (g) =>
+        (etat === null || (etat === "publies") === Boolean(g.is_published)) &&
+        (pdf === null || (pdf === "avec") === Boolean(g.pdf_url)) &&
+        contient([g.title, g.partner, g.slug], q)
+    ),
+    (g) =>
+      tri === "titre"
+        ? g.title
+        : tri === "pdf"
+          ? Boolean(g.pdf_url)
+          : tri === "statut"
+            ? Boolean(g.is_published)
+            : instant(g.created_at),
+    sens,
+    (g) => g.title
+  );
+
+  const params = { etat: etat ?? undefined, pdf: pdf ?? undefined, q: q || undefined };
 
   return (
     <>
@@ -31,11 +76,41 @@ export default async function AdminGuidesPage() {
         </AnimateIn>
       </div>
 
+      <AnimateIn variant="fade-up" delay={40}>
+        <FiltresListe
+          champs={[
+            { cle: "etat", aria: "État", toutes: "Tous les états", options: ETATS },
+            { cle: "pdf", aria: "Fichier PDF", toutes: "Avec ou sans PDF", options: PDFS },
+          ]}
+          recherche={{ placeholder: "Rechercher un guide…" }}
+          total={rows.length}
+          unite="guide"
+        />
+      </AnimateIn>
+
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Titre", "PDF", "Statut", "Date", ""]}
+          headers={[
+            <TriHeader key="t" label="Titre" colonne="titre" tri={tri} sens={sens} params={params} />,
+            <TriHeader key="p" label="PDF" colonne="pdf" tri={tri} sens={sens} params={params} />,
+            <TriHeader key="s" label="Statut" colonne="statut" tri={tri} sens={sens} params={params} />,
+            <TriHeader
+              key="d"
+              label="Date"
+              colonne="date"
+              tri={tri}
+              sens={sens}
+              params={params}
+              sensInitial="desc"
+            />,
+            "",
+          ]}
           isEmpty={rows.length === 0}
-          empty="Aucun guide pour l'instant. Créez le premier avec « Nouveau guide »."
+          empty={
+            q || etat || pdf
+              ? "Aucun guide ne correspond à ces critères."
+              : "Aucun guide pour l'instant. Créez le premier avec « Nouveau guide »."
+          }
         >
           {rows.map((g) => (
             <tr key={g.id} className="hover:bg-cream/40 transition-colors align-top">

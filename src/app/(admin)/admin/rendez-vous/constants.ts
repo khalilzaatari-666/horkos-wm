@@ -41,6 +41,23 @@ export const PERIODE_LABELS: Record<Periode, string> = {
   tous: "Toute période",
 };
 
+/**
+ * Les étapes du parcours, dans l'ordre. Il n'y en a que trois.
+ *
+ * D'autres valeurs existent dans `appointments.type` - un point de suivi, un
+ * échange - mais ce ne sont pas des étapes : elles ne sont donc pas proposées au
+ * filtre. Sans filtre, elles restent évidemment visibles dans la liste.
+ */
+export const RDV_TYPES = ["R0", "R1", "R2"] as const;
+export type RdvType = (typeof RDV_TYPES)[number];
+
+/** Le code est gardé devant le libellé : c'est par lui que l'équipe les nomme. */
+export const RDV_TYPE_LABELS: Record<RdvType, string> = {
+  R0: "R0 · Audit patrimonial",
+  R1: "R1 · Stratégie",
+  R2: "R2 · Mise en place",
+};
+
 export const MODES = ["presentiel", "visio"] as const;
 export const MODE_LABELS: Record<string, string> = {
   presentiel: "Au cabinet",

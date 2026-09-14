@@ -3,13 +3,33 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { TriHeader } from "@/components/admin/tri-header";
+import { FiltresListe } from "@/components/ui/filtres-liste";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { FaqCreate } from "./faq-create";
 import { setFaqPublished, deleteFaq } from "./actions";
+import { param, pick, sensDe, recherche, trier, contient, LIMITE_LISTE } from "@/lib/liste";
 
 export const metadata: Metadata = { title: "FAQ" };
 
-export default async function AdminFaqsPage() {
+/** L'ordre par défaut est celui de la page d'accueil : c'est le sujet du tableau. */
+const TRIS = ["ordre", "question", "statut"] as const;
+const ETATS = [
+  { value: "publies", label: "Publiées" },
+  { value: "brouillons", label: "Brouillons" },
+];
+
+export default async function AdminFaqsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const tri = pick(param(raw, "tri"), TRIS, "ordre")!;
+  const sens = sensDe(param(raw, "sens"));
+  const etat = pick(param(raw, "etat"), ["publies", "brouillons"] as const, null);
+  const q = recherche(raw);
+
   const supabase = await createClient();
   // Le même tri que la page d'accueil : ce que le tableau montre est l'ordre
   // dans lequel le visiteur les lira.
@@ -17,10 +37,29 @@ export default async function AdminFaqsPage() {
     .from("faqs")
     .select("id, question, answer, sort_order, is_published")
     .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(LIMITE_LISTE);
 
-  const rows = data ?? [];
-  const publiees = rows.filter((f) => f.is_published).length;
+  const toutes = data ?? [];
+  const publiees = toutes.filter((f) => f.is_published).length;
+
+  const rows = trier(
+    toutes.filter(
+      (f) =>
+        (etat === null || (etat === "publies") === Boolean(f.is_published)) &&
+        contient([f.question, f.answer], q)
+    ),
+    (f) =>
+      tri === "question"
+        ? f.question
+        : tri === "statut"
+          ? Boolean(f.is_published)
+          : (f.sort_order ?? 0),
+    sens,
+    (f) => f.question
+  );
+
+  const params = { etat: etat ?? undefined, q: q || undefined };
 
   return (
     <>
@@ -34,18 +73,43 @@ export default async function AdminFaqsPage() {
         </AnimateIn>
       </div>
 
-      {rows.length > 0 && publiees === 0 && (
+      {toutes.length > 0 && publiees === 0 && (
         <p className="text-[12.5px] text-warm-grey -mt-2 mb-4">
           Aucune question n&apos;est publiée : la page d&apos;accueil affiche pour l&apos;instant sa
           liste de secours.
         </p>
       )}
 
+      <AnimateIn variant="fade-up" delay={40}>
+        <FiltresListe
+          champs={[{ cle: "etat", aria: "État", toutes: "Tous les états", options: ETATS }]}
+          recherche={{ placeholder: "Rechercher une question…" }}
+          total={rows.length}
+          unite="question"
+        />
+      </AnimateIn>
+
       <AnimateIn variant="fade-up" delay={60}>
         <AdminTable
-          headers={["Ordre", "Question", "Statut", ""]}
+          headers={[
+            <TriHeader key="o" label="Ordre" colonne="ordre" tri={tri} sens={sens} params={params} />,
+            <TriHeader
+              key="q"
+              label="Question"
+              colonne="question"
+              tri={tri}
+              sens={sens}
+              params={params}
+            />,
+            <TriHeader key="s" label="Statut" colonne="statut" tri={tri} sens={sens} params={params} />,
+            "",
+          ]}
           isEmpty={rows.length === 0}
-          empty="Aucune question. Tant que cette liste est vide, la page d'accueil affiche sa liste de secours."
+          empty={
+            q || etat
+              ? "Aucune question ne correspond à ces critères."
+              : "Aucune question. Tant que cette liste est vide, la page d'accueil affiche sa liste de secours."
+          }
         >
           {rows.map((f) => (
             <tr key={f.id} className="hover:bg-cream/40 transition-colors align-top">

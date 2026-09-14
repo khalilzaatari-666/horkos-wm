@@ -50,6 +50,25 @@ export function umamiConfigured(): boolean {
 }
 
 /**
+ * Les variables d'environnement qui manquent, nommées.
+ *
+ * Le tableau de bord affichait autrefois une liste écrite à la main, qui citait
+ * `UMAMI_API_KEY` - une variable que ce module n'a jamais lue, l'édition
+ * auto-hébergée n'ayant pas de clé statique. Quelqu'un qui suivait le message à
+ * la lettre ne pouvait pas s'en sortir. La liste se déduit donc de la même
+ * lecture que `config()`, et ne peut plus mentir.
+ */
+export function umamiMissingVars(): string[] {
+  const requises: [string, string | undefined][] = [
+    ["UMAMI_API_URL", process.env.UMAMI_API_URL],
+    ["UMAMI_USERNAME", process.env.UMAMI_USERNAME],
+    ["UMAMI_PASSWORD", process.env.UMAMI_PASSWORD],
+    ["NEXT_PUBLIC_UMAMI_WEBSITE_ID", process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID],
+  ];
+  return requises.filter(([, valeur]) => !valeur).map(([nom]) => nom);
+}
+
+/**
  * Le jeton n'est jamais mis en cache : une instance serverless n'offre aucune
  * garantie de survivre d'un appel à l'autre, et le login est bon marché.
  */

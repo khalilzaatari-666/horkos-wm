@@ -6,7 +6,6 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminBadge } from "@/components/admin/ui";
 import { formatDateTime } from "@/lib/dates";
 import { peutAccederAuDossier } from "@/lib/client-access";
-import { omissionsClasseur } from "@/lib/fiche-audit/export";
 import { lireFiche } from "@/lib/fiche-audit/schema";
 import { libelleType } from "@/lib/parcours";
 import { FicheForm } from "./fiche-form";
@@ -68,7 +67,6 @@ export default async function FicheAuditPage({
 
   const nom = [client.first_name, client.last_name].filter(Boolean).join(" ") || "Client";
   const fiche = lireFiche(audit.data);
-  const omissions = omissionsClasseur(fiche);
   const lectureSeule = !pilote || audit.status === "termine";
 
   return (
@@ -92,6 +90,15 @@ export default async function FicheAuditPage({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Deux livrables du même dossier : le PDF se remet et s'archive,
+                le classeur se retravaille. Aucun des deux n'omet plus rien. */}
+            <Link
+              href={`/admin/clients/${id}/audits/${auditId}/export/pdf`}
+              prefetch={false}
+              className="h-10 px-4 inline-flex items-center text-[13px] font-medium text-white bg-bronze rounded-lg hover:bg-bronze-dark transition-colors"
+            >
+              Télécharger la fiche PDF
+            </Link>
             <Link
               href={`/admin/clients/${id}/audits/${auditId}/export`}
               prefetch={false}
@@ -108,21 +115,6 @@ export default async function FicheAuditPage({
           </div>
         </div>
       </AnimateIn>
-
-      {/* Avertissement visible avant le clic, pas seulement dans un en-tête
-          HTTP qu'un téléchargement de fichier ne montre jamais à personne. */}
-      {omissions.length > 0 && (
-        <AnimateIn variant="fade-up">
-          <div className="mb-5 p-4 rounded-xl border border-bronze/40 bg-bronze/[0.07]">
-            <p className="text-[13px] text-ink leading-[1.6]">
-              <span className="font-semibold">Le classeur téléchargé sera incomplet</span> - son
-              modèle ne prévoit pas de place pour : {omissions.join(", ")}. Ces éléments restent
-              comptés sur la plateforme (patrimoine, tableau de bord) ; seul le fichier Excel n&apos;en
-              garde pas trace.
-            </p>
-          </div>
-        </AnimateIn>
-      )}
 
       {lectureSeule ? (
         <FicheVue fiche={fiche} raison={audit.status === "termine" ? "clos" : "non-pilote"} />

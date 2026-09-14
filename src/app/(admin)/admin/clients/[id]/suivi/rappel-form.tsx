@@ -103,7 +103,8 @@ export function RappelForm({
       <p className="text-[11.5px] text-warm-grey leading-[1.5] mt-2">
         {prevue ? (
           <>
-            Dans {libelleDelai(quantite, unite)}, soit le {apercuFmt.format(prevue)}.
+            Dans {libelleDelai(quantite, unite)}, soit le {apercuFmt.format(prevue)}. Un email part
+            à l&apos;échéance, et la relance est ajoutée à l&apos;agenda du conseiller référent.
           </>
         ) : (
           <>Délai hors limites (1 à {QUANTITE_MAX[unite]} {unite}).</>

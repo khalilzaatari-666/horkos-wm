@@ -7,7 +7,15 @@
  * calcule tout ; le navigateur ne fait qu'afficher des `timestamptz` formatés.
  */
 
-/** Durée d'un rendez-vous, en minutes. Deux créneaux de 30 min consécutifs. */
+/**
+ * La fenêtre qu'un créneau réserve, en minutes - deux demi-heures consécutives.
+ *
+ * Ce n'est plus la durée du rendez-vous : depuis que l'étape la détermine (voir
+ * `lib/rendez-vous`), un R0 tient en 45 minutes. Le calendrier public ignore
+ * l'étape qui sera réservée et retient donc la plus longue des durées
+ * réservables en ligne. Il ne propose ainsi jamais un créneau qu'il ne pourrait
+ * pas tenir - même parti pris que `_booking_busy` côté SQL.
+ */
 export const DUREE_RDV_MIN = 60;
 
 /** Minutes depuis minuit : ouverture, fermeture, déjeuner. */
