@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useActionState, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { seConnecterEquipe, type ConnexionEquipeState } from "./actions";
 
 export default function ConnexionEquipePage() {
   return (
@@ -18,66 +18,24 @@ export default function ConnexionEquipePage() {
 const inputClass =
   "w-full h-11 px-3.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
 
+const initialState: ConnexionEquipeState = { status: "idle" };
+
 /**
  * Password fallback kept for admin and conseiller only.
  *
  * Clients sign in with a code or a provider. Staff keep this route so a mail
  * delivery outage can never lock the back-office out.
+ *
+ * La connexion passe par une server action (voir `./actions.ts`) : c'est elle
+ * qui limite les tentatives par IP et pose le cookie de session avant de
+ * rediriger - plus besoin d'attendre le cookie côté navigateur.
  */
 function ConnexionEquipeForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/admin";
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [state, formAction, pending] = useActionState(seConnecterEquipe, initialState);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (signInError) {
-      setError("Email ou mot de passe incorrect.");
-      setLoading(false);
-      return;
-    }
-
-    // `signInWithPassword` rend la main dès la réponse du serveur, alors que la
-    // session est écrite dans le cookie par l'adaptateur de stockage, un cran
-    // plus tard. `getSession` prend le même verrou : en sortir garantit que le
-    // cookie existe. Sans cette attente, la navigation part avant lui, le proxy
-    // ne voit personne et renvoie ici - on reste sur cette page, bouton figé.
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      setError("La session n'a pas pu être ouverte. Réessayez.");
-      setLoading(false);
-      return;
-    }
-
-    // Un compte client qui se trompe de formulaire serait sinon renvoyé vers
-    // son espace par le proxy, sans un mot d'explication.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .maybeSingle();
-
-    const staff = profile?.role === "admin" || profile?.role === "conseiller";
-
-    // Navigation complète et non `router.push` : le proxy et le layout doivent
-    // relire les cookies côté serveur, et un `router.refresh` lancé dans la
-    // foulée d'un `push` annule la navigation en cours.
-    window.location.assign(staff ? redirect : "/espace");
-  }
 
   return (
     <div className="flex justify-center px-4 py-14">
@@ -100,18 +58,19 @@ function ConnexionEquipeForm() {
 
         <AnimateIn variant="fade-up" delay={250}>
           <form
-            onSubmit={handleSubmit}
+            action={formAction}
             className="bg-cream border border-cream-deep rounded-lg p-6 space-y-4"
           >
+            <input type="hidden" name="redirect" value={redirect} />
+
             <div>
               <label htmlFor="email" className="block text-[12.5px] font-medium text-ink mb-1.5">
                 Email
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
                 className={inputClass}
@@ -125,9 +84,8 @@ function ConnexionEquipeForm() {
               <div className="relative">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   required
                   className={`${inputClass} pr-10`}
@@ -143,14 +101,18 @@ function ConnexionEquipeForm() {
               </div>
             </div>
 
-            {error && <p className="text-[12.5px] text-red-600">{error}</p>}
+            {state.status === "error" && (
+              <p className="text-[12.5px] text-red-600" role="alert">
+                {state.message}
+              </p>
+            )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={pending}
               className="w-full h-11 text-[13.5px] font-medium bg-ink text-cream rounded-lg hover:bg-navy disabled:opacity-60 transition-colors cursor-pointer"
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {pending ? "Connexion..." : "Se connecter"}
             </button>
           </form>
         </AnimateIn>

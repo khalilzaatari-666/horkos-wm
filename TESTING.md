@@ -8,7 +8,8 @@ La réservation touche trois couches, chacune testée à son niveau :
 | Composant `CreneauPicker` | `src/components/booking/creneau-picker.test.tsx` | Vitest + Testing Library |
 | Actions serveur + orchestration | `src/app/(public)/rendez-vous/actions.test.ts`, `src/app/(client)/espace/rendez-vous/actions.test.ts`, `src/lib/booking.test.ts` | Vitest |
 | Fonctions SQL (source de vérité) | `supabase/tests/booking_test.sql` | Supabase SQL Editor |
-| Parcours de bout en bout | Ce document, section « Recette manuelle » | À la main dans le navigateur |
+| Parcours sans compte (site public, formulaires, connexion équipe) | `e2e/*.spec.ts` | Playwright |
+| Parcours authentifiés de bout en bout | Ce document, section « Recette manuelle » | À la main dans le navigateur |
 
 ## Tests automatisés (Vitest)
 
@@ -38,6 +39,32 @@ Ce qui est couvert :
 - **`bookAndNotify`** — ordre créer l'événement → réserver → rattacher le
   conseiller → emails ; suppression de l'événement orphelin si la réservation
   échoue ; réservation sans lien quand Google est indisponible.
+
+## Tests de bout en bout (Playwright)
+
+```bash
+npm run test:e2e          # Chromium desktop + mobile (Pixel 7)
+npm run test:e2e:ui       # mode interactif
+```
+
+Playwright réutilise un `npm run dev` déjà lancé, sinon en démarre un. Les
+tests écrivent réellement dans la base pointée par `.env.local` (contacts,
+partenariats) : à lancer sur un projet de développement, jamais contre la prod.
+
+Ce qui est couvert (`e2e/`) :
+
+- **public** — accueil, lien vers le rendez-vous, page 404, robots/sitemap,
+  en-têtes de sécurité, absence de débordement horizontal sur mobile.
+- **contact** — bouton désactivé tant que le message est trop court, envoi
+  complet (accepte la réponse de limitation de débit si la fenêtre est atteinte).
+- **partenariat** — changement de catégorie, validation navigateur, envoi.
+- **connexion équipe** — mauvais mot de passe puis blocage par la limitation de
+  débit. Sauté avec un message explicite si la migration `015_rate_limits.sql`
+  n'est pas appliquée sur le projet.
+- **rendez-vous** — première étape et bouton « Continuer » verrouillé.
+
+Les parcours qui demandent un compte (espace client, back-office, réservation
+réelle d'un créneau) restent dans la recette manuelle ci-dessous.
 
 ## Tests SQL (la vraie autorité)
 

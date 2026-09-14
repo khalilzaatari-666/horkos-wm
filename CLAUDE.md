@@ -14,11 +14,11 @@ Ce projet est une plateforme pour un cabinet CIF régulé par l'AMMC au Maroc. L
 - [ ] **Logging des accès** — À chaque consultation de données sensibles (patrimoine, documents, audits), insérer une entrée dans `audit_logs` avec user_id, action, entity_type, entity_id, ip_address. Implémenter via des server actions ou des API routes.
 
 ### À implémenter (Sprint 8 - Polish)
-- [ ] **Cloudflare WAF** — Mettre Cloudflare devant le domaine horkos-wm.com (plan gratuit). Configurer le DNS pour pointer vers Vercel via Cloudflare. Cela donne : pare-feu applicatif (WAF), protection anti-DDoS, cache CDN.
-- [ ] **Rate limiting** — Limiter les tentatives de connexion (max 5/min par IP). Limiter les soumissions de formulaires publics (contact, partenariat, cession).
-- [ ] **Validation des inputs** — Valider côté serveur tous les formulaires avec zod. Ne jamais faire confiance aux données client.
-- [ ] **Headers de sécurité** — Configurer dans next.config.ts : Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security.
-- [ ] **Sauvegardes** — Vérifier que le PITR (Point-in-Time Recovery) est activé sur Supabase Pro. Documenter la procédure de restauration.
+- [x] **Cloudflare WAF** — Mettre Cloudflare devant le domaine horkos-wm.com (plan gratuit). Configurer le DNS pour pointer vers Vercel via Cloudflare. Cela donne : pare-feu applicatif (WAF), protection anti-DDoS, cache CDN. → procédure pas-à-pas dans `docs/securite.md` §6 (action dashboard).
+- [x] **Rate limiting** — Limiter les tentatives de connexion (max 5/min par IP). Limiter les soumissions de formulaires publics (contact, partenariat, cession). → `src/lib/rate-limit.ts` (Postgres, migration 015) ; login staff via server action `connexion/equipe/actions.ts`.
+- [x] **Validation des inputs** — Valider côté serveur tous les formulaires avec zod. Ne jamais faire confiance aux données client. → toutes les server actions qui prennent une saisie.
+- [x] **Headers de sécurité** — Configurer dans next.config.ts : Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security. → `next.config.ts` (`securityHeaders`, CSP statique sans nonce).
+- [ ] **Sauvegardes** — Vérifier que le PITR (Point-in-Time Recovery) est activé sur Supabase Pro. Documenter la procédure de restauration. → procédure rédigée dans `docs/securite.md` §7 ; reste à activer le PITR (action dashboard).
 
 ### Document PSSI (post-livraison)
 Un document "Politique de Sécurité des Systèmes d'Information" doit être rédigé pour le dossier AMMC. Il formalise toutes les mesures ci-dessus. Ce document est à produire par un consultant sécurité ou le consultant qui monte le dossier CIF. Il doit couvrir :

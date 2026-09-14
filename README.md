@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Horkos WM
 
-## Getting Started
+Plateforme du cabinet Horkos Wealth Management (conseil en investissements financiers, Maroc) : site public, espace client et back-office conseiller/admin.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Turbopack), React 19, TypeScript
+- **Supabase** : Postgres + RLS, Auth (code par email, Google/Microsoft, mot de passe pour l'équipe), Storage
+- **Tailwind v4** + shadcn/ui, GSAP pour les animations
+- **Resend** (emails), **Google Calendar** (rendez-vous), **Umami** (analytics auto-hébergé)
+- Hébergement **Vercel** (cron horaire des rappels dans `vercel.json`)
+
+Route groups : `(public)` site, `(client)` espace client `/espace`, `(admin)` back-office `/admin`.
+
+## Démarrer
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # puis remplir (voir les commentaires du fichier)
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Base de données
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Le schéma initial est dans `supabase/schema.sql` ; les évolutions sont des migrations numérotées dans `supabase/migrations/`, **à exécuter à la main dans le SQL Editor de Supabase, dans l'ordre**. Chaque fichier est idempotent (`if not exists`, `create or replace`) et peut être rejoué sans risque.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Pour vérifier qu'une migration est passée : la plupart créent une table ou une fonction nommée en tête de fichier ; une requête `select * from pg_proc where proname = '…'` ou l'onglet Table Editor suffit. La migration `015_rate_limits.sql` est indispensable en production : sans elle, la limitation de débit est **fail-open** (voir `docs/securite.md`).
 
-## Learn More
+Auth (templates d'email, SMTP, fournisseurs OAuth, URL autorisées) : `docs/auth-setup.md`.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Commande | Rôle |
+| --- | --- |
+| `npm run dev` | serveur de développement |
+| `npm run build` | `tsc --noEmit` **puis** `next build` — toujours passer par ce script, `next build` seul ne vérifie plus les types (voir `next.config.ts`) |
+| `npm run lint` | ESLint |
+| `npm test` | tests unitaires et de composants (Vitest) |
+| `npm run test:e2e` | parcours de bout en bout (Playwright, Chromium desktop + mobile) — voir `TESTING.md` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Déploiement
 
-## Deploy on Vercel
+1. Projet Vercel relié au dépôt, branche `main` → production.
+2. Variables d'environnement : toutes celles de `.env.example`, en Production et Preview (`NEXT_PUBLIC_SITE_URL` = `https://horkos-wm.com` en production).
+3. Domaine `horkos-wm.com` ajouté dans Vercel, DNS géré par Cloudflare (WAF, anti-DDoS) : procédure dans `docs/securite.md`.
+4. Supabase : URL du site et URL de redirection `/auth/callback` dans Auth > URL Configuration ; PITR activé sur le plan Pro.
+5. Le cron `/api/cron/rappels` est déclaré dans `vercel.json` ; Vercel l'appelle chaque heure avec `CRON_SECRET`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sécurité
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Le cabinet est régulé par l'AMMC (circulaire 01/20). Les mesures en place et celles qui relèvent des tableaux de bord (Cloudflare, sauvegardes, limites Supabase Auth) sont décrites dans `docs/securite.md` ; la checklist de suivi est dans `CLAUDE.md`.
+
+## Documentation
+
+- `docs/plan-horkos-wm.md` — plan de projet et sprints
+- `docs/auth-setup.md` — configuration Supabase Auth
+- `docs/securite.md` — mesures de sécurité, Cloudflare, sauvegardes et restauration
+- `TESTING.md` — stratégie de test et recette manuelle

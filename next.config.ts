@@ -14,7 +14,57 @@ const supabaseHost = (() => {
   }
 })();
 
+/** Origine du script Umami (projet Vercel séparé), à autoriser dans la CSP. */
+const umamiOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL ?? "").origin;
+  } catch {
+    return null;
+  }
+})();
+
+const isDev = process.env.NODE_ENV === "development";
+
+/**
+ * Content-Security-Policy statique (sans nonce).
+ *
+ * Un nonce par requête serait plus strict, mais il force le rendu dynamique de
+ * toutes les pages - le site public perdrait son cache statique/ISR. On garde
+ * donc `'unsafe-inline'` pour les scripts (ceux d'hydratation de Next sont
+ * inline) ; la politique bloque déjà tout script chargé depuis un hôte tiers,
+ * l'encadrement par iframe et les formulaires postés vers l'extérieur.
+ *
+ * Hôtes autorisés : Supabase (auth, REST, storage) et Umami, dérivés des
+ * variables d'environnement, jamais codés en dur.
+ */
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${umamiOrigin ? ` ${umamiOrigin}` : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob:${supabaseHost ? ` https://${supabaseHost}` : ""}`,
+  "font-src 'self' data:",
+  `connect-src 'self'${supabaseHost ? ` https://${supabaseHost} wss://${supabaseHost}` : ""}${umamiOrigin ? ` ${umamiOrigin}` : ""}${isDev ? " ws:" : " https://vercel.live"}`,
+  "frame-src 'none'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
   images: {
     remotePatterns: supabaseHost
       ? [
@@ -44,13 +94,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   /**
-   * L'export de la fiche d'audit lit le classeur modèle du cabinet à
-   * l'exécution. Il ne fait partie d'aucun import : sans cette déclaration, le
-   * traceur de fichiers ne l'embarque pas dans la fonction déployée et l'export
-   * échoue en production, jamais en local.
+   * L'export PDF de la fiche d'audit lit les polices du cabinet sur le disque à
+   * l'exécution. Elles ne font partie d'aucun import : sans cette déclaration,
+   * le traceur de fichiers ne les embarque pas dans la fonction déployée et
+   * l'export échoue en production, jamais en local.
    */
   outputFileTracingIncludes: {
-    "/admin/clients/[id]/audits/[auditId]/export": ["./docs/modele-audit.xlsx"],
+    "/admin/clients/[id]/audits/[auditId]/export/pdf": ["./docs/fonts/*.ttf"],
+    "/espace/patrimoine/audit/[auditId]/pdf": ["./docs/fonts/*.ttf"],
   },
   async redirects() {
     return [

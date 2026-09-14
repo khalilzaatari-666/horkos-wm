@@ -49,8 +49,12 @@ export function emailHtml(options: {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background-color:#F8F4EC;">
   <tr><td align="center" style="padding:32px 16px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border:1px solid #EFE7D8;border-radius:10px;overflow:hidden;">
-      <tr><td align="center" style="background-color:#0B1A2E;padding:28px 32px;">
-        <img src="${SITE_URL}/images/logo-light.png" alt="${SITE_NAME}" width="210" style="display:block;width:210px;max-width:70%;height:auto;border:0;font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:2px;color:#F8F4EC;" />
+      <!-- L'en-tête est une image pleine largeur (fond marine inclus) et non un
+           fond CSS : le mode sombre de Gmail inverse les couleurs de fond mais
+           jamais les images, et le logo se retrouvait dans un rectangle marine
+           au milieu d'un bandeau devenu clair. -->
+      <tr><td align="center" style="background-color:#0B1A2E;padding:0;line-height:0;">
+        <img src="${SITE_URL}/images/email-header.png" alt="${SITE_NAME}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:2px;color:#F8F4EC;" />
       </td></tr>
       <tr><td style="padding:32px;">
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:600;color:#0B1A2E;">${options.title}</div>

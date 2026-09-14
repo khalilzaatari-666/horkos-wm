@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { SplitHeading } from "@/components/ui/split-heading";
 import { DrawLine } from "@/components/ui/draw-line";
 import { StackCards } from "@/components/ui/stack-cards";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PartenariatForm } from "./partenariat-form";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -30,183 +29,7 @@ function PartnerCard({ partner }: { partner: (typeof partenaires)[number] }) {
   );
 }
 
-type PartnerCategory = "gestion" | "assureur" | "immo" | "fonds" | "club";
-
-const categoryLabels: { key: PartnerCategory; label: string; full?: boolean }[] = [
-  { key: "gestion", label: "Société de gestion" },
-  { key: "assureur", label: "Assureur" },
-  { key: "immo", label: "Agent immobilier" },
-  { key: "fonds", label: "Fonds Private Equity / Venture Capital" },
-  { key: "club", label: "Club deal / partenariat business", full: true },
-];
-
-const selectClass = "flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
-
-function CategoryFields({ cat }: { cat: PartnerCategory }) {
-  switch (cat) {
-    case "gestion":
-      return (
-        <>
-          <div className="space-y-1.5">
-            <Label>Type de fonds proposé</Label>
-            <select className={selectClass} required defaultValue="">
-              <option value="" disabled>Sélectionnez un type</option>
-              <option>OPCVM actions</option>
-              <option>OPCVM obligataire</option>
-              <option>OPCVM diversifié</option>
-              <option>OPCVM monétaire</option>
-              <option>Autre véhicule de gestion</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Encours sous gestion (MAD)</Label>
-              <Input type="number" placeholder="Ex: 50000000" className="h-11 rounded-lg" required min={0} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Frais de gestion (%)</Label>
-              <Input type="number" placeholder="Ex: 1.5" className="h-11 rounded-lg" required min={0} max={100} step={0.01} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Performance / track record du fonds</Label>
-            <textarea placeholder="Décrivez les performances historiques..." rows={3} required className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none" />
-          </div>
-        </>
-      );
-    case "assureur":
-      return (
-        <>
-          <div className="space-y-1.5">
-            <Label>Type de produit proposé</Label>
-            <select className={selectClass} required defaultValue="">
-              <option value="" disabled>Sélectionnez un type</option>
-              <option>Assurance-vie multisupport</option>
-              <option>PER - Plan d&apos;Épargne Retraite</option>
-              <option>Prévoyance patrimoniale</option>
-              <option>Autre produit d&apos;assurance</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Frais de gestion (%)</Label>
-              <Input type="number" placeholder="Ex: 0.8" className="h-11 rounded-lg" required min={0} max={100} step={0.01} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Fonds en dirhams disponible</Label>
-              <select className={selectClass} required defaultValue="">
-                <option value="" disabled>Sélectionnez</option>
-                <option>Oui</option>
-                <option>Non</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Spécificités du contrat</Label>
-            <textarea placeholder="Décrivez les spécificités..." rows={3} required className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none" />
-          </div>
-        </>
-      );
-    case "immo":
-      return (
-        <>
-          <div className="space-y-1.5">
-            <Label>Type de bien à proposer</Label>
-            <select className={selectClass} required defaultValue="">
-              <option value="" disabled>Sélectionnez un type</option>
-              <option>Résidentiel</option>
-              <option>Local commercial</option>
-              <option>Immeuble de rapport</option>
-              <option>Terrain</option>
-              <option>Actif hôtelier / parahôtelier</option>
-              <option>Programme neuf</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Localisation</Label>
-              <Input type="text" placeholder="Ville, quartier..." className="h-11 rounded-lg" required pattern="[a-zA-ZÀ-ÿ\s'\-,]+" title="Lettres uniquement" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Prix de vente (MAD)</Label>
-              <Input type="number" placeholder="Ex: 5000000" className="h-11 rounded-lg" required min={0} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Rendement locatif estimé (%)</Label>
-            <Input type="number" placeholder="Ex: 6.5" className="h-11 rounded-lg" required min={0} max={100} step={0.01} />
-          </div>
-        </>
-      );
-    case "fonds":
-      return (
-        <>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Type de levée</Label>
-              <select className={selectClass} required defaultValue="">
-                <option value="" disabled>Sélectionnez</option>
-                <option>Private Equity</option>
-                <option>Venture Capital</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Stade</Label>
-              <select className={selectClass} required defaultValue="">
-                <option value="" disabled>Sélectionnez</option>
-                <option>Amorçage / Seed</option>
-                <option>Série A</option>
-                <option>Croissance</option>
-                <option>Transmission / LBO</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Secteur cible</Label>
-            <Input type="text" placeholder="Ex: Fintech, Agroalimentaire..." className="h-11 rounded-lg" required pattern="[a-zA-ZÀ-ÿ\s,/\-&]+" title="Lettres et séparateurs uniquement" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Montant recherché (MAD)</Label>
-              <Input type="number" placeholder="Ex: 10000000" className="h-11 rounded-lg" required min={0} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Ticket d&apos;entrée minimum (MAD)</Label>
-              <Input type="number" placeholder="Ex: 500000" className="h-11 rounded-lg" required min={0} />
-            </div>
-          </div>
-        </>
-      );
-    case "club":
-      return (
-        <>
-          <div className="space-y-1.5">
-            <Label>Nature du partenariat</Label>
-            <select className={selectClass} required defaultValue="">
-              <option value="" disabled>Sélectionnez</option>
-              <option>Club deal immobilier</option>
-              <option>Partenariat commercial</option>
-              <option>Apport d&apos;affaires</option>
-              <option>Autre partenariat</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Montant à mobiliser (MAD)</Label>
-              <Input type="number" placeholder="Ex: 20000000" className="h-11 rounded-lg" required min={0} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Nombre de co-investisseurs</Label>
-              <Input type="number" placeholder="Ex: 5" className="h-11 rounded-lg" required min={1} />
-            </div>
-          </div>
-        </>
-      );
-  }
-}
-
 export default function ReseauPage() {
-  const [activeCat, setActiveCat] = useState<PartnerCategory>("gestion");
   const partnersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -328,66 +151,7 @@ export default function ReseauPage() {
           </AnimateIn>
 
           <AnimateIn variant="scale-in" delay={150}>
-            <div className="bg-white rounded-lg p-7 shadow-sm max-w-[760px] mx-auto">
-              <h4 className="text-[17.5px] font-semibold mb-5">Questionnaire de partenariat</h4>
-
-              {/* Category selector */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {categoryLabels.map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => setActiveCat(c.key)}
-                    className={`px-4 py-3 rounded-lg text-[13.5px] font-medium border transition-all duration-200 text-left ${
-                      c.full ? "col-span-2" : ""
-                    } ${
-                      activeCat === c.key
-                        ? "border-bronze bg-bronze/10 text-bronze"
-                        : "border-ink/[0.1] bg-white text-charcoal hover:border-bronze/30"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-
-              <form className="space-y-4">
-                {/* Dynamic fields per category */}
-                <CategoryFields cat={activeCat} />
-
-                {/* Common fields */}
-                <div className="border-t border-ink/[0.08] pt-4 mt-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label>Nom du contact</Label>
-                      <Input type="text" placeholder="Votre nom" className="h-11 rounded-lg" required pattern="[a-zA-ZÀ-ÿ\s'\-]+" title="Lettres uniquement" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Société</Label>
-                      <Input type="text" placeholder="Nom de la société" className="h-11 rounded-lg" required pattern="[a-zA-ZÀ-ÿ0-9\s'\-&.]+" title="Caractères alphanumériques uniquement" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label>Téléphone</Label>
-                      <Input type="tel" placeholder="+212 6XX XXX XXX" className="h-11 rounded-lg" required pattern="[\+]?[0-9\s\-]{7,15}" title="Numéro de téléphone valide" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Email</Label>
-                      <Input type="email" placeholder="votre@email.com" className="h-11 rounded-lg" required />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Description complémentaire</Label>
-                    <textarea placeholder="Informations supplémentaires..." rows={3} className="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-[14px] ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none" />
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full bg-bronze text-white h-11 font-medium text-[13.5px] tracking-[0.2px] hover:bg-bronze-dark transition-colors rounded-lg">
-                  Soumettre ma proposition
-                </button>
-              </form>
-            </div>
+            <PartenariatForm />
           </AnimateIn>
         </div>
       </section>

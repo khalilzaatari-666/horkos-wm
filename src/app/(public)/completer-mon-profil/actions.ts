@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
 import {
   NAME_MAX,
@@ -86,6 +87,10 @@ export async function completerProfil(
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0].message };
+  }
+
+  if (!(await rateLimit("intake", { max: 10, windowSeconds: 600 }))) {
+    return { status: "error", message: "Trop de tentatives. Patientez quelques minutes." };
   }
 
   const supabase = await createClient();
