@@ -17,12 +17,19 @@ export const besoinOptions = [
   "Autre besoin",
 ] as const;
 
+/**
+ * Dernière option des deux questions de montant : on préfère une réponse
+ * honnête à une tranche choisie au hasard. Le conseiller la lit telle quelle.
+ */
+export const MONTANT_NON_PARTAGE = "Je ne souhaite pas partager cette information";
+
 export const patrimoineOptions = [
   "1M - 3M MAD",
   "3M - 5M MAD",
   "5M - 10M MAD",
   "10M - 20M MAD",
   "Plus de 20M MAD",
+  MONTANT_NON_PARTAGE,
 ] as const;
 
 export const investissementOptions = [
@@ -31,8 +38,25 @@ export const investissementOptions = [
   "3M - 5M MAD",
   "5M - 10M MAD",
   "Plus de 10M MAD",
+  MONTANT_NON_PARTAGE,
 ] as const;
+
+/** « Comment avez-vous découvert Horkos ? » - le canal, pour savoir lequel amène qui. */
+export const sourceOptions = [
+  "Recommandation",
+  "LinkedIn",
+  "Presse / Média",
+  "Événement",
+  "Podcast",
+  "Ressource Horkos (guide, blog)",
+  "Moteur de recherche",
+  "Par un conseiller privé",
+] as const;
+
+/** Ville de résidence : saisie libre, bornée. */
+export const VILLE_MAX = 80;
 
 export type BesoinOption = (typeof besoinOptions)[number];
 export type PatrimoineOption = (typeof patrimoineOptions)[number];
 export type InvestissementOption = (typeof investissementOptions)[number];
+export type SourceOption = (typeof sourceOptions)[number];

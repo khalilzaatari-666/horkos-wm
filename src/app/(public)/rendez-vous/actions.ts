@@ -4,7 +4,13 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { bookAndNotify } from "@/lib/booking";
-import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
+import {
+  besoinOptions,
+  patrimoineOptions,
+  investissementOptions,
+  sourceOptions,
+  VILLE_MAX,
+} from "@/lib/rdv-options";
 import {
   NAME_REGEX,
   NAME_MAX,
@@ -56,11 +62,21 @@ const schema = z.object({
     .max(besoinOptions.length),
   patrimoine: z.enum(patrimoineOptions).optional().or(z.literal("")),
   investissement: z.enum(investissementOptions).optional().or(z.literal("")),
+  ville: z
+    .string()
+    .trim()
+    .min(2, "Indiquez votre ville de résidence.")
+    .max(VILLE_MAX, "Le nom de la ville est trop long."),
+  source: z.enum(sourceOptions, { message: "Indiquez comment vous avez découvert Horkos." }),
   message: z.string().trim().max(MESSAGE_MAX).optional().or(z.literal("")),
   besoinAutre: z.string().trim().max(BESOIN_AUTRE_MAX).optional().or(z.literal("")),
   slotStart: z.iso.datetime({ offset: true }),
   holdToken: z.uuid(),
   mode: z.enum(["presentiel", "visio"]),
+  // Le consentement au traitement de la demande : une case, pas un défaut.
+  consentement: z.literal("on", {
+    message: "Merci d'accepter le traitement de vos informations pour continuer.",
+  }),
 })
   // Ticking "Autre besoin" without saying which one tells the conseiller
   // nothing, so the precision travels with it.
@@ -81,11 +97,14 @@ export async function submitAppointmentRequest(
     besoins: formData.getAll("besoins"),
     patrimoine: formData.get("patrimoine") ?? "",
     investissement: formData.get("investissement") ?? "",
+    ville: formData.get("ville") ?? "",
+    source: formData.get("source") ?? undefined,
     message: formData.get("message") ?? "",
     besoinAutre: formData.get("besoinAutre") ?? "",
     slotStart: formData.get("slotStart") ?? undefined,
     holdToken: formData.get("holdToken") ?? undefined,
     mode: formData.get("mode") ?? undefined,
+    consentement: formData.get("consentement") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -107,6 +126,8 @@ export async function submitAppointmentRequest(
     besoins,
     patrimoine,
     investissement,
+    ville,
+    source,
     message,
     besoinAutre,
     slotStart,
@@ -164,6 +185,8 @@ export async function submitAppointmentRequest(
     besoin_autre: besoinAutre || null,
     patrimoine: patrimoine || null,
     investissement: investissement || null,
+    ville,
+    source,
     message: message || null,
     appointment_id: booked.appointment_id,
     status: "planifie",

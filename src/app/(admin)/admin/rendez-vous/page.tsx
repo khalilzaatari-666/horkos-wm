@@ -49,6 +49,8 @@ interface Demande extends Personne {
   besoin_autre: string | null;
   patrimoine: string | null;
   investissement: string | null;
+  ville: string | null;
+  source: string | null;
   message: string | null;
 }
 
@@ -183,7 +185,7 @@ export default async function AdminRendezVousPage({
       "id, type, status, date, mode, meeting_url, " +
         "client:client_id(first_name, last_name, email, phone), " +
         "advisor:advisor_id(first_name, last_name), " +
-        "demande:appointment_requests!appointment_id(first_name, last_name, email, phone, besoins, besoin_autre, patrimoine, investissement, message)"
+        "demande:appointment_requests!appointment_id(first_name, last_name, email, phone, besoins, besoin_autre, patrimoine, investissement, ville, source, message)"
     )
     .match(egalites)
     .order("date", { ascending: periode === "passes" ? false : sens === "asc" })
@@ -290,6 +292,8 @@ export default async function AdminRendezVousPage({
             besoinAutre: d.besoin_autre,
             patrimoine: d.patrimoine,
             investissement: d.investissement,
+            ville: d.ville,
+            source: d.source,
             message: d.message,
             email: d.email ?? null,
             phone: d.phone ?? null,

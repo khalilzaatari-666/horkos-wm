@@ -2,7 +2,13 @@
 
 import { useActionState, useState } from "react";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
+import {
+  besoinOptions,
+  patrimoineOptions,
+  investissementOptions,
+  sourceOptions,
+  VILLE_MAX,
+} from "@/lib/rdv-options";
 import {
   formatNameInput,
   validateName,
@@ -93,6 +99,8 @@ export function IntakeForm({
   const [besoinAutre, setBesoinAutre] = useState("");
   const [patrimoine, setPatrimoine] = useState("");
   const [investissement, setInvestissement] = useState("");
+  const [ville, setVille] = useState("");
+  const [source, setSource] = useState("");
 
   const autreSelected = besoins.includes(AUTRE_BESOIN);
 
@@ -109,7 +117,9 @@ export function IntakeForm({
     besoins.length > 0 &&
     (!autreSelected || besoinAutre.trim().length > 0) &&
     patrimoine !== "" &&
-    investissement !== "";
+    investissement !== "" &&
+    ville.trim().length >= 2 &&
+    source !== "";
 
   return (
     <form action={formAction} className="space-y-8">
@@ -119,6 +129,7 @@ export function IntakeForm({
       ))}
       <input type="hidden" name="patrimoine" value={patrimoine} />
       <input type="hidden" name="investissement" value={investissement} />
+      <input type="hidden" name="source" value={source} />
       <input
         type="hidden"
         name="phone"
@@ -169,6 +180,23 @@ export function IntakeForm({
               setPhoneError(validatePhoneNational(phone, nationalLengths(iso)) ?? undefined)
             }
             error={phoneError}
+          />
+        </div>
+
+        <div className="mt-4">
+          <label htmlFor="ville" className="block text-[12.5px] font-medium text-ink mb-1.5">
+            Ville de résidence <span className="text-bronze">*</span>
+          </label>
+          <input
+            id="ville"
+            name="ville"
+            value={ville}
+            onChange={(e) => setVille(e.target.value)}
+            maxLength={VILLE_MAX}
+            placeholder="Casablanca"
+            autoComplete="address-level2"
+            required
+            className={champ}
           />
         </div>
       </Section>
@@ -232,6 +260,14 @@ export function IntakeForm({
               selected={investissement === i}
               onSelect={() => setInvestissement(i)}
             />
+          ))}
+        </div>
+      </Section>
+
+      <Section titre="Comment avez-vous découvert Horkos ?">
+        <div className="grid sm:grid-cols-2 gap-2">
+          {sourceOptions.map((s) => (
+            <Option key={s} label={s} selected={source === s} onSelect={() => setSource(s)} />
           ))}
         </div>
       </Section>

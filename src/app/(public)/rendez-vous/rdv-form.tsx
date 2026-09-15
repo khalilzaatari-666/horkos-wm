@@ -4,7 +4,13 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { submitAppointmentRequest, emailHasAccount, type RdvState } from "./actions";
 import { RequestSent } from "./request-sent";
-import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
+import {
+  besoinOptions,
+  patrimoineOptions,
+  investissementOptions,
+  sourceOptions,
+  VILLE_MAX,
+} from "@/lib/rdv-options";
 import {
   validateName,
   formatNameInput,
@@ -22,7 +28,7 @@ import { ModeSelector, type RdvMode } from "@/components/booking/mode-selector";
 import { DEFAULT_ISO, getCountry, nationalLengths } from "@/lib/countries";
 
 const initialState: RdvState = { status: "idle" };
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 const AUTRE_BESOIN = "Autre besoin";
 
 function Option({
@@ -184,6 +190,9 @@ export function RdvForm() {
   const autreRef = useRef<HTMLTextAreaElement>(null);
   const [patrimoine, setPatrimoine] = useState("");
   const [investissement, setInvestissement] = useState("");
+  const [source, setSource] = useState("");
+  const [ville, setVille] = useState("");
+  const [consentement, setConsentement] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -206,8 +215,10 @@ export function RdvForm() {
     lastName: validateName(lastName, "Le nom"),
     email: validateEmail(email),
     phone: validatePhoneNational(phone, nationalLengths(phoneIso)),
+    ville: ville.trim().length >= 2 ? null : "Indiquez votre ville de résidence.",
   };
-  const coordonneesValid = Object.values(errors).every((e) => e === null) && !emailTaken;
+  const coordonneesValid =
+    Object.values(errors).every((e) => e === null) && !emailTaken && consentement;
   // Errors only surface once a field has been left, so an untouched form is
   // never covered in red before anything has been typed.
   const shown = (field: keyof typeof errors) =>
@@ -258,9 +269,10 @@ export function RdvForm() {
       (!autreSelected || validateBesoinAutre(besoinAutre) === null)) ||
     (step === 1 && patrimoine !== "") ||
     (step === 2 && investissement !== "") ||
+    (step === 3 && source !== "") ||
     // Le créneau est obligatoire : sans lui, pas de demande. Si la grille est
     // vide, l'étape ne se franchit pas - le CreneauPicker l'explique.
-    (step === 3 && slotStart !== null && mode !== null);
+    (step === 4 && slotStart !== null && mode !== null);
 
   return (
     <form action={formAction} className="bg-cream border border-cream-deep rounded-lg p-6 sm:p-8">
@@ -272,6 +284,7 @@ export function RdvForm() {
       <input type="hidden" name="patrimoine" value={patrimoine} />
       <input type="hidden" name="phone" value={composePhone(getCountry(phoneIso).dial, phone)} />
       <input type="hidden" name="investissement" value={investissement} />
+      <input type="hidden" name="source" value={source} />
       {slotStart && holdToken && mode && (
         <>
           <input type="hidden" name="slotStart" value={slotStart} />
@@ -370,7 +383,18 @@ export function RdvForm() {
 
           {step === 3 && (
             <>
-              <StepHeading index={4} question="Quand souhaitez-vous nous rencontrer ?" />
+              <StepHeading index={4} question="Comment avez-vous découvert Horkos ?" />
+              <OptionGrid
+                options={sourceOptions}
+                isSelected={(label) => source === label}
+                onSelect={setSource}
+              />
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <StepHeading index={5} question="Quand souhaitez-vous nous rencontrer ?" />
               <div className="mb-4">
                 <ModeSelector value={mode} onChange={setMode} />
               </div>
@@ -383,9 +407,9 @@ export function RdvForm() {
             </>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <>
-              <StepHeading index={5} question="Vos coordonnées" />
+              <StepHeading index={6} question="Vos coordonnées" />
               <p className="text-[12.5px] text-warm-grey -mt-3 mb-4">
                 Les champs suivis de{" "}
                 <span className="text-bronze font-semibold">*</span> sont obligatoires.
@@ -446,6 +470,22 @@ export function RdvForm() {
                     error={shown("phone")}
                   />
                 </div>
+                {/* Seule sur sa ligne : centrée à la largeur d'une cellule
+                    (moitié de la grille moins la moitié du gap de 16px). */}
+                <div className="sm:col-span-2 sm:justify-self-center sm:w-[calc(50%-0.5rem)]">
+                  <TextField
+                    id="ville"
+                    label="Ville de résidence"
+                    required
+                    value={ville}
+                    onChange={setVille}
+                    maxLength={VILLE_MAX}
+                    onBlur={() => markTouched("ville")}
+                    error={shown("ville")}
+                    placeholder="Casablanca"
+                    autoComplete="address-level2"
+                  />
+                </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="message" className="block text-[12.5px] font-medium text-ink mb-1.5">
                     Un mot sur votre situation{" "}
@@ -459,6 +499,33 @@ export function RdvForm() {
                     className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
                   />
                 </div>
+                <label
+                  htmlFor="consentement"
+                  className="sm:col-span-2 flex items-start gap-2.5 text-[12.5px] text-charcoal leading-[1.5] cursor-pointer"
+                >
+                  <input
+                    id="consentement"
+                    name="consentement"
+                    type="checkbox"
+                    checked={consentement}
+                    onChange={(e) => setConsentement(e.target.checked)}
+                    required
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-bronze cursor-pointer"
+                  />
+                  <span>
+                    J&apos;accepte que les informations renseignées soient utilisées par Horkos
+                    pour traiter ma demande de contact, conformément à sa{" "}
+                    <a
+                      href="/politique-de-confidentialite"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-bronze-dark underline underline-offset-2 hover:text-bronze transition-colors"
+                    >
+                      politique de confidentialité
+                    </a>
+                    .<span className="text-bronze ml-0.5" aria-hidden="true">*</span>
+                  </span>
+                </label>
               </div>
             </>
           )}

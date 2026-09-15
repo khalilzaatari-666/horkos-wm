@@ -65,10 +65,13 @@ function form(overrides: Record<string, string | string[] | null> = {}): FormDat
     besoins: ["Préparer ma retraite"],
     patrimoine: "1M - 3M MAD",
     investissement: "1M - 3M MAD",
+    ville: "Casablanca",
+    source: "Recommandation",
     message: "",
     slotStart: SLOT,
     holdToken: TOKEN,
     mode: "visio",
+    consentement: "on",
   };
   const merged = { ...base, ...overrides };
   const fd = new FormData();
@@ -111,6 +114,46 @@ describe("validation", () => {
 
     expect(res.status).toBe("error");
     expect(mockBook).not.toHaveBeenCalled();
+  });
+
+  it("refuse une demande sans consentement, sans réserver", async () => {
+    stubSupabase();
+    const res = await submitAppointmentRequest(IDLE, form({ consentement: null }));
+
+    expect(res.status).toBe("error");
+    expect(res.message).toMatch(/accepter/i);
+    expect(mockBook).not.toHaveBeenCalled();
+  });
+
+  it("refuse une provenance hors liste et une ville vide", async () => {
+    stubSupabase();
+    const sansSource = await submitAppointmentRequest(IDLE, form({ source: "Bouche à oreille" }));
+    const sansVille = await submitAppointmentRequest(IDLE, form({ ville: " " }));
+
+    expect(sansSource.status).toBe("error");
+    expect(sansVille.status).toBe("error");
+    expect(mockBook).not.toHaveBeenCalled();
+  });
+
+  it("accepte « Je ne souhaite pas partager cette information » pour les montants", async () => {
+    stubSupabase();
+    mockBook.mockResolvedValue(booked());
+    const refus = "Je ne souhaite pas partager cette information";
+
+    const res = await submitAppointmentRequest(
+      IDLE,
+      form({ patrimoine: refus, investissement: refus })
+    );
+
+    expect(res.status).toBe("success");
+    expect(insertSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patrimoine: refus,
+        investissement: refus,
+        ville: "Casablanca",
+        source: "Recommandation",
+      })
+    );
   });
 
   it("refuse une demande sans créneau - le slot est désormais obligatoire", async () => {

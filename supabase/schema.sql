@@ -596,6 +596,9 @@ create table public.appointment_requests (
   patrimoine text,
   investissement text,
   message text,
+  -- Ville de résidence et canal de découverte (026_ville_source.sql).
+  ville text,
+  source text,
   status text not null default 'nouveau'
     -- "planifie" est posé automatiquement par book_slot quand le visiteur
     -- réserve lui-même son créneau. Voir 012_demande_statuts.sql.

@@ -12,6 +12,8 @@ export interface RdvQuestionnaire {
   besoinAutre: string | null;
   patrimoine: string | null;
   investissement: string | null;
+  ville: string | null;
+  source: string | null;
   message: string | null;
   email: string | null;
   phone: string | null;
@@ -298,6 +300,13 @@ export function RdvDetailModal({
                 <div className="grid grid-cols-2 gap-4">
                   <Champ label="Patrimoine" value={demande.patrimoine} />
                   <Champ label="À investir" value={demande.investissement} />
+                </div>
+              )}
+
+              {(demande.ville || demande.source) && (
+                <div className="grid grid-cols-2 gap-4">
+                  <Champ label="Ville" value={demande.ville} />
+                  <Champ label="Nous a connus par" value={demande.source} />
                 </div>
               )}
 

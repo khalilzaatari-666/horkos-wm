@@ -49,7 +49,9 @@ export default async function ClientOverviewPage({
       // sait du client avant de l'avoir rencontré.
       supabase
         .from("client_intake")
-        .select("besoins, besoin_autre, patrimoine, investissement, message, created_at")
+        .select(
+          "besoins, besoin_autre, patrimoine, investissement, ville, source, message, created_at"
+        )
         .eq("client_id", id)
         .maybeSingle(),
     ]);
@@ -160,6 +162,18 @@ export default async function ClientOverviewPage({
                   À investir
                 </div>
                 <div className="text-[13.5px] text-ink">{intake.investissement ?? "-"}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                  Ville
+                </div>
+                <div className="text-[13.5px] text-ink">{intake.ville ?? "-"}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                  Nous a connus par
+                </div>
+                <div className="text-[13.5px] text-ink">{intake.source ?? "-"}</div>
               </div>
             </div>
 

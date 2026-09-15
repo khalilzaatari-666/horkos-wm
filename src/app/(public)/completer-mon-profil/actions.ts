@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
-import { besoinOptions, patrimoineOptions, investissementOptions } from "@/lib/rdv-options";
+import {
+  besoinOptions,
+  patrimoineOptions,
+  investissementOptions,
+  sourceOptions,
+  VILLE_MAX,
+} from "@/lib/rdv-options";
 import {
   NAME_MAX,
   PHONE_MAX,
@@ -55,6 +61,12 @@ const schema = z
     investissement: z.enum(investissementOptions, {
       message: "Choisissez un montant d'investissement.",
     }),
+    ville: z
+      .string()
+      .trim()
+      .min(2, "Indiquez votre ville de résidence.")
+      .max(VILLE_MAX, "Le nom de la ville est trop long."),
+    source: z.enum(sourceOptions, { message: "Indiquez comment vous avez découvert Horkos." }),
     message: z.string().trim().max(MESSAGE_MAX).optional().or(z.literal("")),
   })
   .refine((d) => !d.besoins.includes(AUTRE_BESOIN) || Boolean(d.besoinAutre?.trim()), {
@@ -82,6 +94,8 @@ export async function completerProfil(
     besoinAutre: formData.get("besoinAutre") ?? "",
     patrimoine: formData.get("patrimoine") ?? "",
     investissement: formData.get("investissement") ?? "",
+    ville: formData.get("ville") ?? "",
+    source: formData.get("source") ?? undefined,
     message: formData.get("message") ?? "",
   });
 
@@ -117,6 +131,8 @@ export async function completerProfil(
       besoin_autre: d.besoins.includes(AUTRE_BESOIN) ? (d.besoinAutre || null) : null,
       patrimoine: d.patrimoine,
       investissement: d.investissement,
+      ville: d.ville,
+      source: d.source,
       message: d.message || null,
       updated_at: new Date().toISOString(),
     },
