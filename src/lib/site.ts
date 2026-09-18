@@ -15,6 +15,10 @@ export function absoluteUrl(path = "/"): string {
 
 export const CABINET_EMAIL = "contact@horkos-wm.com";
 
+/** Numéro du cabinet, tel qu'affiché ; `CABINET_PHONE_HREF` pour les liens `tel:`. */
+export const CABINET_PHONE = "+212 620-064141";
+export const CABINET_PHONE_HREF = `tel:${CABINET_PHONE.replace(/[^+\d]/g, "")}`;
+
 /**
  * Destinataire des notifications internes (nouvelles soumissions, demandes).
  * Surchargeable par `TEAM_NOTIFICATION_EMAIL` ; à défaut, la boîte du cabinet.

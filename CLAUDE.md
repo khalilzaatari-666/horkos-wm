@@ -10,7 +10,7 @@ Ce projet est une plateforme pour un cabinet CIF régulé par l'AMMC au Maroc. L
 - [x] Auth avec 3 rôles (client, conseiller, admin) + middleware de protection des routes
 
 ### À implémenter (Sprint 4-5)
-- [ ] **MFA obligatoire pour admin/conseiller** — Activer dans Supabase Auth > MFA, puis forcer l'enrollment côté code pour les rôles admin et conseiller. Les clients peuvent l'activer optionnellement.
+- [ ] **MFA obligatoire pour admin/conseiller** — Code prêt mais **désactivé** (décision du 18 septembre 2026 : l'équipe n'a pas encore d'application d'authentification). `src/lib/mfa.ts`, page `/connexion/equipe/mfa`. Pour l'imposer : 1) Supabase Auth > Multi-Factor > activer TOTP ; 2) poser `STAFF_MFA_REQUIRED=true` sur Vercel. Les clients peuvent l'activer optionnellement (non fait).
 - [ ] **Logging des accès** — À chaque consultation de données sensibles (patrimoine, documents, audits), insérer une entrée dans `audit_logs` avec user_id, action, entity_type, entity_id, ip_address. Implémenter via des server actions ou des API routes.
 
 ### À implémenter (Sprint 8 - Polish)

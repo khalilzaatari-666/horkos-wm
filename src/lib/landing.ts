@@ -21,3 +21,15 @@ export function landingFor(role: string | null | undefined): string {
 export function safeRedirect(requested: string | null): string | null {
   return requested && /^\/(?!\/)/.test(requested) ? requested : null;
 }
+
+/**
+ * Seule une page du back-office est une destination acceptable après la
+ * connexion de l'équipe - et `/admin//…` serait protocole-relatif une fois
+ * la barre initiale retirée par un navigateur laxiste.
+ */
+export function destinationAdmin(redirectTo: string | null | undefined): string {
+  if (redirectTo && redirectTo.startsWith("/admin") && !redirectTo.startsWith("/admin//")) {
+    return redirectTo;
+  }
+  return "/admin";
+}

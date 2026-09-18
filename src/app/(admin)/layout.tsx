@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { etatMfa, urlMfa } from "@/lib/mfa";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 /**
@@ -38,6 +39,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!profile || (profile.role !== "admin" && profile.role !== "conseiller")) {
     redirect("/espace");
   }
+
+  // Même règle que le proxy : pas de back-office sans second facteur.
+  if ((await etatMfa(supabase)) !== "ok") redirect(urlMfa("/admin"));
 
   return (
     <AdminShell

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { aUneSessionProbable, estArriveeDirecte, espaceDuRole } from "@/lib/accueil";
+import { etatMfa, MFA_PATH } from "@/lib/mfa";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -91,6 +92,17 @@ export async function updateSession(request: NextRequest) {
     if (!profile || (profile.role !== "admin" && profile.role !== "conseiller")) {
       const url = request.nextUrl.clone();
       url.pathname = "/espace";
+      return NextResponse.redirect(url);
+    }
+
+    // Le mot de passe ne suffit pas : la session doit porter le second
+    // facteur (aal2). Sans facteur inscrit, la même page fait l'inscription.
+    // Voir `@/lib/mfa`.
+    if ((await etatMfa(supabase)) !== "ok") {
+      const url = request.nextUrl.clone();
+      url.pathname = MFA_PATH;
+      url.search = "";
+      url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
   }

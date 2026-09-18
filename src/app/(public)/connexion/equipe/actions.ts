@@ -4,6 +4,8 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { mfaExigee, urlMfa } from "@/lib/mfa";
+import { destinationAdmin } from "@/lib/landing";
 import { EMAIL_MAX } from "@/lib/validation";
 
 export interface ConnexionEquipeState {
@@ -16,14 +18,6 @@ const schema = z.object({
   password: z.string().min(1).max(128),
   redirect: z.string().max(500).optional(),
 });
-
-/** Seule une page du back-office est une destination acceptable après connexion. */
-function destinationSure(redirectTo: string | undefined): string {
-  if (redirectTo && redirectTo.startsWith("/admin") && !redirectTo.startsWith("/admin//")) {
-    return redirectTo;
-  }
-  return "/admin";
-}
 
 /**
  * Connexion par mot de passe de l'équipe, exécutée côté serveur.
@@ -73,5 +67,12 @@ export async function seConnecterEquipe(
     .maybeSingle();
 
   const staff = profile?.role === "admin" || profile?.role === "conseiller";
-  redirect(staff ? destinationSure(parsed.data.redirect) : "/espace");
+  if (!staff) redirect("/espace");
+
+  const destination = destinationAdmin(parsed.data.redirect);
+
+  // Second facteur exigé (voir `@/lib/mfa`) : la page MFA vérifie le code, ou
+  // inscrit le facteur s'il n'existe pas encore, puis renvoie vers la
+  // destination. Le proxy y renverrait de toute façon ; autant y aller droit.
+  redirect(mfaExigee() ? urlMfa(destination) : destination);
 }

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { bookAndNotify } from "@/lib/booking";
 import {
   besoinOptions,
@@ -140,10 +141,7 @@ export async function submitAppointmentRequest(
   // Une adresse déjà rattachée à un compte ne peut pas servir à une réservation
   // visiteur : le rendez-vous serait détaché de ce compte (client_id anonyme),
   // invisible dans son espace. On demande une autre adresse, ou de se connecter.
-  // No-op tant que la migration 013 n'est pas appliquée : la RPC absente renvoie
-  // une erreur, `taken` reste falsy, et la réservation suit son cours.
-  const { data: taken } = await supabase.rpc("email_has_account", { p_email: email });
-  if (taken === true) {
+  if (await adresseDejaInscrite(email)) {
     return {
       status: "error",
       message:
@@ -212,7 +210,21 @@ export async function emailHasAccount(email: string): Promise<boolean> {
   // Ce point est aussi une surface d'énumération d'emails : on le plafonne.
   if (!(await rateLimit("email-check", { max: 20, windowSeconds: 600 }))) return false;
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("email_has_account", { p_email: parsed.data });
+  return adresseDejaInscrite(parsed.data);
+}
+
+/**
+ * « Cette adresse a-t-elle un compte ? » - posé à la base avec la clé de
+ * service, la seule autorisée à exécuter `email_has_account` depuis la
+ * migration 028. Avant, la RPC était ouverte à la clé anon : nos plafonds par
+ * IP ne protégeaient que le formulaire, pas un appel direct.
+ *
+ * Répond false au moindre doute (clé absente, RPC absente ou en erreur) pour
+ * ne jamais bloquer une réservation à tort.
+ */
+async function adresseDejaInscrite(email: string): Promise<boolean> {
+  const admin = createAdminClient();
+  if (!admin) return false;
+  const { data, error } = await admin.rpc("email_has_account", { p_email: email });
   return !error && data === true;
 }

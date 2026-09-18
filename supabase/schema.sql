@@ -87,7 +87,7 @@ begin
     new.email,
     new.raw_user_meta_data->>'first_name',
     new.raw_user_meta_data->>'last_name',
-    coalesce(new.raw_user_meta_data->>'role', 'client')
+    'client' -- jamais lu des métadonnées : voir migration 027
   );
 
   -- Rattache la demande de rendez-vous déposée avant l'inscription.
@@ -570,9 +570,10 @@ create policy "Only admins can view audit logs"
   on public.audit_logs for select
   using (public.is_admin());
 
-create policy "System can insert audit logs"
+create policy "Users log their own actions"
   on public.audit_logs for insert
-  with check (true);
+  to authenticated
+  with check (user_id = auth.uid());
 
 -- Index for fast queries by user and date
 create index idx_audit_logs_user on public.audit_logs(user_id, created_at desc);

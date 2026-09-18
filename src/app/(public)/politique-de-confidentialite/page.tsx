@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage, LegalSection, LegalList, LegalFacts, Placeholder } from "@/components/public/legal";
+import { LegalPage, LegalSection, LegalList, LegalFacts } from "@/components/public/legal";
 import { CABINET_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function ConfidentialitePage() {
     <LegalPage
       eyebrow="Protection des données"
       title="Politique de confidentialité"
-      updatedAt="23 août 2026"
+      updatedAt="18 septembre 2026"
     >
       <LegalSection title="Préambule">
         <p>
@@ -33,15 +33,14 @@ export default function ConfidentialitePage() {
         <p>Le responsable du traitement des données est :</p>
         <LegalFacts
           items={[
-            ["Entité", <Placeholder key="e">raison sociale de la société</Placeholder>],
-            ["Adresse", <Placeholder key="a">adresse du siège social</Placeholder>],
+            ["Entité", "HORKOS CONSEIL (SARL AU), exploitant la marque Horkos Wealth Management"],
+            ["RC / ICE", "RC 709941 (Casablanca) - ICE 003835462000017"],
             [
               "Contact",
               <a key="c" href={`mailto:${CABINET_EMAIL}`} className="text-bronze hover:text-bronze-dark">
                 {CABINET_EMAIL}
               </a>,
             ],
-            ["Déclaration / autorisation CNDP", <Placeholder key="cndp">références du dossier CNDP</Placeholder>],
           ]}
         />
       </LegalSection>
@@ -133,18 +132,18 @@ export default function ConfidentialitePage() {
         />
         <p>
           Certains de ces prestataires sont situés hors du Maroc. Les transferts de données vers
-          l&apos;étranger sont encadrés par les garanties appropriées et, le cas échéant, les
-          formalités requises auprès de la CNDP : <Placeholder>références du transfert / autorisation CNDP</Placeholder>.
+          l&apos;étranger sont encadrés par les garanties appropriées, conformément à la loi
+          n° 09-08.
         </p>
       </LegalSection>
 
       <LegalSection title="Durée de conservation">
         <p>
           Nous conservons vos données pour la durée nécessaire aux finalités ci-dessus : le temps de
-          traiter votre demande, puis pendant la durée de la relation avec le cabinet, et enfin selon
-          les délais légaux de conservation applicables. Les durées précises sont les suivantes :{" "}
-          <Placeholder>durées de conservation par catégorie</Placeholder>. Passé ces délais, les
-          données sont supprimées ou anonymisées.
+          traiter votre demande, puis pendant la durée de la relation avec le cabinet. À l&apos;issue
+          de cette relation, ou de votre dernier contact avec nous, vos données sont conservées
+          pendant une durée de cinq (5) ans, conformément aux délais légaux applicables. Passé ce
+          délai, les données sont supprimées ou anonymisées.
         </p>
       </LegalSection>
 

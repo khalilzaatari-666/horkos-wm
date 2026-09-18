@@ -286,9 +286,12 @@ export interface InviteState {
  * avec le client ordinaire soumis à la RLS. Inverser ces deux étapes ouvrirait
  * la création de comptes administrateurs à n'importe quel visiteur.
  *
- * Le prénom, le nom et le rôle voyagent dans les métadonnées de l'invitation :
- * `handle_new_user` les lit à la création du profil, donc le compte naît déjà
- * avec le bon rôle, sans seconde écriture.
+ * Le prénom et le nom voyagent dans les métadonnées de l'invitation, que
+ * `handle_new_user` lit à la création du profil. Le rôle, lui, n'y passe PAS :
+ * les métadonnées sont renseignées librement à l'inscription (la clé anon est
+ * publique), et le déclencheur ne leur fait plus confiance depuis la migration
+ * 027. Le compte naît « client » ; le rôle est posé juste après, avec la clé
+ * de service - la seule à passer le garde-fou du déclencheur sans session.
  */
 export async function inviteStaff(
   _previous: InviteState,
@@ -344,7 +347,6 @@ export async function inviteStaff(
       data: {
         first_name: parsed.data.firstName,
         last_name: parsed.data.lastName,
-        role: parsed.data.role,
       },
     },
   });
@@ -359,6 +361,25 @@ export async function inviteStaff(
       message: exists
         ? "Ce compte existe déjà. Attribuez-lui simplement son rôle dans la liste ci-dessous."
         : "L'invitation n'a pas pu être générée. Réessayez.",
+    };
+  }
+
+  // Le rôle se pose après la création : un compte staff ne doit jamais
+  // exister avec un lien d'invitation en circulation mais un rôle « client »,
+  // d'où l'arrêt ici si l'écriture échoue - l'admin retente ou promeut depuis
+  // la liste.
+  const { data: promu, error: roleError } = await admin
+    .from("profiles")
+    .update({ role: parsed.data.role })
+    .eq("id", data.user.id)
+    .select("id");
+
+  if (roleError || !promu || promu.length === 0) {
+    console.error("[admin] rôle non posé sur le compte invité:", roleError?.message);
+    return {
+      status: "error",
+      message:
+        "Le compte est créé mais son rôle n'a pas pu être enregistré. Attribuez-le depuis la liste ci-dessous.",
     };
   }
 

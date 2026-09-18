@@ -5,7 +5,7 @@ est implémenté dans le code, ce qui se règle dans les tableaux de bord
 (Vercel, Supabase, Cloudflare), et les procédures à connaître. Il servira de
 base au document PSSI rédigé par le consultant.
 
-Dernière mise à jour : 14 septembre 2026.
+Dernière mise à jour : 18 septembre 2026.
 
 ---
 
@@ -32,15 +32,51 @@ données sont chiffrées au repos par Supabase (AES-256) et en transit (TLS 1.2+
 - **Clients** : connexion sans mot de passe (code à 6 chiffres par email, ou
   Google/Microsoft). Aucun mot de passe client n'est stocké.
 - **Équipe** : mot de passe, via une server action (`connexion/equipe/actions.ts`)
-  limitée à **5 tentatives par minute et par IP**. MFA à activer (Sprint 4-5,
-  voir `CLAUDE.md`).
+  limitée à **5 tentatives par minute et par IP**.
+- **Second facteur TOTP - prêt, désactivé** (`src/lib/mfa.ts`, page
+  `/connexion/equipe/mfa`). Décision du 18 septembre 2026 : l'équipe n'est
+  pas encore équipée d'une application d'authentification. Une fois activé,
+  le proxy et le layout admin exigent une session `aal2` pour tout
+  `/admin/*` ; un membre sans facteur inscrit est envoyé sur l'inscription
+  (QR code) et ne peut pas entrer avant ; la vérification du code est
+  plafonnée à 5 essais / minute / IP.
+  **Risque assumé tant que c'est éteint** : la clé anon étant publique, le
+  mot de passe d'un compte staff se devine depuis l'API Supabase Auth sans
+  passer par notre formulaire ni notre plafond - seules les limites Supabase
+  (ci-dessous) s'appliquent. À activer avant le dossier AMMC.
+  **Activation** : 1) Authentication > Multi-Factor > TOTP ; 2) variable
+  `STAFF_MFA_REQUIRED=true` sur Vercel ; 3) prévenir l'équipe (installer
+  Google/Microsoft Authenticator, ou l'app Mots de passe d'Apple).
+  Perte du téléphone : un admin supprime le facteur dans Authentication >
+  Users > (utilisateur) > Factors ; l'intéressé se réinscrit à la prochaine
+  connexion.
 - **RLS** activée sur toutes les tables : un client ne lit que ses lignes, le
   staff passe par `is_staff()`. La clé `service_role` n'est utilisée que
   côté serveur (cron des rappels, opérations admin) et n'est jamais exposée.
+- **Attribution des rôles verrouillée** (migration 027, revue du 18 septembre
+  2026) : le rôle n'est jamais lu des métadonnées d'inscription (la clé anon
+  est publique, un visiteur pouvait s'inscrire « admin ») ; un déclencheur
+  `profiles_guard_sensitive_columns` refuse toute modification de `role`,
+  `advisor_id` ou `email` qui ne vient pas d'un admin, de la clé de service
+  ou du SQL Editor. Un compte staff naît « client » puis est promu par
+  `inviteStaff` avec la clé de service.
+- **Énumération d'adresses** : `email_has_account` n'est plus exécutable que
+  par la clé de service (migration 028) ; le seul chemin est la server action
+  plafonnée à 20 appels / 10 min / IP.
+- **Clé anon = surface d'attaque** : tout ce que la clé anon peut appeler
+  (Auth, PostgREST, RPC `security definer`) l'est aussi hors du site, sans
+  passer par nos formulaires ni notre limitation de débit. Toute règle de
+  sécurité doit donc vivre en base (policy, déclencheur, contrainte) et non
+  seulement dans une server action. Exemple : `appointments.meeting_url`
+  n'accepte qu'un lien Google Meet (contrainte), car `book_slot` est
+  appelable directement.
 - **Limites Supabase Auth à régler** (Dashboard > Authentication > Rate Limits) :
   - envoi d'emails (OTP) : 30 / heure par IP (valeur par défaut, à confirmer)
   - vérifications de code : 30 / 5 min par IP
-  - connexions par mot de passe : 30 / 5 min par IP
+  - connexions par mot de passe : 30 / 5 min par IP - **à baisser** (10 / 5
+    min) tant que le second facteur est éteint : c'est la seule limite qu'un
+    appel direct à l'API rencontre
+  - vérifications MFA : valeur par défaut Supabase, en plus de nos 5 / min
   - durée de validité du code : 1 heure (voir `docs/auth-setup.md`)
 
 ## 3. Protection des entrées
@@ -56,6 +92,7 @@ données sont chiffrées au repos par Supabase (AES-256) et en transit (TLS 1.2+
   | Action | Limite |
   | --- | --- |
   | connexion équipe (`login`) | 5 / min |
+  | code MFA équipe (`mfa`) | 5 / min |
   | contact | 5 / 10 min |
   | partenariat | 5 / 10 min |
   | cession d'actif (`asset`) | 5 / 10 min |
@@ -101,7 +138,11 @@ Vérification : `curl -sI https://horkos-wm.com | grep -i -E "content-security|s
 ## 5. Traçabilité
 
 - Table `audit_logs` (schéma initial) : `user_id`, `action`, `entity_type`,
-  `entity_id`, `ip_address`, horodatage. RLS : lecture réservée aux admins.
+  `entity_id`, `ip_address`, horodatage. RLS : lecture réservée aux admins ;
+  insertion réservée à l'utilisateur connecté **pour son propre `user_id`**
+  (migration 027 — auparavant n'importe qui pouvait y écrire sous n'importe
+  quelle identité). Ni mise à jour ni suppression : le journal est en ajout
+  seul.
 - **À compléter** (Sprint 4-5, `CLAUDE.md`) : journaliser chaque consultation de
   données sensibles (patrimoine, documents, audits) depuis les server actions.
 - Journaux d'infrastructure : Vercel (requêtes, fonctions), Supabase (API,
@@ -219,5 +260,7 @@ cloud chiffré), 12 mois glissants.
 
 ## 9. Reste à faire
 
-Voir la checklist de `CLAUDE.md` : MFA obligatoire pour l'équipe, journalisation
-des consultations sensibles, Cloudflare (section 6), PITR (section 7).
+Voir la checklist de `CLAUDE.md` : activer le second facteur de l'équipe
+(section 2, deux réglages), journalisation des consultations sensibles, PITR
+(section 7). MFA optionnelle
+pour les clients : non commencée.

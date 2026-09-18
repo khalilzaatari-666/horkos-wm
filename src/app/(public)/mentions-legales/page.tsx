@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage, LegalSection, LegalFacts, Placeholder } from "@/components/public/legal";
-import { CABINET_EMAIL } from "@/lib/site";
+import { LegalPage, LegalSection, LegalFacts } from "@/components/public/legal";
+import { CABINET_EMAIL, CABINET_PHONE, CABINET_PHONE_HREF } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Mentions légales | Horkos Wealth Management",
@@ -12,37 +12,30 @@ export const metadata: Metadata = {
 
 export default function MentionsLegalesPage() {
   return (
-    <LegalPage eyebrow="Informations légales" title="Mentions légales" updatedAt="23 août 2026">
+    <LegalPage eyebrow="Informations légales" title="Mentions légales" updatedAt="18 septembre 2026">
       <LegalSection title="Éditeur du site">
         <p>Le présent site est édité par :</p>
         <LegalFacts
           items={[
-            ["Raison sociale", <Placeholder key="rs">raison sociale de la société</Placeholder>],
-            ["Forme juridique", <Placeholder key="fj">SARL, SA…</Placeholder>],
-            ["Capital social", <Placeholder key="cs">montant du capital</Placeholder>],
-            ["Siège social", <Placeholder key="siege">adresse complète du siège</Placeholder>],
-            ["Registre du commerce (RC)", <Placeholder key="rc">numéro RC et ville du tribunal</Placeholder>],
-            ["Identifiant Commun de l'Entreprise (ICE)", <Placeholder key="ice">numéro ICE</Placeholder>],
-            ["Identifiant fiscal (IF)", <Placeholder key="if">numéro IF</Placeholder>],
-            ["Taxe professionnelle", <Placeholder key="tp">numéro de patente</Placeholder>],
-            ["Téléphone", <Placeholder key="tel">numéro de téléphone du cabinet</Placeholder>],
+            ["Raison sociale", "HORKOS CONSEIL"],
+            ["Forme juridique", "Société à responsabilité limitée à associé unique (SARL AU)"],
+            ["Registre du commerce (RC)", "709941 - Tribunal de commerce de Casablanca"],
+            ["Identifiant Commun de l'Entreprise (ICE)", "003835462000017"],
+            [
+              "Téléphone",
+              <a key="tel" href={CABINET_PHONE_HREF} className="text-bronze hover:text-bronze-dark">
+                {CABINET_PHONE}
+              </a>,
+            ],
             [
               "Email",
               <a key="mail" href={`mailto:${CABINET_EMAIL}`} className="text-bronze hover:text-bronze-dark">
                 {CABINET_EMAIL}
               </a>,
             ],
-            ["Directeur de la publication", <Placeholder key="dp">nom du directeur de la publication</Placeholder>],
           ]}
         />
-      </LegalSection>
-
-      <LegalSection title="Activité et statut réglementaire">
-        <p>
-          Horkos Wealth Management est un cabinet de conseil en gestion de patrimoine exerçant au
-          Maroc. Le cas échéant, ses agréments et son inscription auprès des autorités compétentes
-          sont les suivants : <Placeholder>agrément / statut réglementaire éventuel</Placeholder>.
-        </p>
+        <p>Le site est exploité sous la marque Horkos Wealth Management.</p>
       </LegalSection>
 
       <LegalSection title="Hébergement">
@@ -110,7 +103,7 @@ export default function MentionsLegalesPage() {
         <p>
           Les présentes mentions légales sont régies par le droit marocain. Tout litige relatif à
           leur interprétation ou à l&apos;utilisation du site relève de la compétence des tribunaux
-          de <Placeholder>ville du ressort compétent</Placeholder>.
+          de Casablanca (Maroc).
         </p>
       </LegalSection>
 

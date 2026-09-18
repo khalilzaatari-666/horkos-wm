@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { SplitHeading } from "@/components/ui/split-heading";
-import { CABINET_EMAIL, CABINET_ADDRESS } from "@/lib/site";
+import { CABINET_EMAIL, CABINET_PHONE, CABINET_PHONE_HREF } from "@/lib/site";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default function ContactPage() {
             wrapper casserait le positionnement absolu du sélecteur de pays. */}
         <ContactForm />
 
-        {/* Coordonnées directes, pour qui préfère écrire ou passer. */}
+        {/* Coordonnées directes, pour qui préfère écrire ou appeler. */}
         <div className="mt-8 pt-8 border-t border-cream-deep flex flex-col sm:flex-row gap-4 sm:gap-10 justify-center text-center sm:text-left">
           <a
             href={`mailto:${CABINET_EMAIL}`}
@@ -48,10 +48,13 @@ export default function ContactPage() {
             <Mail className="w-4 h-4 text-bronze shrink-0" aria-hidden="true" />
             {CABINET_EMAIL}
           </a>
-          <span className="inline-flex items-center justify-center sm:justify-start gap-2.5 text-[13.5px] text-charcoal">
-            <MapPin className="w-4 h-4 text-bronze shrink-0" aria-hidden="true" />
-            {CABINET_ADDRESS}
-          </span>
+          <a
+            href={CABINET_PHONE_HREF}
+            className="inline-flex items-center justify-center sm:justify-start gap-2.5 text-[13.5px] text-charcoal hover:text-bronze transition-colors"
+          >
+            <Phone className="w-4 h-4 text-bronze shrink-0" aria-hidden="true" />
+            {CABINET_PHONE}
+          </a>
         </div>
       </div>
     </div>

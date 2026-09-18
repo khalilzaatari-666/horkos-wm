@@ -7,15 +7,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * mocke Supabase et bookAndNotify pour isoler ces règles.
  */
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+// `email_has_account` passe par la clé de service depuis la migration 028.
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/booking", () => ({ bookAndNotify: vi.fn() }));
 // La limitation de débit (server-only) est neutralisée ici : toujours autorisée.
 vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn().mockResolvedValue(true) }));
 
 import { submitAppointmentRequest, emailHasAccount, type RdvState } from "./actions";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { bookAndNotify } from "@/lib/booking";
 
 const mockCreateClient = vi.mocked(createClient);
+const mockCreateAdminClient = vi.mocked(createAdminClient);
 const mockBook = vi.mocked(bookAndNotify);
 
 const IDLE: RdvState = { status: "idle" };
@@ -38,9 +42,10 @@ function stubSupabase({
   rpcSpy = vi.fn().mockResolvedValue({ data: emailTaken, error: null });
   mockCreateClient.mockResolvedValue({
     from: vi.fn(() => ({ insert: insertSpy })),
-    rpc: rpcSpy,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mockCreateAdminClient.mockReturnValue({ rpc: rpcSpy } as any);
 }
 
 /** Ce que rend `bookAndNotify` quand la réservation réussit. */
@@ -240,5 +245,11 @@ describe("emailHasAccount (vérification à la volée du formulaire)", () => {
     stubSupabase();
     expect(await emailHasAccount("pas-un-email")).toBe(false);
     expect(rpcSpy).not.toHaveBeenCalled();
+  });
+
+  it("renvoie false sans clé de service (jamais bloquant)", async () => {
+    stubSupabase({ emailTaken: true });
+    mockCreateAdminClient.mockReturnValue(null);
+    expect(await emailHasAccount("jean@dupont.com")).toBe(false);
   });
 });
