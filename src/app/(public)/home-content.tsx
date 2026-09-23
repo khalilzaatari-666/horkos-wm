@@ -135,7 +135,7 @@ function RowLabel({
 function TrustCard({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="bg-white p-[26px] border border-cream-deep h-full rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-      <h4 className="text-[18px] font-semibold mb-2">{title}</h4>
+      <h4 className="font-heading text-[20px] font-semibold mb-2">{title}</h4>
       <p className="text-[13px] text-warm-grey leading-[1.6]">{desc}</p>
     </div>
   );
@@ -276,13 +276,13 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             <div className="flex gap-4 flex-wrap">
               <Link
                 href="/rendez-vous"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
+                className="inline-block w-full sm:w-auto text-center px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
               >
                 Prendre rendez-vous
               </Link>
               <Link
                 href="/cabinet/approche"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-transparent text-cream border border-cream/40 hover:bg-cream/10 transition-colors rounded-lg"
+                className="inline-block w-full sm:w-auto text-center px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-transparent text-cream border border-cream/40 hover:bg-cream/10 transition-colors rounded-lg"
               >
                 Comprendre notre approche
               </Link>
@@ -319,6 +319,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
               faire défiler. Bornée à 1200px, quatre cartes sont visibles et les
               deux autres restent à découvrir. */}
           <MarqueeRow
+            className="-mx-7 sm:mx-0"
             direction="left"
             items={besoinsParticuliers.map((b) => (
               <BesoinCard key={b.title} {...b} />
@@ -424,7 +425,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             </AnimateIn>
             <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={450}>
               <div className="mt-6 max-w-[480px] bg-cream/[0.06] border-l-2 border-bronze-light px-[26px] py-[22px] font-heading italic text-[19px] text-cream leading-[1.5]">
-                &quot;La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.&quot;
+                «&nbsp;La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.&nbsp;»
               </div>
             </AnimateIn>
           </div>
@@ -442,7 +443,8 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
                   href="https://www.linkedin.com/in/othmane-benzakour-6a93a0112/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-[26px] h-[26px] rounded bg-cream/[0.12] flex items-center justify-center text-xs font-bold text-cream hover:bg-cream/[0.2] transition-colors"
+                  aria-label="Profil LinkedIn d'Othmane Benzakour"
+                  className="w-8 h-8 rounded bg-cream/[0.12] flex items-center justify-center text-xs font-bold text-cream hover:bg-cream/[0.2] transition-colors"
                 >
                   in
                 </a>
@@ -452,7 +454,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
                 Fondateur &amp; CEO
               </div>
               <p className="text-[14px] text-[#D8CDBC] mt-3.5 leading-[1.65]">
-                Othmane a construit son expertise patrimoniale en France avant de fonder Horkos au Maroc - une double culture qu&apos;il met directement au service de ses clients, ici et à l&apos;étranger.
+                Othmane a construit son expertise patrimoniale en France avant de fonder Horkos au Maroc – une double culture qu&apos;il met directement au service de ses clients, ici et à l&apos;étranger.
               </p>
               <p className="text-[14px] text-[#D8CDBC] mt-3.5 leading-[1.65]">
                 Sa conviction : aucune recommandation avant la compréhension. Chaque client structure son patrimoine et décide en toute clarté.
@@ -479,7 +481,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             />
             <AnimateIn variant="fade-up" delay={250}>
               <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent - et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
+                Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent – et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
               </p>
             </AnimateIn>
             <AnimateIn variant="fade-up" delay={350}>
@@ -493,9 +495,9 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
+              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
-                Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc - et d&apos;envisager, selon les cas, un accompagnement adapté à votre réalité à l&apos;étranger.
+                Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc – et d&apos;envisager, selon les cas, un accompagnement adapté à votre réalité à l&apos;étranger.
               </p>
             </div>
           </AnimateIn>
@@ -519,7 +521,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             />
             <AnimateIn variant="fade-up" delay={250}>
               <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Une fois votre besoin identifié, nous mobilisons les solutions adaptées - placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
+                Une fois votre besoin identifié, nous mobilisons les solutions adaptées – placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
               </p>
             </AnimateIn>
             <AnimateIn variant="fade-up" delay={350}>
@@ -533,7 +535,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
+              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : nous mobilisons les bons partenaires pour chaque dossier.
               </p>
@@ -562,7 +564,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             />
             <AnimateIn variant="fade-up" delay={250}>
               <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée - un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
+                Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée – un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
               </p>
             </AnimateIn>
             <AnimateIn variant="fade-up" delay={350}>
@@ -576,7 +578,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
           </div>
           <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
             <div className="bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="text-cream text-[19.5px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
+              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Un bien immobilier détenu en nom propre, apporté au capital d&apos;une SARL immobilière, avec un expert-comptable dédié à sa gestion.
               </p>
@@ -641,12 +643,16 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
               <AnimateIn key={i} variant="fade-up" mobileVariant="fade-left" delay={i * 100}>
                 <div className="border-t border-cream-deep last:border-b">
                   <button
+                    type="button"
+                    aria-expanded={openFaq === i}
+                    aria-controls={`faq-panel-${i}`}
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex items-center justify-between py-[22px] text-left cursor-pointer"
+                    className="w-full flex items-center justify-between gap-4 py-[22px] text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze"
                   >
                     <span className="font-heading text-[17px] font-semibold text-ink">{faq.q}</span>
                     <span
-                      className={`text-bronze text-xl transition-transform duration-300 ${
+                      aria-hidden="true"
+                      className={`text-bronze text-xl shrink-0 transition-transform duration-300 ${
                         openFaq === i ? "rotate-45" : ""
                       }`}
                     >
@@ -654,6 +660,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
                     </span>
                   </button>
                   <div
+                    id={`faq-panel-${i}`}
                     className="grid transition-[grid-template-rows] duration-300 ease-in-out"
                     style={{ gridTemplateRows: openFaq === i ? "1fr" : "0fr" }}
                   >

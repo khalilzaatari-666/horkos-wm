@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CodeInput, CODE_LENGTH } from "@/components/auth/code-input";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { formatNameInput, validateName, validateEmail, NAME_MAX } from "@/lib/validation";
-import { landingFor, DEFAULT_LANDING } from "@/lib/landing";
+import { landingFor, safeRedirect, DEFAULT_LANDING } from "@/lib/landing";
 
 const RESEND_COOLDOWN = 60;
 
@@ -36,7 +35,6 @@ export function EmailCodeForm({
   defaultFirstName = "",
   defaultLastName = "",
 }: EmailCodeFormProps) {
-  const router = useRouter();
   const isSignup = mode === "signup";
 
   const [step, setStep] = useState<"details" | "code">("details");
@@ -111,10 +109,8 @@ export function EmailCodeForm({
     }
 
     setCooldown(RESEND_COOLDOWN);
-    if (!isResend) {
-      setCode("");
-      setStep("code");
-    }
+    setCode("");
+    if (!isResend) setStep("code");
   }
 
   async function verifyCode(token: string) {
@@ -122,6 +118,19 @@ export function EmailCodeForm({
     setError("");
     setVerifying(true);
 
+    try {
+      await verifyAndGo(token);
+    } catch {
+      // Réseau coupé ou réponse inattendue : sans ce filet, les cases restent
+      // désactivées et « Renvoyer le code » ne sert plus à rien.
+      verifiedRef.current = false;
+      setVerifying(false);
+      setCode("");
+      setError("La vérification a échoué. Réessayez dans un instant.");
+    }
+  }
+
+  async function verifyAndGo(token: string) {
     const supabase = createClient();
     const address = email.trim();
 
@@ -154,8 +163,9 @@ export function EmailCodeForm({
     // Une page précise demandée avant la connexion l'emporte ; sinon le rôle
     // décide, pour qu'un conseiller n'atterrisse pas dans l'espace client sans
     // rien menant au back-office.
-    let destination = redirectTo;
-    if (!redirectTo || redirectTo === DEFAULT_LANDING) {
+    const requested = safeRedirect(redirectTo);
+    let destination = requested ?? DEFAULT_LANDING;
+    if (!requested || requested === DEFAULT_LANDING) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -169,8 +179,10 @@ export function EmailCodeForm({
       }
     }
 
-    router.push(destination);
-    router.refresh();
+    // Navigation complète plutôt que router.push + router.refresh : le refresh
+    // annulait le push et la page restait figée sur « Vérification en cours ».
+    // Le rechargement garantit aussi que le proxy voit les nouveaux cookies.
+    window.location.assign(destination);
   }
 
   // Verify as soon as the sixth digit lands - no extra click.

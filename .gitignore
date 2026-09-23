@@ -51,3 +51,11 @@ next-env.d.ts
 /playwright-report
 /e2e/.auth
 /supabase/.temp
+
+/.claude
+/.agents
+skills-lock.json
+/.codex
+/.impeccable
+PRODUCT.md
+DESIGN.md
