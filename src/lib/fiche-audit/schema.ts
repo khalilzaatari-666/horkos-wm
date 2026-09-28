@@ -148,6 +148,8 @@ const ligneFinanciereSchema = z.object({
   type: texte(40).default(""),
   libelle: texte(200).default(""),
   valeur: montant.default(0),
+  /** Rendement moyen annuel, saisi par le conseiller. */
+  rendement: taux.default(0),
   dateSouscription: dateIso,
   remarques: texte(300).default(""),
 });

@@ -13,6 +13,7 @@ const ligne = (valeur: number, type = "opcvm", libelle = "") => ({
   type,
   libelle,
   valeur,
+  rendement: 0,
   dateSouscription: "",
   remarques: "",
 });

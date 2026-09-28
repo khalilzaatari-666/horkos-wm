@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminCard } from "@/components/admin/ui";
 import { ASSET_TYPES, formatMAD } from "@/lib/patrimoine";
-import { calculer, SEUILS } from "@/lib/fiche-audit/calculs";
+import { calculer, rendementLocatif, SEUILS } from "@/lib/fiche-audit/calculs";
 import {
   decouperObjectifs,
   MAX_OBJECTIFS,
@@ -544,11 +544,19 @@ function BlocBien({
         placeholder="ex. 20 ans"
       />
       {avecLoyers && (
-        <Montant
-          label="Loyers perçus (mensuels)"
-          valeur={bien.loyersPercus}
-          onChange={(v) => set("loyersPercus", v)}
-        />
+        <>
+          <Montant
+            label="Loyers perçus (mensuels)"
+            valeur={bien.loyersPercus}
+            onChange={(v) => set("loyersPercus", v)}
+          />
+          <div>
+            <span className={labelStyle}>Rendement locatif brut</span>
+            <div className={`${champStyle} flex items-center bg-cream text-warm-grey tabular-nums`}>
+              {pourcent(rendementLocatif(bien))}
+            </div>
+          </div>
+        </>
       )}
       <Champ
         label="Date d'achat"
@@ -718,20 +726,14 @@ export function FicheForm({
   const [state, formAction, pending] = useActionState(enregistrerFiche, initialState);
   const router = useRouter();
 
-  // Lequel des deux boutons a déclenché l'envoi : seul le bouton activé pose
-  // son `name`/`value` dans le `FormData`, capturé ici pour décider, une fois
-  // le résultat connu, s'il faut rester sur la fiche ou la quitter.
-  const [cloture, setCloture] = useState(false);
-
   useEffect(() => {
-    // Clore un dossier n'a rien à faire sur cette page, désormais verrouillée
-    // en lecture seule : la table des audits, où le statut « Close » se voit
-    // et d'où on peut rouvrir le rapport, est ce qu'un conseiller veut voir
-    // ensuite - pas le même formulaire figé sous ses yeux.
-    if (state.status === "success" && cloture) {
+    // Enregistrer clôt l'audit : la table des audits, où le statut « Terminé »
+    // se voit et d'où « Modifier » rouvre la fiche, est ce qu'un conseiller
+    // veut voir ensuite.
+    if (state.status === "success") {
       router.push(`/admin/clients/${clientId}/patrimoine`);
     }
-  }, [state, cloture, router, clientId]);
+  }, [state, router, clientId]);
 
   const set = <K extends keyof FicheAudit>(cle: K, v: FicheAudit[K]) =>
     setFiche((f) => ({ ...f, [cle]: v }));
@@ -763,6 +765,7 @@ export function FicheForm({
     type: "",
     libelle: "",
     valeur: 0,
+    rendement: 0,
     dateSouscription: "",
     remarques: "",
   };
@@ -771,7 +774,6 @@ export function FicheForm({
     <form
       action={(formData) => {
         formData.set("fiche", JSON.stringify(fiche));
-        setCloture(formData.get("terminer") === "1");
         formAction(formData);
         router.refresh();
       }}
@@ -1103,6 +1105,17 @@ export function FicheForm({
                       )
                     }
                   />
+                  <Pourcentage
+                    label="Rendement moyen (%)"
+                    valeur={ligne.rendement}
+                    placeholder="ex. 4,5"
+                    onChange={(v) =>
+                      set(
+                        "financier",
+                        fiche.financier.map((x, j) => (j === i ? { ...x, rendement: v } : x))
+                      )
+                    }
+                  />
                   <Champ
                     label="Date de souscription"
                     type="date"
@@ -1232,7 +1245,7 @@ export function FicheForm({
         </Section>
 
         <Section
-          titre="Simulation OPCI"
+          titre="Simulation d'endettement"
           aide="L'équivalent marocain de la SCPI du classeur d'origine. Les ratios se recalculent à droite pendant la saisie."
           optionnelle
         >
@@ -1279,27 +1292,17 @@ export function FicheForm({
               Fiche enregistrée.
             </p>
           )}
-          <div className="flex flex-col gap-2.5">
-            <button
-              type="submit"
-              disabled={pending}
-              className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-            >
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </button>
-            <button
-              type="submit"
-              name="terminer"
-              value="1"
-              disabled={pending}
-              className="h-10 px-5 text-[13px] font-medium text-ink border border-cream-deep rounded-lg hover:border-bronze disabled:opacity-40 transition-colors cursor-pointer"
-            >
-              Enregistrer et clore l&apos;audit
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={pending}
+            className="w-full h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {pending ? "Enregistrement…" : "Enregistrer"}
+          </button>
           <p className="text-[11.5px] text-warm-grey leading-[1.5] mt-3">
-            L&apos;enregistrement met à jour le patrimoine du client à partir des lignes
-            valorisées.
+            L&apos;enregistrement clôt l&apos;audit et met à jour le patrimoine du client à
+            partir des lignes valorisées. « Modifier », depuis la liste des audits, rouvre
+            la fiche.
           </p>
         </AdminCard>
       </div>

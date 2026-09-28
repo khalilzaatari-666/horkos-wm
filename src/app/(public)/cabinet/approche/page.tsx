@@ -91,7 +91,7 @@ export default function ApprochePage() {
               <div
                 key={p.n}
                 data-strip-card
-                className="group border-t-2 border-bronze pt-5 pb-6 rounded-lg cursor-default transition-all duration-300 hover:bg-cream hover:shadow-md hover:scale-[1.06] hover:z-10 relative"
+                className="group border-t-2 border-bronze pt-5 pb-6 rounded-b-lg cursor-default transition-all duration-300 hover:bg-cream hover:shadow-md hover:scale-[1.06] hover:z-10 relative"
                 style={{ opacity: 0 }}
               >
                 <div className="font-heading text-[20px] text-bronze font-semibold transition-transform duration-300 group-hover:translate-x-1.5">{p.n}</div>
@@ -126,7 +126,7 @@ export default function ApprochePage() {
             </span>
           </AnimateIn>
           <SplitHeading
-            text="On ne vend pas de produits. On structure un patrimoine."
+            text={"On ne vend pas de produits.\nOn structure un patrimoine."}
             as="h2"
             className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
             delay={100}

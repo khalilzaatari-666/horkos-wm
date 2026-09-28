@@ -77,22 +77,6 @@ export async function createAudit(
   return { status: "success" };
 }
 
-export async function setAuditStatus(formData: FormData): Promise<void> {
-  const id = z.uuid().safeParse(formData.get("id"));
-  const clientId = z.uuid().safeParse(formData.get("clientId"));
-  const status = z.enum(AUDIT_STATUS).safeParse(formData.get("status"));
-  if (!id.success || !clientId.success || !status.success) return;
-
-  const supabase = await createClient();
-  if (!(await requireStaff(supabase))) return;
-
-  await supabase
-    .from("audits")
-    .update({ status: status.data, updated_at: new Date().toISOString() })
-    .eq("id", id.data);
-  revalidate(clientId.data);
-}
-
 export async function deleteAudit(formData: FormData): Promise<void> {
   const id = z.uuid().safeParse(formData.get("id"));
   const clientId = z.uuid().safeParse(formData.get("clientId"));

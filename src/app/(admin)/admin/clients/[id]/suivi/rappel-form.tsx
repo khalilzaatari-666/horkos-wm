@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { UNITES, QUANTITE_MAX, echeance, libelleDelai, type Unite } from "@/lib/rappels";
+import type { EtapeRappel } from "@/lib/rappels";
 import type { ActionState } from "@/lib/staff";
 import { poserRappel } from "./actions";
 
@@ -24,7 +25,7 @@ const apercuFmt = new Intl.DateTimeFormat("fr-FR", {
 });
 
 /**
- * Pose un rappel de relance après le R0.
+ * Pose un rappel de relance : caler le R0, ou convenir du R1 après le R0.
  *
  * Le conseiller saisit un délai, pas une date : c'est ainsi qu'il y pense en
  * sortant du rendez-vous. L'échéance calculée s'affiche quand même en clair
@@ -36,10 +37,13 @@ const apercuFmt = new Intl.DateTimeFormat("fr-FR", {
  */
 export function RappelForm({
   clientId,
+  etape,
   appointmentId,
 }: {
   clientId: string;
-  appointmentId: string;
+  etape: EtapeRappel;
+  /** Le R0 tenu, pour une relance R1. */
+  appointmentId?: string;
 }) {
   const [state, formAction, pending] = useActionState(poserRappel, initialState);
   const [quantite, setQuantite] = useState(3);
@@ -52,7 +56,8 @@ export function RappelForm({
   return (
     <form action={formAction} className="mt-3">
       <input type="hidden" name="clientId" value={clientId} />
-      <input type="hidden" name="appointmentId" value={appointmentId} />
+      <input type="hidden" name="etape" value={etape} />
+      {appointmentId && <input type="hidden" name="appointmentId" value={appointmentId} />}
 
       <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1.5">
         Me rappeler de relancer dans

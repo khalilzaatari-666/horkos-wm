@@ -22,10 +22,15 @@ export const metadata: Metadata = { title: "Fiche d'audit" };
  */
 export default async function FicheAuditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; auditId: string }>;
+  searchParams: Promise<{ modifier?: string }>;
 }) {
   const { id, auditId } = await params;
+  // « Modifier », depuis la liste des audits : un audit clos se rouvre en
+  // édition sans changer de statut, l'enregistrement le laisse clos.
+  const { modifier } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -67,7 +72,7 @@ export default async function FicheAuditPage({
 
   const nom = [client.first_name, client.last_name].filter(Boolean).join(" ") || "Client";
   const fiche = lireFiche(audit.data);
-  const lectureSeule = !pilote || audit.status === "termine";
+  const lectureSeule = !pilote || (audit.status === "termine" && modifier !== "1");
 
   return (
     <>

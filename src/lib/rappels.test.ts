@@ -6,6 +6,7 @@ import {
   QUANTITE_MAX,
   HORIZON_MAX_MOIS,
   UNITES,
+  r0ARelancer,
 } from "./rappels";
 
 const LE_8_SEPT = new Date("2026-09-08T10:00:00.000Z");
@@ -144,5 +145,36 @@ describe("libelleDelai", () => {
   it("laisse « mois » invariable", () => {
     expect(libelleDelai(1, "mois")).toBe("1 mois");
     expect(libelleDelai(6, "mois")).toBe("6 mois");
+  });
+});
+
+describe("r0ARelancer", () => {
+  const r0 = (status: string, date: string) => ({ type: "R0", status, date });
+  const avant = "2026-09-01T10:00:00.000Z";
+  const apres = "2026-09-15T10:00:00.000Z";
+
+  it("relance un client sans rendez-vous", () => {
+    expect(r0ARelancer([], LE_8_SEPT)).toBe(true);
+  });
+
+  it("relance après un R0 annulé", () => {
+    expect(r0ARelancer([r0("annule", apres)], LE_8_SEPT)).toBe(true);
+  });
+
+  it("relance un R0 dont la date est passée sans qu'il ait eu lieu", () => {
+    expect(r0ARelancer([r0("planifie", avant)], LE_8_SEPT)).toBe(true);
+    expect(r0ARelancer([r0("confirme", avant)], LE_8_SEPT)).toBe(true);
+  });
+
+  it("ne relance pas un R0 encore à venir", () => {
+    expect(r0ARelancer([r0("annule", avant), r0("planifie", apres)], LE_8_SEPT)).toBe(false);
+  });
+
+  it("ne relance pas un R0 tenu", () => {
+    expect(r0ARelancer([r0("termine", avant)], LE_8_SEPT)).toBe(false);
+  });
+
+  it("ignore les autres étapes", () => {
+    expect(r0ARelancer([{ type: "R1", status: "planifie", date: apres }], LE_8_SEPT)).toBe(true);
   });
 });

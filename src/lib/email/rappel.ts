@@ -3,11 +3,12 @@ import "server-only";
 import { Resend } from "resend";
 import { emailHtml, escapeHtml } from "./template";
 import { advisorRecipient, adminRecipients, staffRecipients } from "./recipients";
-import { destinatairesRappel } from "@/lib/rappels";
+import { destinatairesRappel, type EtapeRappel } from "@/lib/rappels";
 import { SITE_NAME, CABINET_EMAIL, SITE_URL } from "@/lib/site";
 
 /**
- * Le pense-bête que le conseiller s'est posé après le R0, renvoyé à l'échéance.
+ * Le pense-bête que le conseiller s'est posé - caler le R0, ou convenir du R1
+ * après le R0 - renvoyé à l'échéance.
  *
  * La règle de destinataire est propre à ce message et vit dans
  * `destinatairesRappel` : la direction est toujours en copie, et côté
@@ -27,6 +28,8 @@ export interface RappelInput {
     email: string | null;
     phone: string | null;
   };
+  /** L'étape à relancer. */
+  etape: EtapeRappel;
   /** Référent du client ; `null` quand il n'en a pas. */
   advisorId: string | null;
   /** Le mot que le conseiller s'était laissé. */
@@ -38,7 +41,7 @@ export interface RappelInput {
 
 export type ResultatEnvoi = { ok: true } | { ok: false; erreur: string };
 
-export async function sendRappelR1(input: RappelInput): Promise<ResultatEnvoi> {
+export async function sendRappel(input: RappelInput): Promise<ResultatEnvoi> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY absente : rappel non envoyé.");
@@ -80,14 +83,14 @@ export async function sendRappelR1(input: RappelInput): Promise<ResultatEnvoi> {
       // Répondre au rappel écrit directement au client : c'est très exactement
       // le geste que le rappel demande.
       ...(input.client.email ? { replyTo: input.client.email } : {}),
-      subject: `Rappel : relancer ${input.client.name} pour le R1`,
+      subject: `Rappel : relancer ${input.client.name} pour le ${input.etape}`,
       html: emailHtml({
         title: "Relance à faire",
         intro: `Vous aviez demandé à être rappelé de reprendre contact avec ${escapeHtml(
           input.client.name
-        )} pour convenir du R1.`,
+        )} pour convenir du ${input.etape}.`,
         rows,
-        note: "Ce rappel ne part qu'une fois. Si le R1 avait déjà été planifié, vous ne l'auriez pas reçu.",
+        note: `Ce rappel ne part qu'une fois. Si le ${input.etape} avait déjà été planifié, vous ne l'auriez pas reçu.`,
         cta: {
           label: "Ouvrir le suivi du client",
           url: `${SITE_URL}/admin/clients/${input.client.id}/suivi`,

@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 
 function poser() {
-  return render(<RappelForm clientId={CLIENT} appointmentId={RDV} />);
+  return render(<RappelForm clientId={CLIENT} etape="R1" appointmentId={RDV} />);
 }
 
 const delai = () => screen.getByLabelText("Délai") as HTMLInputElement;

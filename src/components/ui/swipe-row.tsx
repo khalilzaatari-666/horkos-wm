@@ -24,6 +24,8 @@ interface SwipeRowProps {
 export function SwipeRow({ items, className = "", cardBasis = "78%" }: SwipeRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const swallowClickRef = useRef(false);
 
   const isSingle = items.length <= 1;
 
@@ -119,11 +121,53 @@ export function SwipeRow({ items, className = "", cardBasis = "78%" }: SwipeRowP
     };
   }, []);
 
+  /**
+   * Glisser à la souris. Le tactile fait défiler la rangée tout seul, mais un
+   * écran étroit piloté à la souris (fenêtre réduite, mode mobile des outils de
+   * développement) n'avait aucun moyen de la faire défiler : la barre est masquée.
+   * L'aimantation est suspendue pendant le geste, sinon elle ramène la rangée à
+   * chaque pixel ; la rétablir à la fin la recale sur la carte la plus proche.
+   */
+  const endDrag = (el: HTMLDivElement) => {
+    const drag = dragRef.current;
+    dragRef.current = null;
+    if (!drag?.moved) return;
+    swallowClickRef.current = true;
+    el.style.scrollSnapType = "";
+  };
+
   return (
     <div className={className}>
       <div
         ref={scrollerRef}
         className="flex items-start gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-7 px-7 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onPointerDown={(e) => {
+          if (e.pointerType !== "mouse" || e.button !== 0) return;
+          swallowClickRef.current = false;
+          dragRef.current = { x: e.clientX, left: e.currentTarget.scrollLeft, moved: false };
+        }}
+        onPointerMove={(e) => {
+          const drag = dragRef.current;
+          if (!drag) return;
+          const dx = e.clientX - drag.x;
+          // Un clic qui tremble de quelques pixels reste un clic.
+          if (!drag.moved && Math.abs(dx) < 4) return;
+          if (!drag.moved) {
+            drag.moved = true;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            e.currentTarget.style.scrollSnapType = "none";
+          }
+          e.currentTarget.scrollLeft = drag.left - dx;
+        }}
+        onPointerUp={(e) => endDrag(e.currentTarget)}
+        onPointerCancel={(e) => endDrag(e.currentTarget)}
+        // Relâcher un glissé au-dessus d'une carte compterait sinon comme un clic.
+        onClickCapture={(e) => {
+          if (!swallowClickRef.current) return;
+          swallowClickRef.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         {items.map((item, i) => (
           <div

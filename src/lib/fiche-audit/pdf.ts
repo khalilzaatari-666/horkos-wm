@@ -3,7 +3,7 @@ import "server-only";
 import { DocumentPdf, type Colonne } from "@/lib/pdf/document";
 import { assetTypeLabel } from "@/lib/patrimoine";
 import { SITE_NAME } from "@/lib/site";
-import { calculer, type Calculs } from "./calculs";
+import { calculer, rendementLocatif, type Calculs } from "./calculs";
 import type { Bien, FicheAudit, Personne } from "./schema";
 
 /**
@@ -60,6 +60,7 @@ function colonnes(parts: number[], options: Partial<Colonne>[] = []): Colonne[] 
   const total = parts.reduce((t, p) => t + p, 0);
   return parts.map((part, i) => ({
     largeur: (part / total) * LARGEUR,
+    align: "centre",
     ...options[i],
   }));
 }
@@ -78,7 +79,7 @@ function synthese(doc: DocumentPdf, c: Calculs) {
   ]);
 
   doc.tableau(
-    colonnes([3, 1.4, 1.2], [{ fort: true }, { align: "droite" }, { align: "droite" }]),
+    colonnes([3, 1.4, 1.2], [{ fort: true }]),
     ["Poste", "Montant", "Part"],
     [
       [
@@ -97,7 +98,7 @@ function synthese(doc: DocumentPdf, c: Calculs) {
 
   doc.section("Endettement");
   doc.tableau(
-    colonnes([3, 1.4, 1.2], [{ fort: true }, { align: "droite" }, { align: "droite", gris: true }]),
+    colonnes([3, 1.4, 1.2], [{ fort: true }, {}, { gris: true }]),
     ["Lecture", "Taux", ""],
     [
       ["Sur les seuls revenus du travail", pourcent(c.endettement.apresRevenus), ""],
@@ -151,7 +152,7 @@ function foyer(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
     ["Brut annuel du foyer", c.brutFoyer > 0 ? mad(c.brutFoyer) : ""],
     ["Net mensuel du foyer", mad(c.endettement.revenuMensuelNet)],
   ]);
-  doc.note("Le net retient 77 % du brut, convention du cabinet.");
+  doc.note("Le net retient 63 % du brut, convention du cabinet.");
 
   const f = fiche.fiscalite;
   if (f.reductions.trim() || f.investissementsFiscaux.trim() || f.remarques.trim()) {
@@ -191,20 +192,21 @@ function immobilier(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
       mad(b.capitalRestantDu),
       mad(b.mensualites),
       mad(b.loyersPercus),
+      pourcent(rendementLocatif(b)),
     ];
+    const valeurTotale = somme(locatifs.map((b) => b.valeurEstimee));
+    const loyersTotaux = somme(locatifs.map((b) => b.loyersPercus));
     doc.tableau(
-      colonnes(
-        [2.6, 1.2, 1.2, 1, 1],
-        [{ fort: true }, { align: "droite" }, { align: "droite" }, { align: "droite" }, { align: "droite" }]
-      ),
-      ["Adresse", "Valeur", "Restant dû", "Mensualité", "Loyers"],
+      colonnes([2.4, 1.2, 1.2, 1, 1, 1], [{ fort: true }]),
+      ["Adresse", "Valeur", "Restant dû", "Mensualité", "Loyers", "Rendement"],
       locatifs.map(ligne),
       [
         `${locatifs.length} bien(s)`,
-        mad(somme(locatifs.map((b) => b.valeurEstimee))),
+        mad(valeurTotale),
         mad(somme(locatifs.map((b) => b.capitalRestantDu))),
         mad(somme(locatifs.map((b) => b.mensualites))),
-        mad(somme(locatifs.map((b) => b.loyersPercus))),
+        mad(loyersTotaux),
+        pourcent(valeurTotale > 0 ? (loyersTotaux * 12) / valeurTotale : null),
       ]
     );
   }
@@ -214,10 +216,7 @@ function immobilier(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
     doc.rien("Aucun crédit déclaré.");
   } else {
     doc.tableau(
-      colonnes(
-        [2.6, 1.4, 1.4, 1.2],
-        [{ fort: true }, { align: "droite" }, { align: "droite" }, { align: "droite" }]
-      ),
+      colonnes([2.6, 1.4, 1.4, 1.2], [{ fort: true }]),
       ["Désignation", "Emprunté", "Restant dû", "Mensualité"],
       credits.map((x) => [
         x.designation.trim() || "Crédit",
@@ -251,15 +250,16 @@ function financier(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
   }
 
   doc.tableau(
-    colonnes([1.6, 2.6, 1.4, 1], [{}, { fort: true }, { align: "droite" }, { gris: true }]),
-    ["Type", "Libellé", "Valeur", "Souscrit le"],
+    colonnes([1.5, 2.4, 1.3, 1, 1], [{}, { fort: true }, {}, {}, { gris: true }]),
+    ["Type", "Libellé", "Valeur", "Rendement", "Souscrit le"],
     fiche.financier.map((l) => [
       l.type ? assetTypeLabel(l.type) : "—",
       l.libelle.trim() || (l.type ? assetTypeLabel(l.type) : "Ligne"),
       mad(l.valeur),
+      l.rendement > 0 ? pourcent(l.rendement) : "—",
       jour(l.dateSouscription),
     ]),
-    [`${fiche.financier.length} ligne(s)`, "", mad(c.totalFinancier), ""]
+    [`${fiche.financier.length} ligne(s)`, "", mad(c.totalFinancier), "", ""]
   );
 }
 
@@ -293,7 +293,7 @@ function simulation(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
   // plutôt que d'afficher une colonne de zéros.
   if (montant <= 0) return;
 
-  doc.section("Simulation OPCI");
+  doc.section("Simulation d'endettement");
   paires(doc, [
     ["Montant investi", mad(montant)],
     ["Taux hors assurance", tauxHorsAssurance > 0 ? pourcent(tauxHorsAssurance) : ""],

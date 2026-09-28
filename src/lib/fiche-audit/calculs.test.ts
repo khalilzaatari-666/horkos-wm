@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculer, mensualitePret, brutAnnuel, SEUILS } from "./calculs";
+import { calculer, mensualitePret, brutAnnuel, rendementLocatif, SEUILS } from "./calculs";
 import { ficheVide, type FicheAudit } from "./schema";
 
 /** Une fiche vide dans laquelle on ne pose que ce que le test regarde. */
@@ -39,11 +39,11 @@ describe("brutAnnuel", () => {
 describe("endettement", () => {
   it("rapporte la charge de logement au net du foyer", () => {
     const f = fiche((x) => {
-      x.titulaire.revenuFixe = 480000; // net mensuel = 480000*0,77/12 = 30 800
-      x.immobilier.residencePrincipale.loyerMensualite = 7700;
+      x.titulaire.revenuFixe = 480000; // net mensuel = 480000*0,63/12 = 25 200
+      x.immobilier.residencePrincipale.loyerMensualite = 6300;
     });
     const c = calculer(f);
-    expect(c.endettement.revenuMensuelNet).toBeCloseTo(30800, 6);
+    expect(c.endettement.revenuMensuelNet).toBeCloseTo(25200, 6);
     expect(c.endettement.apresRevenus).toBeCloseTo(0.25, 6);
   });
 
@@ -52,7 +52,7 @@ describe("endettement", () => {
       x.titulaire.revenuFixe = 480000;
       x.conjoint.revenuFixe = 240000;
     });
-    expect(calculer(f).endettement.revenuMensuelNet).toBeCloseTo(46200, 6);
+    expect(calculer(f).endettement.revenuMensuelNet).toBeCloseTo(37800, 6);
   });
 
   it("ne retient que 70 % des loyers perçus", () => {
@@ -69,7 +69,7 @@ describe("endettement", () => {
   it("agrège tous les crédits dans le taux total", () => {
     const vide = ficheVide();
     const f = fiche((x) => {
-      x.titulaire.revenuFixe = 480000; // net 30 800
+      x.titulaire.revenuFixe = 480000; // net 25 200
       x.immobilier.residencePrincipale.loyerMensualite = 5000;
       x.immobilier.locatifs = [
         { ...vide.immobilier.residencePrincipale, mensualites: 3000, loyersPercus: 0 },
@@ -78,8 +78,8 @@ describe("endettement", () => {
         { designation: "Auto", capitalEmprunte: 0, capitalRestantDu: 0, mensualites: 1800, duree: "" },
       ];
     });
-    // (5000 + 3000 + 1800) / 30800
-    expect(calculer(f).endettement.total).toBeCloseTo(9800 / 30800, 6);
+    // (5000 + 3000 + 1800) / 25200
+    expect(calculer(f).endettement.total).toBeCloseTo(9800 / 25200, 6);
   });
 
   it("rend null plutôt qu'une division par zéro quand il n'y a aucun revenu", () => {
@@ -102,12 +102,24 @@ describe("endettement", () => {
   });
 });
 
+describe("rendementLocatif", () => {
+  it("rapporte les loyers annuels à la valeur du bien", () => {
+    const bien = { ...ficheVide().immobilier.residencePrincipale, loyersPercus: 5000, valeurEstimee: 1200000 };
+    expect(rendementLocatif(bien)).toBeCloseTo(0.05, 6);
+  });
+
+  it("rend null pour un bien sans valeur", () => {
+    const bien = { ...ficheVide().immobilier.residencePrincipale, loyersPercus: 5000 };
+    expect(rendementLocatif(bien)).toBeNull();
+  });
+});
+
 describe("patrimoine", () => {
   it("somme le financier et l'immobilier, et retranche les dettes", () => {
     const f = fiche((x) => {
       x.financier = [
-        { detenteur: "", type: "opcvm", libelle: "", valeur: 250000, dateSouscription: "", remarques: "" },
-        { detenteur: "", type: "liquidites", libelle: "", valeur: 50000, dateSouscription: "", remarques: "" },
+        { detenteur: "", type: "opcvm", libelle: "", valeur: 250000, rendement: 0, dateSouscription: "", remarques: "" },
+        { detenteur: "", type: "liquidites", libelle: "", valeur: 50000, rendement: 0, dateSouscription: "", remarques: "" },
       ];
       x.immobilier.residencePrincipale.valeurEstimee = 1200000;
       x.immobilier.residencePrincipale.capitalRestantDu = 400000;
@@ -126,14 +138,14 @@ describe("simulation", () => {
     // conjoint : la cellule « Revenus Mr » y pointe sur le total. Corrigé ici,
     // sans quoi tous les ratios d'un couple sont flattés.
     const f = fiche((x) => {
-      x.titulaire.revenuFixe = 480000; // net 30 800
-      x.conjoint.revenuFixe = 240000; // net 15 400
+      x.titulaire.revenuFixe = 480000; // net 25 200
+      x.conjoint.revenuFixe = 240000; // net 12 600
       x.simulation.montant = 200000;
       x.simulation.tauxHorsAssurance = 0.0495;
       x.simulation.dureeMois = 300;
     });
     const c = calculer(f);
-    const revenusRetenus = 46200 + c.simulation.revenusProduitRetenus;
+    const revenusRetenus = 37800 + c.simulation.revenusProduitRetenus;
     expect(c.simulation.tauxEndettement).toBeCloseTo(c.simulation.mensualite / revenusRetenus, 6);
   });
 
@@ -157,8 +169,8 @@ describe("simulation", () => {
       ).simulation.ratioPassif;
 
     // 8 fois le revenu annuel net contre 5.
-    expect(base("Propriétaire")).toBeCloseTo(8 * 30800 * 12 - 200000, 4);
-    expect(base("Locataire")).toBeCloseTo(5 * 30800 * 12 - 200000, 4);
+    expect(base("Propriétaire")).toBeCloseTo(8 * 25200 * 12 - 200000, 4);
+    expect(base("Locataire")).toBeCloseTo(5 * 25200 * 12 - 200000, 4);
   });
 
   it("relève le restant à vivre minimum selon le foyer", () => {
@@ -177,9 +189,9 @@ describe("simulation", () => {
   it("juge les quatre ratios du modèle", () => {
     const c = calculer(
       fiche((x) => {
-        x.titulaire.revenuFixe = 1200000; // net mensuel 77 000
+        x.titulaire.revenuFixe = 1200000; // net mensuel 63 000
         x.financier = [
-          { detenteur: "", type: "liquidites", libelle: "", valeur: 60000, dateSouscription: "", remarques: "" },
+          { detenteur: "", type: "liquidites", libelle: "", valeur: 60000, rendement: 0, dateSouscription: "", remarques: "" },
         ];
         x.simulation.montant = 200000;
         x.simulation.tauxHorsAssurance = 0.0495;

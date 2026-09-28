@@ -97,3 +97,28 @@ export function libelleDelai(quantite: number, unite: Unite): string {
   const mots = UNITE_LABELS[unite];
   return `${quantite} ${quantite > 1 ? mots.pluriel : mots.singulier}`;
 }
+
+/** Les étapes qu'un rappel peut relancer : caler le R0, ou convenir du R1. */
+export const ETAPES_RAPPEL = ["R0", "R1"] as const;
+export type EtapeRappel = (typeof ETAPES_RAPPEL)[number];
+
+/**
+ * Le R0 reste-t-il à (re)caler ? Oui tant qu'aucun R0 n'a été tenu et qu'aucun
+ * n'est encore à venir : pas de rendez-vous du tout, un R0 annulé, ou un R0
+ * dont la date est passée sans qu'il ait eu lieu.
+ *
+ * La même règle sert à l'onglet Suivi, à l'action qui pose le rappel et au
+ * cron qui l'envoie - elles ne doivent pas pouvoir diverger.
+ */
+export function r0ARelancer(
+  rdvs: { type: string; status: string; date: string }[],
+  maintenant: Date
+): boolean {
+  const r0 = rdvs.filter((r) => r.type === "R0");
+  if (r0.some((r) => r.status === "termine")) return false;
+  return !r0.some(
+    (r) =>
+      (r.status === "planifie" || r.status === "confirme") &&
+      new Date(r.date).getTime() > maintenant.getTime()
+  );
+}

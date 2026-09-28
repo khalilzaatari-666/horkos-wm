@@ -1,6 +1,7 @@
 import { AdminCard } from "@/components/admin/ui";
 import { assetTypeLabel, formatMAD } from "@/lib/patrimoine";
 import { formatDateLong } from "@/lib/dates";
+import { rendementLocatif } from "@/lib/fiche-audit/calculs";
 import type { Bien, Credit, FicheAudit, LigneFinanciere, Personne } from "@/lib/fiche-audit/schema";
 import { Recapitulatif } from "./fiche-form";
 
@@ -15,6 +16,11 @@ import { Recapitulatif } from "./fiche-form";
  */
 
 const grille = "grid gap-x-6 gap-y-4 sm:grid-cols-2";
+
+/** Une fraction en « 4,5 % » ; vide quand il n'y a rien à dire. */
+function pourcent(v: number | null): string {
+  return v ? `${(v * 100).toFixed(1).replace(".", ",")} %` : "";
+}
 
 function texteRempli(v: string): boolean {
   return v.trim() !== "";
@@ -127,6 +133,7 @@ function BlocBien({ bien, avecLoyers }: { bien: Bien; avecLoyers?: boolean }) {
       <ChampMontant label="Mensualité" valeur={bien.mensualites} />
       <Champ label="Durée d'emprunt" valeur={bien.dureeEmprunt} />
       {avecLoyers && <ChampMontant label="Loyers perçus (mensuels)" valeur={bien.loyersPercus} />}
+      {avecLoyers && <Champ label="Rendement locatif brut" valeur={pourcent(rendementLocatif(bien))} />}
       <ChampDate label="Date d'achat" valeur={bien.dateAchat} />
       <div className="sm:col-span-2">
         <Champ label="Remarques" valeur={bien.remarques} />
@@ -268,6 +275,7 @@ export function FicheVue({
                     />
                     <Champ label="Libellé" valeur={ligne.libelle} />
                     <ChampMontant label="Valeur actuelle" valeur={ligne.valeur} />
+                    <Champ label="Rendement moyen" valeur={pourcent(ligne.rendement)} />
                     <ChampDate label="Date de souscription" valeur={ligne.dateSouscription} />
                     <div className="sm:col-span-2">
                       <Champ label="Remarques" valeur={ligne.remarques} />
@@ -308,7 +316,7 @@ export function FicheVue({
         </Section>
 
         {simulationRemplie && (
-          <Section titre="Simulation OPCI">
+          <Section titre="Simulation d'endettement">
             <div className={grille}>
               <ChampMontant label="Montant d'investissement" valeur={fiche.simulation.montant} />
               {fiche.simulation.tauxHorsAssurance > 0 && (

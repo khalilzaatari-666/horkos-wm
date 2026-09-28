@@ -152,7 +152,8 @@ export default function CasUsagePage() {
           />
           <AnimateIn variant="fade-up" delay={400}>
             <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
-              Chaque client a un objectif différent. Cliquez sur une situation pour voir comment nous l&apos;avons accompagnée.
+              Chaque client a un objectif différent.<br />
+              Cliquez sur une situation pour voir comment nous l&apos;avons accompagnée.
             </p>
           </AnimateIn>
         </div>
@@ -162,7 +163,8 @@ export default function CasUsagePage() {
       <section className="py-16">
         <div className="max-w-[1200px] mx-auto px-7">
           {/* Desktop: grid */}
-          <div ref={cardsRef} className="hidden md:grid md:grid-cols-3 gap-6">
+          {/* `items-start` : ouvrir une carte ne fait descendre qu'elle, pas ses voisines. */}
+          <div ref={cardsRef} className="hidden md:grid md:grid-cols-3 md:items-start gap-6">
             {cases.map((c) => (
               <div key={c.icon} data-case-card style={{ opacity: 0 }}>
                 <CaseCard useCase={c} />

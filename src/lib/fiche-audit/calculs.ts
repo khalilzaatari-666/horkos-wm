@@ -1,4 +1,4 @@
-import type { FicheAudit, Personne } from "./schema";
+import type { Bien, FicheAudit, Personne } from "./schema";
 
 /**
  * Les calculs du classeur d'audit, réécrits en TypeScript.
@@ -13,8 +13,8 @@ import type { FicheAudit, Personne } from "./schema";
  * décision du cabinet, pas une correction de code.
  */
 
-/** Part du brut qui reste en net. Le modèle retient 77 %. */
-export const TAUX_NET_SUR_BRUT = 0.77;
+/** Part du brut qui reste en net. Le cabinet retient 63 %. */
+export const TAUX_NET_SUR_BRUT = 0.63;
 
 /** Part des loyers retenue par les banques dans le calcul d'endettement. */
 export const PART_LOYERS_RETENUE = 0.7;
@@ -114,6 +114,14 @@ export function mensualitePret(montant: number, tauxAnnuel: number, dureeMois: n
   if (t === 0) return montant / dureeMois;
   const facteur = Math.pow(1 + t, dureeMois);
   return (montant * t * facteur) / (facteur - 1);
+}
+
+/**
+ * Rendement locatif brut d'un bien : loyers annuels sur valeur estimée. Les
+ * loyers sont saisis au mois, d'où le facteur 12.
+ */
+export function rendementLocatif(b: Bien): number | null {
+  return ratio((b.loyersPercus || 0) * 12, b.valeurEstimee || 0);
 }
 
 function calculerEndettement(fiche: FicheAudit): Endettement {

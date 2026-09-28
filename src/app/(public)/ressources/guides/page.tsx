@@ -21,7 +21,7 @@ export default async function GuidesPage() {
       <PageHero
         tag="Nos guides"
         title="Des guides complets, coécrits avec des institutions reconnues."
-        subtitle="Chaque guide est réalisé en partenariat avec un acteur reconnu de la place. Laissez votre email pour le recevoir directement."
+        subtitle={"Chaque guide est réalisé en partenariat avec un acteur reconnu de la place.\nLaissez votre email pour le recevoir directement."}
       />
 
       <section className="py-14">

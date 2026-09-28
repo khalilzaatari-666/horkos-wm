@@ -8,7 +8,7 @@ import { requireStaff, type ActionState } from "@/lib/staff";
 import { peutAccederAuDossier } from "@/lib/client-access";
 import { cabinetLocalToIso, partsCabinet } from "@/lib/cabinet-time";
 import { jalonSuivant } from "@/lib/parcours";
-import { echeance, QUANTITE_MAX, UNITES } from "@/lib/rappels";
+import { echeance, r0ARelancer, ETAPES_RAPPEL, QUANTITE_MAX, UNITES, type EtapeRappel } from "@/lib/rappels";
 import { createReminderEvent, deleteAppointmentEvent } from "@/lib/google-calendar";
 import { dureeRendezVous, libelleDuree, titreRendezVous } from "@/lib/rendez-vous";
 import { OUVERTURE, FERMETURE, DEJEUNER_DEBUT, DEJEUNER_FIN } from "@/components/booking/grille";
@@ -231,8 +231,9 @@ export async function planifierEtape(
 
 const rappelSchema = z.object({
   clientId: z.uuid(),
-  /** Le R0 qui motive la relance. */
-  appointmentId: z.uuid(),
+  etape: z.enum(ETAPES_RAPPEL),
+  /** Le R0 tenu qui motive une relance R1. Absent pour un rappel de R0. */
+  appointmentId: z.uuid().optional(),
   quantite: z.coerce.number().int(),
   unite: z.enum(UNITES),
   note: z.string().trim().max(500).optional(),
@@ -266,6 +267,18 @@ async function relanceOuverte(
   ]);
 
   return rdv?.type === "R0" && rdv.status === "termine" && audit?.status === "termine";
+}
+
+/** Le R0 est-il encore à caler ? Même règle que l'onglet Suivi et le cron. */
+async function r0Ouvert(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clientId: string
+): Promise<boolean> {
+  const { data: rdvs } = await supabase
+    .from("appointments")
+    .select("type, status, date")
+    .eq("client_id", clientId);
+  return r0ARelancer(rdvs ?? [], new Date());
 }
 
 /** Durée de la case posée dans l'agenda : le temps d'un appel de reprise. */
@@ -314,6 +327,7 @@ async function inscrireAuCalendrier(input: {
   clientId: string;
   advisorId: string | null;
   auteurId: string;
+  etape: EtapeRappel;
   due: Date;
   note: string | null;
 }): Promise<string | null> {
@@ -331,14 +345,14 @@ async function inscrireAuCalendrier(input: {
     [client?.first_name, client?.last_name].filter(Boolean).join(" ") || "un client";
 
   const description = [
-    `Reprendre contact avec ${nom} pour convenir du R1.`,
+    `Reprendre contact avec ${nom} pour convenir du ${input.etape}.`,
     ...(input.note ? [``, `Votre note : ${input.note}`] : []),
     ``,
     `Suivi du dossier : ${SITE_URL}/admin/clients/${input.clientId}/suivi`,
   ].join("\n");
 
   return createReminderEvent({
-    summary: `Relance R1 - ${nom}`,
+    summary: `Relance ${input.etape} - ${nom}`,
     description,
     startIso: input.due.toISOString(),
     durationMin: RAPPEL_DUREE_MIN,
@@ -356,7 +370,8 @@ export async function poserRappel(
 ): Promise<ActionState> {
   const parsed = rappelSchema.safeParse({
     clientId: formData.get("clientId"),
-    appointmentId: formData.get("appointmentId"),
+    etape: formData.get("etape"),
+    appointmentId: formData.get("appointmentId") || undefined,
     quantite: formData.get("quantite"),
     unite: formData.get("unite"),
     note: formData.get("note") || undefined,
@@ -374,18 +389,28 @@ export async function poserRappel(
   const allowed = await autoriser(parsed.data.clientId);
   if (!allowed) return { status: "error", message: REFUS };
 
-  if (!(await relanceOuverte(allowed.supabase, parsed.data.clientId, parsed.data.appointmentId))) {
-    return {
-      status: "error",
-      message: "Le R0 doit être terminé et sa fiche d'audit clôturée.",
-    };
+  const { etape, appointmentId } = parsed.data;
+  if (etape === "R1") {
+    if (
+      !appointmentId ||
+      !(await relanceOuverte(allowed.supabase, parsed.data.clientId, appointmentId))
+    ) {
+      return {
+        status: "error",
+        message: "Le R0 doit être terminé et sa fiche d'audit clôturée.",
+      };
+    }
+  } else if (!(await r0Ouvert(allowed.supabase, parsed.data.clientId))) {
+    return { status: "error", message: "Un R0 est déjà tenu ou planifié." };
   }
 
   const { data: cree, error } = await allowed.supabase
     .from("reminders")
     .insert({
       client_id: parsed.data.clientId,
-      appointment_id: parsed.data.appointmentId,
+      etape,
+      // Un rappel de R0 n'a pas de rendez-vous d'origine.
+      appointment_id: etape === "R1" ? appointmentId : null,
       due_at: due.toISOString(),
       note: parsed.data.note ?? null,
       created_by: allowed.staff.id,
@@ -394,11 +419,11 @@ export async function poserRappel(
     .maybeSingle();
 
   if (error) {
-    // L'index unique partiel : un rappel est déjà en attente sur ce R0. Le cas
+    // L'index unique partiel : un rappel est déjà en attente pour cette étape. Le cas
     // arrive avec deux onglets ouverts, et n'est pas une erreur à afficher
     // comme un échec technique.
     if (error.code === "23505") {
-      return { status: "error", message: "Un rappel est déjà prévu pour ce rendez-vous." };
+      return { status: "error", message: "Un rappel est déjà prévu pour cette étape." };
     }
     return { status: "error", message: "Enregistrement impossible. Réessayez." };
   }
@@ -414,6 +439,7 @@ export async function poserRappel(
       clientId: parsed.data.clientId,
       advisorId: allowed.advisorId,
       auteurId: allowed.staff.id,
+      etape,
       due,
       note: parsed.data.note ?? null,
     });

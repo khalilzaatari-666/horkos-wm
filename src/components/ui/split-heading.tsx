@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -77,7 +77,13 @@ export function SplitHeading({
 
   return (
     <Tag ref={ref} className={className} style={{ opacity: 0 }}>
-      {text}
+      {/* "\n" dans le texte force un retour à la ligne ; SplitText respecte les <br>. */}
+      {text.split("\n").map((ligne, i) => (
+        <Fragment key={i}>
+          {i > 0 && <br />}
+          {ligne}
+        </Fragment>
+      ))}
     </Tag>
   );
 }

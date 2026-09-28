@@ -1,7 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { etatEtape } from "@/lib/parcours";
-import { sendRappelR1 } from "@/lib/email/rappel";
+import { sendRappel } from "@/lib/email/rappel";
+import { r0ARelancer, type EtapeRappel } from "@/lib/rappels";
 import { deleteAppointmentEvent } from "@/lib/google-calendar";
 
 /**
@@ -46,6 +47,7 @@ function secretValide(entete: string | null, attendu: string): boolean {
 interface Rappel {
   id: string;
   client_id: string;
+  etape: EtapeRappel;
   note: string | null;
   due_at: string;
   created_at: string;
@@ -70,7 +72,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await admin
     .from("reminders")
-    .select("id, client_id, note, due_at, created_at, attempts, calendar_event_id")
+    .select("id, client_id, etape, note, due_at, created_at, attempts, calendar_event_id")
     .eq("status", "en_attente")
     .lte("due_at", new Date().toISOString())
     .lt("attempts", TENTATIVES_MAX)
@@ -88,16 +90,22 @@ export async function GET(request: Request) {
   let echecs = 0;
 
   for (const rappel of rappels) {
-    // Le R1 a-t-il été posé entre-temps ? `etatEtape` répond déjà à cette
-    // question pour tout le reste de la plateforme : relancer pour un
-    // rendez-vous déjà pris ferait passer le cabinet pour distrait.
+    // L'étape a-t-elle été posée entre-temps ? Relancer pour un rendez-vous
+    // déjà pris ferait passer le cabinet pour distrait. Le R1 suit `etatEtape`,
+    // comme le reste de la plateforme ; le R0, la règle de l'onglet Suivi - un
+    // R0 passé sans avoir eu lieu reste à relancer.
     const { data: rdvs } = await admin
       .from("appointments")
-      .select("type, status")
+      .select("type, status, date")
       .eq("client_id", rappel.client_id);
 
-    if (etatEtape("R1", rdvs ?? []) !== "avenir") {
-      // Le R1 est posé : la case de relance n'a plus lieu d'être dans l'agenda.
+    const caduc =
+      rappel.etape === "R0"
+        ? !r0ARelancer(rdvs ?? [], new Date())
+        : etatEtape("R1", rdvs ?? []) !== "avenir";
+
+    if (caduc) {
+      // L'étape est posée : la case de relance n'a plus lieu d'être dans l'agenda.
       if (rappel.calendar_event_id) await deleteAppointmentEvent(rappel.calendar_event_id);
       await admin
         .from("reminders")
@@ -121,7 +129,8 @@ export async function GET(request: Request) {
       continue;
     }
 
-    const resultat = await sendRappelR1({
+    const resultat = await sendRappel({
+      etape: rappel.etape,
       client: {
         id: client.id,
         name:

@@ -88,7 +88,7 @@ function nettoyer(texte: string): string {
 export interface Colonne {
   /** Largeur en points. La somme doit tenir dans la largeur utile. */
   largeur: number;
-  align?: "gauche" | "droite";
+  align?: "gauche" | "droite" | "centre";
   /** Police grasse et encre foncée : pour la colonne qui porte le sujet. */
   fort?: boolean;
   gris?: boolean;
@@ -315,6 +315,13 @@ export class DocumentPdf {
     this.y -= hauteur;
   }
 
+  /** Abscisse d'un texte dans sa colonne, selon l'alignement demandé. */
+  private posX(colonne: Colonne, x: number, largeurTexte: number): number {
+    if (colonne.align === "droite") return x + colonne.largeur - largeurTexte - 8;
+    if (colonne.align === "centre") return x + (colonne.largeur - largeurTexte) / 2;
+    return x + 8;
+  }
+
   /**
    * Un tableau. Les colonnes sont fixées par l'appelant ; l'en-tête se répète
    * en haut de chaque page, sans quoi une longue liste devient illisible dès la
@@ -334,7 +341,7 @@ export class DocumentPdf {
       colonnes.forEach((colonne, i) => {
         const texte = (entetes[i] ?? "").toUpperCase();
         const largeurTexte = this.largeur(texte, this.polices.texteGras, 7.5);
-        const posX = colonne.align === "droite" ? x + colonne.largeur - largeurTexte - 8 : x + 8;
+        const posX = this.posX(colonne, x, largeurTexte);
         this.ecrire(texte, posX, this.y - 12.5, this.polices.texteGras, 7.5, COULEURS.warmGrey);
         x += colonne.largeur;
       });
@@ -361,7 +368,7 @@ export class DocumentPdf {
         const couleur = colonne.gris ? COULEURS.warmGrey : COULEURS.charcoal;
         decoupes[i].forEach((texte, j) => {
           const largeurTexte = this.largeur(texte, police, 8.5);
-          const posX = colonne.align === "droite" ? x + colonne.largeur - largeurTexte - 8 : x + 8;
+          const posX = this.posX(colonne, x, largeurTexte);
           this.ecrire(texte, posX, this.y - 12 - j * 11, police, 8.5, couleur);
         });
         x += colonne.largeur;
@@ -390,7 +397,7 @@ export class DocumentPdf {
       colonnes.forEach((colonne, i) => {
         const texte = total[i] ?? "";
         const largeurTexte = this.largeur(texte, this.polices.texteGras, 9);
-        const posX = colonne.align === "droite" ? x + colonne.largeur - largeurTexte - 8 : x + 8;
+        const posX = this.posX(colonne, x, largeurTexte);
         this.ecrire(texte, posX, this.y - 13.5, this.polices.texteGras, 9, COULEURS.ink);
         x += colonne.largeur;
       });

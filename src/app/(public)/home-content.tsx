@@ -367,7 +367,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             </span>
           </AnimateIn>
           <SplitHeading
-            text="Trois étapes, un seul objectif : que vous compreniez avant de décider"
+            text={"Trois étapes, un seul objectif :\nque vous compreniez avant de décider"}
             as="h2"
             className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
             delay={100}
@@ -405,7 +405,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
 
       {/* Relation / Fondateur */}
       <section className="py-16 bg-ink text-cream overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[60px] items-center">
+        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[60px]">
           <div>
             <AnimateIn variant="fade-right" mobileVariant="fade-up">
               <span className="text-bronze-light text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -425,12 +425,12 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
             </AnimateIn>
             <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={450}>
               <div className="mt-6 max-w-[480px] bg-cream/[0.06] border-l-2 border-bronze-light px-[26px] py-[22px] font-heading italic text-[19px] text-cream leading-[1.5]">
-                «&nbsp;La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.&nbsp;»
+                La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.
               </div>
             </AnimateIn>
           </div>
-          <AnimateIn variant="scale-in" mobileVariant="reveal-up" delay={200}>
-            <div className="bg-cream/[0.06] border border-cream/[0.14] p-8 rounded-lg">
+          <AnimateIn variant="scale-in" mobileVariant="reveal-up" delay={200} className="h-full">
+            <div className="h-full bg-cream/[0.06] border border-cream/[0.14] p-8 rounded-lg">
               <div className="flex items-center gap-3 mb-1">
                 <Image
                   src="/images/fondateur.jpg"
@@ -466,7 +466,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
 
       {/* MRE - Double regard */}
       <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
+        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
           <div>
             <AnimateIn variant="fade-right" mobileVariant="fade-up">
               <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -493,8 +493,8 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
               </Link>
             </AnimateIn>
           </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
-            <div className="bg-navy text-cream p-[30px] rounded-lg">
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
+            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc – et d&apos;envisager, selon les cas, un accompagnement adapté à votre réalité à l&apos;étranger.
@@ -506,7 +506,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
 
       {/* Nos solutions */}
       <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
+        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
           <div>
             <AnimateIn variant="fade-right" mobileVariant="fade-up">
               <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -533,8 +533,8 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
               </Link>
             </AnimateIn>
           </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
-            <div className="bg-navy text-cream p-[30px] rounded-lg">
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
+            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : nous mobilisons les bons partenaires pour chaque dossier.
@@ -549,7 +549,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
 
       {/* Structuration patrimoniale */}
       <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px] items-center">
+        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
           <div>
             <AnimateIn variant="fade-right" mobileVariant="fade-up">
               <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
@@ -576,8 +576,8 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
               </Link>
             </AnimateIn>
           </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150}>
-            <div className="bg-navy text-cream p-[30px] rounded-lg">
+          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
+            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
               <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
               <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
                 Un bien immobilier détenu en nom propre, apporté au capital d&apos;une SARL immobilière, avec un expert-comptable dédié à sa gestion.
@@ -649,7 +649,7 @@ export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full flex items-center justify-between gap-4 py-[22px] text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze"
                   >
-                    <span className="font-heading text-[17px] font-semibold text-ink">{faq.q}</span>
+                    <span className="font-heading text-[20px] font-semibold text-ink">{faq.q}</span>
                     <span
                       aria-hidden="true"
                       className={`text-bronze text-xl shrink-0 transition-transform duration-300 ${

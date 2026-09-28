@@ -295,7 +295,8 @@ export default function ProduitsPage() {
           />
           <AnimateIn variant="fade-up" delay={400}>
             <p className="text-[#D8CDBC] max-w-[620px] mt-3.5 text-[16px] leading-[1.7]">
-              Cliquez sur une solution pour comprendre à quoi elle sert, sans jargon. Chaque recommandation reste choisie pour votre situation.
+              Cliquez sur une solution pour comprendre à quoi elle sert, sans jargon.<br />
+              Chaque recommandation reste choisie pour votre situation.
             </p>
           </AnimateIn>
         </div>
@@ -312,9 +313,20 @@ export default function ProduitsPage() {
           <SplitHeading
             text="Solutions individuelles"
             as="h2"
-            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-8"
+            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-4"
             delay={100}
           />
+          <AnimateIn variant="fade-up" delay={200}>
+            <p className="text-[16px] text-warm-grey max-w-[620px] leading-[1.7] mb-8">
+              Épargner, investir, préparer votre retraite ou transmettre : nous construisons avec vous des solutions pensées pour votre situation personnelle et familiale.
+            </p>
+          </AnimateIn>
+
+          <AnimateIn variant="fade-left">
+            <div className="bg-cream-deep/60 border-l-2 border-bronze-light rounded-r-lg p-5 mb-10 text-[14.5px] text-charcoal leading-[1.7] max-w-[700px]">
+              Vous êtes salarié, cadre ou profession libérale et cherchez à faire fructifier votre épargne tout en préparant votre retraite et la transmission de votre patrimoine ? Nous avons la solution.
+            </div>
+          </AnimateIn>
 
           {/* Desktop: full catalogue, grouped by category */}
           <div className="hidden md:block">
@@ -350,7 +362,7 @@ export default function ProduitsPage() {
 
           <AnimateIn variant="fade-left">
             <div className="bg-cream-deep/60 border-l-2 border-bronze-light rounded-r-lg p-5 mb-10 text-[14.5px] text-charcoal leading-[1.7] max-w-[700px]">
-              &quot;Vous êtes chef d&apos;entreprise et cherchez à fidéliser vos équipes tout en développant le rendement de la poche fiscale PER de vos collaborateurs ? Nous avons la solution.&quot;
+              Vous êtes chef d&apos;entreprise et cherchez à fidéliser vos équipes tout en développant le rendement de la poche fiscale PER de vos collaborateurs ? Nous avons la solution.
             </div>
           </AnimateIn>
 

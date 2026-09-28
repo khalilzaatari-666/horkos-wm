@@ -90,7 +90,7 @@ export default function ReseauPage() {
         <div className="max-w-[1200px] mx-auto px-7">
           <AnimateIn variant="fade-left">
             <div className="bg-cream-deep/60 border-l-2 border-bronze-light rounded-r-lg p-5 mb-10 text-[14.5px] text-charcoal leading-[1.7] max-w-[700px]">
-              &quot;Nous ne créons pas les opportunités, nous les sélectionnons. Ce réseau nourrit nos recommandations, il ne les remplace pas.&quot;
+              Nous ne créons pas les opportunités, nous les sélectionnons. Ce réseau nourrit nos recommandations, il ne les remplace pas.
             </div>
           </AnimateIn>
 

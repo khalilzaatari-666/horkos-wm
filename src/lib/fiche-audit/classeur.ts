@@ -1,6 +1,6 @@
 import { creerClasseur, type Cellule, type Feuille, type Ligne } from "@/lib/xlsx/generateur";
 import { assetTypeLabel } from "@/lib/patrimoine";
-import { calculer } from "./calculs";
+import { calculer, rendementLocatif } from "./calculs";
 import type { Bien, Credit, FicheAudit, Personne } from "./schema";
 
 /**
@@ -260,7 +260,7 @@ function feuilleFoyer(fiche: FicheAudit, c: ReturnType<typeof calculer>): Feuill
     {
       cellules: [
         {
-          v: "Le net mensuel retient 77 % du brut, convention du cabinet.",
+          v: "Le net mensuel retient 63 % du brut, convention du cabinet.",
           style: "note",
           fusion: 4,
         },
@@ -281,6 +281,7 @@ function ligneBien(b: Bien): Ligne {
       { v: argent(b.capitalRestantDu), style: "montant" },
       { v: argent(b.mensualites), style: "montant" },
       { v: argent(b.loyersPercus), style: "montant" },
+      { v: rendementLocatif(b), style: "pourcent" },
       { v: jour(b.dateAchat), style: "date" },
       { v: texte(b.remarques), style: "texteGris" },
     ],
@@ -298,6 +299,7 @@ function ligneCredit(c: Credit): Ligne {
       { v: null, style: "texte" },
       { v: null, style: "texte" },
       { v: null, style: "texte" },
+      { v: null, style: "texte" },
     ],
   };
 }
@@ -310,26 +312,26 @@ function feuilleImmobilier(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
     ...enTeteFeuille(
       "Immobilier et crédits",
       "Résidence principale, biens locatifs et engagements en cours",
-      8
+      9
     ),
 
-    section("Résidence principale", 8),
-    paire("Adresse", texte(rp.adresse), "texte", 8),
-    paire("Situation", texte(rp.situation), "texte", 8),
-    paire("Loyer ou mensualité", argent(rp.loyerMensualite), "montant", 8),
-    paire("Valeur estimée", argent(rp.valeurEstimee), "montant", 8),
-    paire("Valeur d'achat", argent(rp.valeurAchat), "montant", 8),
-    paire("Capital emprunté", argent(rp.capitalEmprunte), "montant", 8),
-    paire("Capital restant dû", argent(rp.capitalRestantDu), "montant", 8),
-    paire("Date d'achat", jour(rp.dateAchat), "date", 8),
-    paire("Durée d'emprunt", texte(rp.dureeEmprunt), "texte", 8),
-    paire("Remarques", texte(rp.remarques), "texte", 8),
+    section("Résidence principale", 9),
+    paire("Adresse", texte(rp.adresse), "texte", 9),
+    paire("Situation", texte(rp.situation), "texte", 9),
+    paire("Loyer ou mensualité", argent(rp.loyerMensualite), "montant", 9),
+    paire("Valeur estimée", argent(rp.valeurEstimee), "montant", 9),
+    paire("Valeur d'achat", argent(rp.valeurAchat), "montant", 9),
+    paire("Capital emprunté", argent(rp.capitalEmprunte), "montant", 9),
+    paire("Capital restant dû", argent(rp.capitalRestantDu), "montant", 9),
+    paire("Date d'achat", jour(rp.dateAchat), "date", 9),
+    paire("Durée d'emprunt", texte(rp.dureeEmprunt), "texte", 9),
+    paire("Remarques", texte(rp.remarques), "texte", 9),
     vide,
   ];
 
-  lignes.push(section(`Biens locatifs et secondaires (${locatifs.length})`, 8));
+  lignes.push(section(`Biens locatifs et secondaires (${locatifs.length})`, 9));
   if (locatifs.length === 0) {
-    lignes.push({ cellules: [{ v: "Aucun bien déclaré.", style: "texteGris", fusion: 8 }] });
+    lignes.push({ cellules: [{ v: "Aucun bien déclaré.", style: "texteGris", fusion: 9 }] });
   } else {
     lignes.push(
       enTetes([
@@ -339,6 +341,7 @@ function feuilleImmobilier(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
         "Capital restant dû",
         "Mensualités",
         "Loyers perçus",
+        "Rendement locatif brut",
         "Date d'achat",
         "Remarques",
       ])
@@ -354,14 +357,15 @@ function feuilleImmobilier(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
         { v: argent(somme(locatifs.map((b) => b.loyersPercus))), style: "totalMontant" },
         { v: null, style: "total" },
         { v: null, style: "total" },
+        { v: null, style: "total" },
       ],
     });
   }
   lignes.push(vide);
 
-  lignes.push(section(`Autres crédits (${credits.length})`, 8));
+  lignes.push(section(`Autres crédits (${credits.length})`, 9));
   if (credits.length === 0) {
-    lignes.push({ cellules: [{ v: "Aucun crédit déclaré.", style: "texteGris", fusion: 8 }] });
+    lignes.push({ cellules: [{ v: "Aucun crédit déclaré.", style: "texteGris", fusion: 9 }] });
   } else {
     lignes.push(
       enTetes([
@@ -370,6 +374,7 @@ function feuilleImmobilier(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
         "Capital restant dû",
         "Mensualités",
         "Durée",
+        "",
         "",
         "",
         "",
@@ -386,22 +391,23 @@ function feuilleImmobilier(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
         { v: null, style: "total" },
         { v: null, style: "total" },
         { v: null, style: "total" },
+        { v: null, style: "total" },
       ],
     });
   }
 
   lignes.push(
     vide,
-    section("Ce que l'immobilier pèse", 8),
-    paire("Valeur totale du parc", argent(c.totalImmobilier), "montant", 8),
-    paire("Capital restant dû, tous crédits", argent(c.totalDettes), "montant", 8),
-    paire("Loyers perçus par mois", argent(c.endettement.loyersPercus), "montant", 8),
-    paire("Loyers retenus par les banques (70 %)", argent(c.endettement.loyersRetenus), "montant", 8)
+    section("Ce que l'immobilier pèse", 9),
+    paire("Valeur totale du parc", argent(c.totalImmobilier), "montant", 9),
+    paire("Capital restant dû, tous crédits", argent(c.totalDettes), "montant", 9),
+    paire("Loyers perçus par mois", argent(c.endettement.loyersPercus), "montant", 9),
+    paire("Loyers retenus par les banques (70 %)", argent(c.endettement.loyersRetenus), "montant", 9)
   );
 
   return {
     nom: "Immobilier",
-    colonnes: [LARGE, MOYEN, MOYEN, MOYEN, MOYEN, MOYEN, 16, 40],
+    colonnes: [LARGE, MOYEN, MOYEN, MOYEN, MOYEN, MOYEN, MOYEN, 16, 40],
     lignes,
     figer: 2,
   };
@@ -412,14 +418,14 @@ function feuilleFinancier(fiche: FicheAudit, c: ReturnType<typeof calculer>): Fe
     ...enTeteFeuille(
       "Patrimoine financier",
       `Contrats, comptes et placements - ${fiche.financier.length} ligne(s)`,
-      6
+      7
     ),
   ];
 
   if (fiche.financier.length === 0) {
-    lignes.push({ cellules: [{ v: "Aucune ligne déclarée.", style: "texteGris", fusion: 6 }] });
+    lignes.push({ cellules: [{ v: "Aucune ligne déclarée.", style: "texteGris", fusion: 7 }] });
   } else {
-    lignes.push(enTetes(["Détenteur", "Type", "Libellé", "Valeur", "Souscrit le", "Remarques"]));
+    lignes.push(enTetes(["Détenteur", "Type", "Libellé", "Valeur", "Rendement moyen", "Souscrit le", "Remarques"]));
     for (const l of fiche.financier) {
       lignes.push({
         cellules: [
@@ -427,6 +433,7 @@ function feuilleFinancier(fiche: FicheAudit, c: ReturnType<typeof calculer>): Fe
           { v: l.type ? assetTypeLabel(l.type) : null, style: "texte" },
           { v: texte(l.libelle), style: "texte" },
           { v: argent(l.valeur), style: "montant" },
+          { v: l.rendement || null, style: "pourcent" },
           { v: jour(l.dateSouscription), style: "date" },
           { v: texte(l.remarques), style: "texteGris" },
         ],
@@ -438,13 +445,14 @@ function feuilleFinancier(fiche: FicheAudit, c: ReturnType<typeof calculer>): Fe
         { v: argent(c.totalFinancier), style: "totalMontant" },
         { v: null, style: "total" },
         { v: null, style: "total" },
+        { v: null, style: "total" },
       ],
     });
   }
 
   return {
     nom: "Financier",
-    colonnes: [26, 24, LARGE, MOYEN, 16, 40],
+    colonnes: [26, 24, LARGE, MOYEN, MOYEN, 16, 40],
     lignes,
     figer: 2,
   };
@@ -490,7 +498,7 @@ function feuilleSimulation(fiche: FicheAudit, c: ReturnType<typeof calculer>): F
   const s = c.simulation;
 
   const lignes: Ligne[] = [
-    ...enTeteFeuille("Simulation OPCI", "Hypothèse d'investissement et contrôles du cabinet", 4),
+    ...enTeteFeuille("Simulation d'endettement", "Hypothèse d'investissement et contrôles du cabinet", 4),
 
     section("Hypothèse", 4),
     paire("Montant investi", argent(simulation.montant), "montant", 4),

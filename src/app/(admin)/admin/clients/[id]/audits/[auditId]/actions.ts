@@ -148,7 +148,6 @@ const enregistrerSchema = z.object({
   auditId: z.uuid(),
   /** La fiche voyage en JSON : elle est trop imbriquée pour des champs plats. */
   fiche: z.string().max(200_000),
-  terminer: z.boolean().default(false),
 });
 
 /**
@@ -166,7 +165,6 @@ export async function enregistrerFiche(
     clientId: formData.get("clientId"),
     auditId: formData.get("auditId"),
     fiche: formData.get("fiche"),
-    terminer: formData.get("terminer") === "1",
   });
   if (!parsed.success) return { status: "error", message: "Formulaire incomplet." };
 
@@ -193,7 +191,9 @@ export async function enregistrerFiche(
     .from("audits")
     .update({
       data: { ...fiche.data, version: VERSION_FICHE },
-      status: parsed.data.terminer ? "termine" : "en_cours",
+      // Enregistrer, c'est clore : la fiche n'a qu'un bouton, et « Modifier »
+      // depuis la liste des audits la rouvre en édition sans changer son statut.
+      status: "termine",
       updated_at: new Date().toISOString(),
       updated_by: allowed.staff.id,
     })
@@ -214,7 +214,7 @@ export async function enregistrerFiche(
     allowed.supabase,
     allowed.staff.id,
     parsed.data.auditId,
-    parsed.data.terminer ? "audit.termine" : "audit.enregistre"
+    "audit.termine"
   );
   revalidate(parsed.data.clientId);
 
