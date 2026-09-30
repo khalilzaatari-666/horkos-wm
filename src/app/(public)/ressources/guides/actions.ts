@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendGuideEmail } from "@/lib/email/guide";
 
 export interface GuideRequestState {
   status: "idle" | "success" | "error";
@@ -40,13 +41,20 @@ export async function requestGuide(
   // Guard against an id for an unpublished (or deleted) guide.
   const { data: guide } = await supabase
     .from("guides")
-    .select("id")
+    .select("id, title, pdf_url")
     .eq("id", parsed.data.guideId)
     .eq("is_published", true)
     .maybeSingle();
 
   if (!guide) {
     return { status: "error", message: "Ce guide n'est plus disponible." };
+  }
+  // Un guide publié sans son PDF : rien à envoyer, donc rien à promettre.
+  if (!guide.pdf_url) {
+    return {
+      status: "error",
+      message: "Ce guide n'est pas encore disponible au téléchargement. Réessayez bientôt.",
+    };
   }
 
   const { error } = await supabase
@@ -57,7 +65,18 @@ export async function requestGuide(
     return { status: "error", message: "Une erreur est survenue. Veuillez réessayer." };
   }
 
-  // TODO: envoyer le guide par email via Resend une fois le compte SMTP configuré.
+  const envoye = await sendGuideEmail({
+    email: parsed.data.email,
+    titre: guide.title,
+    pdfUrl: guide.pdf_url,
+  });
+  if (!envoye) {
+    return {
+      status: "error",
+      message: "L'envoi du guide a échoué. Vérifiez votre adresse et réessayez dans un instant.",
+    };
+  }
+
   return {
     status: "success",
     message: "Merci, le guide vous sera envoyé par email.",
