@@ -26,11 +26,16 @@ export function DocumentOpenButton({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pending}
-        title={state.status === "error" ? state.message : undefined}
         className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors cursor-pointer disabled:opacity-60"
       >
         {pending ? "Ouverture…" : "Ouvrir"}
       </button>
+      {/* Sous le bouton, pas dans une infobulle : un échec au clic doit se voir. */}
+      {state.status === "error" && (
+        <span className="block text-[11.5px] text-red-600 mt-1 leading-[1.45]" aria-live="polite">
+          {state.message}
+        </span>
+      )}
     </form>
   );
 }

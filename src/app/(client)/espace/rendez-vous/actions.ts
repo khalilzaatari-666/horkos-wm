@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { bookAndNotify } from "@/lib/booking";
+import { refusReservation } from "@/lib/parcours";
 
 export interface EspaceBookingState {
   status: "idle" | "success" | "error";
@@ -19,9 +20,10 @@ const schema = z.object({
 });
 
 /**
- * Réservation depuis l'espace client. Le type de rendez-vous n'est pas pris du
- * formulaire : il se déduit du parcours - une revue si l'audit R0 est passé,
- * sinon un R0. Un champ caché serait un mensonge facile.
+ * Réservation depuis l'espace client : le R0, et lui seul, une seule fois. La
+ * suite du parcours (R1, R2) se fixe par le conseiller depuis le suivi. Un R0
+ * tenu ou déjà à venir ferme la réservation (`refusReservation`) : la page ne
+ * montre alors plus l'agenda, et ce contrôle arrête un formulaire resté ouvert.
  */
 export async function bookEspaceSlot(
   _previous: EspaceBookingState,
@@ -46,15 +48,8 @@ export async function bookEspaceSlot(
     return { status: "error", message: "Votre session a expiré. Reconnectez-vous." };
   }
 
-  const [{ data: pastR0 }, { data: profile }] = await Promise.all([
-    supabase
-      .from("appointments")
-      .select("id")
-      .eq("client_id", user.id)
-      .eq("type", "R0")
-      .eq("status", "termine")
-      .limit(1)
-      .maybeSingle(),
+  const [{ data: r0s }, { data: profile }] = await Promise.all([
+    supabase.from("appointments").select("status, date").eq("client_id", user.id).eq("type", "R0"),
     supabase
       .from("profiles")
       .select("first_name, last_name, email")
@@ -62,12 +57,15 @@ export async function bookEspaceSlot(
       .maybeSingle(),
   ]);
 
+  const refus = refusReservation(r0s ?? [], new Date());
+  if (refus) return { status: "error", message: refus };
+
   const booked = await bookAndNotify({
     supabase,
     slotStart: parsed.data.slotStart,
     holdToken: parsed.data.holdToken,
     mode: parsed.data.mode,
-    type: pastR0 ? "revue" : "R0",
+    type: "R0",
     client: {
       name:
         [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||

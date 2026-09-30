@@ -77,3 +77,54 @@ export function titreRendezVous(type: string, nom?: string | null): string {
   const parts = [prefixe, ...(libelle ? [libelle] : []), ...(nom?.trim() ? [nom.trim()] : [])];
   return parts.join(" - ");
 }
+
+/** Un rendez-vous actif, tel que le choix d'un conseiller le lit. */
+export interface OccupationConseiller {
+  id: string;
+  advisor_id: string | null;
+  date: string;
+  duration_minutes: number | null;
+}
+
+/**
+ * Qui tient un rendez-vous que le cabinet pose : la même règle que `book_slot`
+ * pour une réservation du client.
+ *
+ *   - le titulaire actuel (un déplacement garde son conseiller), puis le
+ *     référent du client, s'ils sont conseillers ;
+ *   - sinon le conseiller libre sur le créneau, le moins chargé autour ;
+ *   - si tous sont pris, le moins chargé quand même : le suivi affiche le
+ *     conflit, et le conseiller décide.
+ *
+ * Jamais un admin ni la personne qui clique : un admin n'est pas réservable,
+ * et le rendez-vous n'apparaîtrait dans aucun agenda. `null` quand le cabinet
+ * n'a aucun conseiller.
+ *
+ * `occupations` : les rendez-vous actifs des conseillers autour du créneau,
+ * sans celui qu'on déplace.
+ */
+export function choisirConseiller(
+  conseillers: string[],
+  preferes: (string | null | undefined)[],
+  occupations: OccupationConseiller[],
+  debut: Date,
+  dureeMin: number
+): string | null {
+  const prefere = preferes.find((id) => id && conseillers.includes(id));
+  if (prefere) return prefere;
+
+  const fin = debut.getTime() + dureeMin * 60_000;
+  const occupe = (id: string) =>
+    occupations.some((o) => {
+      if (o.advisor_id !== id) return false;
+      const d = new Date(o.date).getTime();
+      return d < fin && d + (o.duration_minutes ?? DUREE_DEFAUT) * 60_000 > debut.getTime();
+    });
+  const charge = (id: string) => occupations.filter((o) => o.advisor_id === id).length;
+
+  return (
+    [...conseillers].sort(
+      (a, b) => Number(occupe(a)) - Number(occupe(b)) || charge(a) - charge(b) || a.localeCompare(b)
+    )[0] ?? null
+  );
+}

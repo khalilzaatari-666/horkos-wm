@@ -17,11 +17,10 @@ import { CLASSE_SELECT, Wrapper, type ConseillerOption } from "../filters";
  * période - la semaine affichée est la période, et un second réglage qui dirait
  * le contraire ne pourrait qu'induire en erreur.
  *
- * Le conseiller obéit à une règle à part. Un conseiller qui ouvre l'agenda veut
- * le sien, pas celui de tout le cabinet ; l'absence de paramètre vaut donc
- * « moi », et « tous » s'écrit explicitement dans l'URL. Le serveur applique la
- * même règle et renvoie ici la valeur retenue, pour que le menu montre toujours
- * ce qui est réellement affiché.
+ * Le menu des conseillers n'est montré qu'à l'admin : un conseiller ne voit que
+ * son propre agenda, et le serveur le lui impose. Le serveur renvoie ici la
+ * valeur retenue, pour que le menu montre toujours ce qui est réellement
+ * affiché.
  */
 export function FiltresSemaine({
   conseillers,

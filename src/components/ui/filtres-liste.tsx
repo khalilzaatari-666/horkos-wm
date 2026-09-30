@@ -121,7 +121,7 @@ export function FiltresListe({
 
       <span className="text-[12.5px] text-warm-grey ml-1 tabular-nums">
         {total} {unite}
-        {total > 1 ? "s" : ""}
+        {total > 1 && !/[sx]$/.test(unite) ? "s" : ""}
       </span>
 
       {actifs.length > 0 && (

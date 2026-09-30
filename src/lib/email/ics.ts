@@ -18,6 +18,17 @@ export interface IcsEvent {
   location?: string;
   organizer: { name: string; email: string };
   attendees: { name: string; email: string }[];
+  /**
+   * `CANCEL` retire l'événement du calendrier qui l'a reçu. Par défaut
+   * `REQUEST` : une invitation, ou sa mise à jour quand l'UID est déjà connu.
+   */
+  method?: "REQUEST" | "CANCEL";
+  /**
+   * Rang de la version. Un calendrier ignore une mise à jour dont la séquence
+   * n'est pas supérieure à celle qu'il détient : un déplacement doit la faire
+   * monter. Absente, elle vaut 0 (la première invitation).
+   */
+  sequence?: number;
 }
 
 /** `,` `;` et `\` se protègent, les sauts de ligne deviennent `\n` littéral. */
@@ -74,10 +85,11 @@ export function buildIcs(event: IcsEvent): string {
     "VERSION:2.0",
     "PRODID:-//Horkos Wealth Management//Rendez-vous//FR",
     "CALSCALE:GREGORIAN",
-    "METHOD:REQUEST",
+    `METHOD:${event.method ?? "REQUEST"}`,
     "BEGIN:VEVENT",
     `UID:${event.uid}@horkos-wm.com`,
     `DTSTAMP:${toUtcStamp(new Date().toISOString())}`,
+    `SEQUENCE:${event.sequence ?? 0}`,
     `DTSTART:${toUtcStamp(event.startIso)}`,
     `DTEND:${toUtcStamp(end.toISOString())}`,
     `SUMMARY:${escapeIcsText(event.summary)}`,
@@ -88,7 +100,7 @@ export function buildIcs(event: IcsEvent): string {
       (a) =>
         `ATTENDEE;CN=${escapeIcsText(a.name)};ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:${a.email}`
     ),
-    "STATUS:CONFIRMED",
+    event.method === "CANCEL" ? "STATUS:CANCELLED" : "STATUS:CONFIRMED",
     "END:VEVENT",
     "END:VCALENDAR",
   ];

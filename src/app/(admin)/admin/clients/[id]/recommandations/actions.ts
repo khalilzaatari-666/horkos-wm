@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff, type ActionState } from "@/lib/staff";
+import { requireDossier, type ActionState } from "@/lib/staff";
 
 const STATUS = ["proposee", "acceptee", "rejetee", "mise_en_place"] as const;
 
@@ -30,7 +30,7 @@ export async function assignRecommendation(
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const staff = await requireStaff(supabase);
+  const staff = await requireDossier(supabase, parsed.data.clientId);
   if (!staff) return { status: "error", message: "Seule l'équipe peut proposer une recommandation." };
 
   const d = parsed.data;
@@ -68,14 +68,15 @@ export async function updateAssignment(
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase)))
+  if (!(await requireDossier(supabase, parsed.data.clientId)))
     return { status: "error", message: "Seule l'équipe peut modifier une recommandation." };
 
   const d = parsed.data;
   const { error } = await supabase
     .from("client_recommendations")
     .update({ status: d.status, notes: d.notes || null })
-    .eq("id", d.id);
+    .eq("id", d.id)
+    .eq("client_id", d.clientId);
 
   if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
 
@@ -89,8 +90,12 @@ export async function removeAssignment(formData: FormData): Promise<void> {
   if (!id.success || !clientId.success) return;
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase))) return;
+  if (!(await requireDossier(supabase, clientId.data))) return;
 
-  await supabase.from("client_recommendations").delete().eq("id", id.data);
+  await supabase
+    .from("client_recommendations")
+    .delete()
+    .eq("id", id.data)
+    .eq("client_id", clientId.data);
   revalidate(clientId.data);
 }

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff, type ActionState } from "@/lib/staff";
+import { requireDossier, type ActionState } from "@/lib/staff";
 
 const SIGNED_URL_TTL_SECONDS = 60;
 
@@ -61,7 +61,7 @@ export async function createAudit(
   }
 
   const supabase = await createClient();
-  const staff = await requireStaff(supabase);
+  const staff = await requireDossier(supabase, d.clientId);
   if (!staff) return { status: "error", message: "Seule l'équipe peut ouvrir un audit." };
 
   const { error } = await supabase.from("audits").insert({
@@ -83,17 +83,19 @@ export async function deleteAudit(formData: FormData): Promise<void> {
   if (!id.success || !clientId.success) return;
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase))) return;
+  if (!(await requireDossier(supabase, clientId.data))) return;
 
   const { data: audit } = await supabase
     .from("audits")
     .select("pdf_url")
     .eq("id", id.data)
+    .eq("client_id", clientId.data)
     .maybeSingle();
+  if (!audit) return;
 
   // Retire le PDF du bucket privé seulement si `pdf_url` est bien un chemin de
   // stockage (préfixé par l'id du client), pas une éventuelle URL héritée.
-  if (audit?.pdf_url && audit.pdf_url.startsWith(`${clientId.data}/`)) {
+  if (audit.pdf_url && audit.pdf_url.startsWith(`${clientId.data}/`)) {
     await supabase.storage.from("documents").remove([audit.pdf_url]);
   }
   await supabase.from("audits").delete().eq("id", id.data);
@@ -108,16 +110,16 @@ export async function getStaffAuditUrl(
   if (!id.success) return { status: "error", message: "Audit inconnu." };
 
   const supabase = await createClient();
-  const staff = await requireStaff(supabase);
-  if (!staff) return { status: "error", message: "Accès réservé à l'équipe." };
-
   const { data: audit } = await supabase
     .from("audits")
-    .select("id, pdf_url")
+    .select("id, pdf_url, client_id")
     .eq("id", id.data)
     .maybeSingle();
 
   if (!audit?.pdf_url) return { status: "error", message: "Aucun rapport joint." };
+
+  const staff = await requireDossier(supabase, audit.client_id);
+  if (!staff) return { status: "error", message: "Accès réservé à l'équipe." };
 
   const { data: signed, error } = await supabase.storage
     .from("documents")

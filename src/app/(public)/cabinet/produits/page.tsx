@@ -144,26 +144,15 @@ interface ProductCardProps {
   variant?: "cream" | "white";
   /** Reserves two lines for title and summary so siblings collapse to equal heights. */
   uniform?: boolean;
-  /** Omit both to let the card own its state; pass both to hoist it to the parent. */
-  open?: boolean;
-  onToggle?: () => void;
+  open: boolean;
+  onToggle: () => void;
 }
 
-function ProductCard({
-  product,
-  variant = "cream",
-  uniform = false,
-  open: openProp,
-  onToggle,
-}: ProductCardProps) {
-  const [openState, setOpenState] = useState(false);
-  const isControlled = openProp !== undefined;
-  const open = isControlled ? openProp : openState;
-
+function ProductCard({ product, variant = "cream", uniform = false, open, onToggle }: ProductCardProps) {
   return (
     <div
       className={`rounded-lg cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border ${variant === "cream" ? "bg-cream border-cream-deep hover:border-bronze/30" : "bg-white border-ink/[0.08] hover:border-bronze/30"}`}
-      onClick={() => (isControlled ? onToggle?.() : setOpenState(!openState))}
+      onClick={onToggle}
     >
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex-1 min-w-0 mr-4">
@@ -204,7 +193,22 @@ function ProductCard({
   );
 }
 
-function CategoryBlock({ category, delay, variant = "cream" }: { category: Category; delay: number; variant?: "cream" | "white" }) {
+/** The page's single open card, shared by every category, desktop and mobile. */
+interface Ouverture {
+  ouvert: string | null;
+  basculer: (cle: string) => void;
+}
+
+/** The key carries the category, so two categories may share a product title. */
+const cleCarte = (category: Category, product: Product) => `${category.name}/${product.title}`;
+
+function CategoryBlock({
+  category,
+  delay,
+  variant = "cream",
+  ouvert,
+  basculer,
+}: { category: Category; delay: number; variant?: "cream" | "white" } & Ouverture) {
   return (
     <div className="mb-10">
       <AnimateIn variant="fade-right" delay={delay}>
@@ -216,7 +220,12 @@ function CategoryBlock({ category, delay, variant = "cream" }: { category: Categ
       <div className="grid md:grid-cols-2 gap-3">
         {category.products.map((p, i) => (
           <AnimateIn key={p.title} variant="scale-in" delay={delay + (i * 80)}>
-            <ProductCard product={p} variant={variant} />
+            <ProductCard
+              product={p}
+              variant={variant}
+              open={ouvert === cleCarte(category, p)}
+              onToggle={() => basculer(cleCarte(category, p))}
+            />
           </AnimateIn>
         ))}
       </div>
@@ -224,14 +233,13 @@ function CategoryBlock({ category, delay, variant = "cream" }: { category: Categ
   );
 }
 
-/**
- * One category as a swipeable row. The open card is tracked here rather than
- * inside each card: a flex row is as tall as its tallest child, so a card left
- * expanded off-screen would keep the whole row inflated after you close another.
- */
-function SwipeCategory({ category, variant }: { category: Category; variant: "cream" | "white" }) {
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
-
+/** One category as a swipeable row. */
+function SwipeCategory({
+  category,
+  variant,
+  ouvert,
+  basculer,
+}: { category: Category; variant: "cream" | "white" } & Ouverture) {
   return (
     <div className="mb-10">
       <AnimateIn variant="fade-up">
@@ -242,14 +250,14 @@ function SwipeCategory({ category, variant }: { category: Category; variant: "cr
       </AnimateIn>
       <SwipeRow
         className="-mx-7"
-        items={category.products.map((p, i) => (
+        items={category.products.map((p) => (
           <ProductCard
             key={p.title}
             product={p}
             variant={variant}
             uniform
-            open={openIdx === i}
-            onToggle={() => setOpenIdx(openIdx === i ? null : i)}
+            open={ouvert === cleCarte(category, p)}
+            onToggle={() => basculer(cleCarte(category, p))}
           />
         ))}
       />
@@ -258,11 +266,15 @@ function SwipeCategory({ category, variant }: { category: Category; variant: "cr
 }
 
 /** Mobile: category heading + a swipeable row of that category's products. */
-function CategorySwipe({ categories, variant }: { categories: Category[]; variant: "cream" | "white" }) {
+function CategorySwipe({
+  categories,
+  variant,
+  ...ouverture
+}: { categories: Category[]; variant: "cream" | "white" } & Ouverture) {
   return (
     <div className="md:hidden">
       {categories.map((cat) => (
-        <SwipeCategory key={cat.name} category={cat} variant={variant} />
+        <SwipeCategory key={cat.name} category={cat} variant={variant} {...ouverture} />
       ))}
     </div>
   );
@@ -272,6 +284,15 @@ function CategorySwipe({ categories, variant }: { categories: Category[]; varian
 const HEADER_H = 73;
 
 export default function ProduitsPage() {
+  // One open card for the whole page. On mobile it also matters for layout: a
+  // swipe row is as tall as its tallest card, so a card left open off-screen
+  // would keep the row inflated.
+  const [ouvert, setOuvert] = useState<string | null>(null);
+  const ouverture: Ouverture = {
+    ouvert,
+    basculer: (cle) => setOuvert((o) => (o === cle ? null : cle)),
+  };
+
   return (
     <>
       {/* Ces deux sections-là s'ouvrent sur un intitulé : sans la hauteur de
@@ -331,12 +352,12 @@ export default function ProduitsPage() {
           {/* Desktop: full catalogue, grouped by category */}
           <div className="hidden md:block">
             {individuelles.map((cat, i) => (
-              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="cream" />
+              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="cream" {...ouverture} />
             ))}
           </div>
 
           {/* Mobile: one swipeable row per category */}
-          <CategorySwipe categories={individuelles} variant="cream" />
+          <CategorySwipe categories={individuelles} variant="cream" {...ouverture} />
         </div>
       </section>
 
@@ -369,12 +390,12 @@ export default function ProduitsPage() {
           {/* Desktop: full catalogue, grouped by category */}
           <div className="hidden md:block">
             {entreprises.map((cat, i) => (
-              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="white" />
+              <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="white" {...ouverture} />
             ))}
           </div>
 
           {/* Mobile: same swipe rows, kept consistent with the section above */}
-          <CategorySwipe categories={entreprises} variant="white" />
+          <CategorySwipe categories={entreprises} variant="white" {...ouverture} />
         </div>
       </section>
 

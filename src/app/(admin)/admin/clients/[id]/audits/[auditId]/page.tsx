@@ -89,7 +89,7 @@ export default async function FicheAuditPage({
             </div>
             <p className="text-[13px] text-warm-grey leading-[1.6] mt-1.5 max-w-[620px]">
               {rdv
-                ? `Ouverte pour le ${libelleType(rdv.type)} du ${formatDateTime(rdv.date)}.`
+                ? `Ouverte pour le rendez-vous « ${libelleType(rdv.type)} » du ${formatDateTime(rdv.date)}.`
                 : "Fiche rattachée à aucun rendez-vous."}{" "}
               Dernière modification le {formatDateTime(audit.updated_at)}.
             </p>

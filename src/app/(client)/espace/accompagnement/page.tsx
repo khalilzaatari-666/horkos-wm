@@ -209,14 +209,14 @@ export default async function AccompagnementPage() {
       .from("appointments")
       .select("id, type, status, date, notes, mode, meeting_url")
       .eq("client_id", user.id)
-      .neq("status", "annule")
+      .not("status", "in", "(annule,non_honore)")
       .gte("date", nowIso)
       .order("date", { ascending: true }),
     supabase
       .from("appointments")
       .select("id, type, status, date, notes, mode, meeting_url")
       .eq("client_id", user.id)
-      .neq("status", "annule")
+      .not("status", "in", "(annule,non_honore)")
       .lt("date", nowIso)
       .order("date", { ascending: false }),
   ]);
@@ -227,7 +227,7 @@ export default async function AccompagnementPage() {
   const appointments: Appointment[] = tous ?? [];
   const avenir: Appointment[] = aVenir ?? [];
   const passes: Appointment[] = passesData ?? [];
-  const actifs = appointments.filter((a) => a.status !== "annule");
+  const actifs = appointments.filter((a) => a.status !== "annule" && a.status !== "non_honore");
 
   return (
     <Panel narrow>

@@ -143,7 +143,6 @@ export default async function AdminRendezVousPage({
   const statut = pick<RdvStatut>(single("statut"), RDV_STATUTS, null);
   const type = pick<RdvType>(single("type"), RDV_TYPES, null);
   const mode = pick(single("mode"), MODES, null);
-  const conseiller = single("conseiller") ?? null;
   const tri = pick<Tri>(single("tri"), TRIS, DEFAULTS.tri)!;
   const sens = single("sens") === "desc" ? "desc" : "asc";
 
@@ -155,6 +154,9 @@ export default async function AdminRendezVousPage({
   // Les statistiques d'équipe ne sont montrées qu'à l'admin. La semaine
   // observée se choisit par `stats=` (un lundi) ; sans lui, la semaine en cours.
   const estAdmin = staff?.role === "admin";
+  // Un conseiller ne voit que ses rendez-vous : le filtre lui est imposé, pas
+  // proposé, et un `?conseiller=` tapé à la main n'y change rien.
+  const conseiller = estAdmin ? (single("conseiller") ?? null) : (staff?.id ?? null);
   const semaineCourante = lundiCourant(jourCabinet(maintenant))!;
   const lundiStats = lundiDeLaSemaine(single("stats") ?? "") ?? semaineCourante;
 
@@ -324,7 +326,7 @@ export default async function AdminRendezVousPage({
     <AdminPanel>
       <AdminHead
         title="Rendez-vous"
-        desc="Les créneaux réservés, tous conseillers confondus. Chaque ligne porte le contexte du questionnaire ; « visiteur » signale un rendez-vous pris sans compte client."
+        desc={`${estAdmin ? "Les créneaux réservés, tous conseillers confondus." : "Vos rendez-vous."} Chaque ligne porte le contexte du questionnaire ; « visiteur » signale un rendez-vous pris sans compte client.`}
       />
 
       <div className="flex justify-end mb-4">
@@ -351,7 +353,7 @@ export default async function AdminRendezVousPage({
       )}
 
       <AnimateIn variant="fade-up" delay={40}>
-        <RendezVousFilters conseillers={conseillers} total={sorted.length} />
+        <RendezVousFilters conseillers={estAdmin ? conseillers : []} total={sorted.length} />
       </AnimateIn>
 
       {horsPeriode > 0 && (

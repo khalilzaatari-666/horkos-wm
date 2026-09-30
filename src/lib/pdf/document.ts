@@ -220,7 +220,10 @@ export class DocumentPdf {
 
   /** Un titre de section, souligné d'un filet bronze. */
   section(titre: string) {
-    this.reserver(46);
+    // Le titre (40 points) et de quoi poser sa première ligne, en-tête de
+    // tableau compris : un titre seul en bas de page, sa suite sur la
+    // suivante, se lit comme une section vide.
+    this.reserver(80);
     this.espace(6);
     this.ecrire(titre, MARGE, this.y - 12, this.polices.titreGras, 14, COULEURS.ink);
     this.page.drawRectangle({

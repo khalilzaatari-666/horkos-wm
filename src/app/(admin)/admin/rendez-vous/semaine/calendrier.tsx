@@ -181,7 +181,8 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
                   const place = places[i];
                   const style =
                     RDV_STATUT_STYLES[b.detail.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
-                  const annule = b.detail.status === "annule";
+                  const annule =
+                    b.detail.status === "annule" || b.detail.status === "non_honore";
                   return (
                     <button
                       key={b.detail.id}

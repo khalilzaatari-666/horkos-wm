@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
- * bookEspaceSlot : le type de rendez-vous n'est pas pris du formulaire mais
- * déduit du parcours - une « revue » si un R0 est déjà terminé, sinon un
- * « R0 ». On vérifie cette déduction, l'exigence de session et le passage à
- * bookAndNotify.
+ * bookEspaceSlot : le client ne réserve que son R0. Une fois le R0 terminé, la
+ * réservation est fermée - la suite se fixe avec le conseiller. On vérifie
+ * cette fermeture, l'exigence de session et le passage à bookAndNotify.
  */
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/booking", () => ({ bookAndNotify: vi.fn() }));
@@ -32,19 +31,29 @@ function query(data: unknown) {
   return chain;
 }
 
+/** Une liste : la chaîne se résout d'elle-même, sans `.maybeSingle()`. */
+function liste(data: unknown[]) {
+  const chain = {
+    select: () => chain,
+    eq: () => chain,
+    then: (resolve: (v: { data: unknown[] }) => unknown) => resolve({ data }),
+  };
+  return chain;
+}
+
 /**
- * Client Supabase configurable : présence d'un utilisateur, existence d'un R0
- * terminé, profil renvoyé.
+ * Client Supabase configurable : présence d'un utilisateur, R0 existants,
+ * profil renvoyé.
  */
 function stubSupabase(opts: {
   user: { id: string; email?: string } | null;
-  pastR0?: unknown;
+  r0s?: { status: string; date: string }[];
   profile?: unknown;
 }) {
   mockCreateClient.mockResolvedValue({
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: opts.user } }) },
     from: vi.fn((table: string) =>
-      query(table === "appointments" ? opts.pastR0 ?? null : opts.profile ?? null)
+      table === "appointments" ? liste(opts.r0s ?? []) : query(opts.profile ?? null)
     ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
@@ -88,9 +97,13 @@ describe("session", () => {
   });
 });
 
-describe("déduction du type de rendez-vous", () => {
-  it("réserve un R0 quand aucun R0 n'est encore terminé", async () => {
-    stubSupabase({ user: { id: "u1", email: "u@x.co" }, pastR0: null, profile: { email: "u@x.co" } });
+describe("réservation du R0", () => {
+  it("réserve un R0 quand aucun R0 n'est tenu ni à venir", async () => {
+    stubSupabase({
+      user: { id: "u1", email: "u@x.co" },
+      r0s: [{ status: "annule", date: "2099-01-01T10:00:00Z" }],
+      profile: { email: "u@x.co" },
+    });
     mockBook.mockResolvedValue(booked);
 
     const res = await bookEspaceSlot(IDLE, form());
@@ -101,23 +114,37 @@ describe("déduction du type de rendez-vous", () => {
     expect(res.bookedMode).toBe("presentiel");
   });
 
-  it("réserve une revue quand un R0 est déjà terminé", async () => {
+  it("refuse de réserver quand un R0 est déjà terminé", async () => {
     stubSupabase({
       user: { id: "u1", email: "u@x.co" },
-      pastR0: { id: "old-r0" },
+      r0s: [{ status: "termine", date: "2020-01-01T10:00:00Z" }],
       profile: { first_name: "Jean", last_name: "Dupont", email: "jean@x.co" },
     });
-    mockBook.mockResolvedValue(booked);
 
-    await bookEspaceSlot(IDLE, form());
+    const res = await bookEspaceSlot(IDLE, form());
 
-    expect(mockBook).toHaveBeenCalledWith(expect.objectContaining({ type: "revue" }));
+    expect(res.status).toBe("error");
+    expect(res.message).toMatch(/votre conseiller vous contactera/);
+    expect(mockBook).not.toHaveBeenCalled();
+  });
+
+  it("refuse un second R0 quand le premier est encore à venir", async () => {
+    stubSupabase({
+      user: { id: "u1", email: "u@x.co" },
+      r0s: [{ status: "confirme", date: "2099-01-01T10:00:00Z" }],
+      profile: { email: "u@x.co" },
+    });
+
+    const res = await bookEspaceSlot(IDLE, form());
+
+    expect(res.message).toMatch(/déjà réservé/);
+    expect(mockBook).not.toHaveBeenCalled();
   });
 });
 
 describe("créneau indisponible", () => {
   it("rend une erreur quand bookAndNotify échoue", async () => {
-    stubSupabase({ user: { id: "u1", email: "u@x.co" }, pastR0: null, profile: { email: "u@x.co" } });
+    stubSupabase({ user: { id: "u1", email: "u@x.co" }, profile: { email: "u@x.co" } });
     mockBook.mockResolvedValue(null);
 
     const res = await bookEspaceSlot(IDLE, form());

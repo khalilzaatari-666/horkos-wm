@@ -7,18 +7,22 @@ import { createClient } from "@/lib/supabase/server";
 import { requireStaff, type ActionState } from "@/lib/staff";
 import { peutAccederAuDossier } from "@/lib/client-access";
 import { cabinetLocalToIso, partsCabinet } from "@/lib/cabinet-time";
-import { jalonSuivant } from "@/lib/parcours";
+import { jalonSuivant, refusChangement } from "@/lib/parcours";
 import { echeance, r0ARelancer, ETAPES_RAPPEL, QUANTITE_MAX, UNITES, type EtapeRappel } from "@/lib/rappels";
 import { createReminderEvent, deleteAppointmentEvent } from "@/lib/google-calendar";
-import { dureeRendezVous, libelleDuree, titreRendezVous } from "@/lib/rendez-vous";
+import { choisirConseiller, dureeRendezVous, libelleDuree, titreRendezVous } from "@/lib/rendez-vous";
 import { OUVERTURE, FERMETURE, DEJEUNER_DEBUT, DEJEUNER_FIN } from "@/components/booking/grille";
 import { advisorRecipient } from "@/lib/email/recipients";
 import { SITE_URL } from "@/lib/site";
+import { annulerEtPrevenir, inviterAuRendezVous, type RendezVousANotifier } from "@/lib/booking";
 
 /** Les statuts qu'une commande du suivi peut poser. */
-const STATUTS = ["confirme", "termine", "annule"] as const;
+const STATUTS = ["confirme", "termine", "non_honore", "annule"] as const;
 
 const REFUS = "Ce dossier est piloté par son conseiller référent.";
+
+/** Ce que les commandes relisent d'un rendez-vous avant d'agir et de prévenir. */
+const RDV_COLONNES = "id, client_id, advisor_id, type, status, mode, date, calendar_event_id";
 
 async function journaliser(userId: string, appointmentId: string, action: string) {
   try {
@@ -70,13 +74,59 @@ async function autoriser(clientId: string) {
 }
 
 /**
- * Annuler, marquer terminé, rétablir. Une seule commande : ce sont trois
- * écritures du même champ, et les distinguer n'apporterait que des copies.
+ * Le conseiller qui tiendra le rendez-vous posé à `debut` : voir
+ * `choisirConseiller`. `actuel` est le titulaire d'un rendez-vous qu'on
+ * déplace, qui n'est pas compté comme occupé.
+ *
+ * La charge se lit sur douze heures de part et d'autre, soit la journée du
+ * cabinet sans calcul de jour local : elle ne sert qu'à départager.
+ */
+async function titulaireDuCreneau(
+  allowed: NonNullable<Awaited<ReturnType<typeof autoriser>>>,
+  debut: Date,
+  duree: number,
+  deplace?: { id: string; advisor_id: string | null }
+): Promise<string | null> {
+  const { data: equipe } = await allowed.supabase.from("profiles").select("id").eq("role", "conseiller");
+  const conseillers = (equipe ?? []).map((p) => p.id as string);
+  if (conseillers.length === 0) return null;
+
+  const { data: occupations } = await allowed.supabase
+    .from("appointments")
+    .select("id, advisor_id, date, duration_minutes")
+    .in("advisor_id", conseillers)
+    .in("status", ["planifie", "confirme"])
+    .gte("date", new Date(debut.getTime() - 12 * 3_600_000).toISOString())
+    .lt("date", new Date(debut.getTime() + 12 * 3_600_000).toISOString());
+
+  return choisirConseiller(
+    conseillers,
+    [deplace?.advisor_id, allowed.advisorId],
+    (occupations ?? []).filter((o) => o.id !== deplace?.id),
+    debut,
+    duree
+  );
+}
+
+const SANS_CONSEILLER =
+  "Aucun conseiller n'est enregistré : invitez-en un depuis Utilisateurs.";
+
+/**
+ * Annuler, marquer terminé ou non honoré, rétablir. Une seule commande : ce
+ * sont des écritures du même champ, et les distinguer n'apporterait que des
+ * copies.
  *
  * Le rendez-vous est mis à jour par son id ET son client : un id volé sur un
  * autre dossier ne passerait pas le filtre.
+ *
+ * Le parcours est relu d'abord (`refusChangement`) : l'onglet grise déjà les
+ * commandes refusées, ce contrôle arrête un formulaire trafiqué ou un onglet
+ * resté ouvert sur un état périmé.
  */
-export async function setAppointmentStatus(formData: FormData): Promise<void> {
+export async function setAppointmentStatus(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
   const parsed = z
     .object({
       id: z.uuid(),
@@ -88,25 +138,46 @@ export async function setAppointmentStatus(formData: FormData): Promise<void> {
       clientId: formData.get("clientId"),
       status: formData.get("status"),
     });
-  if (!parsed.success) return;
+  if (!parsed.success) return { status: "error", message: "Commande invalide." };
 
   const allowed = await autoriser(parsed.data.clientId);
-  if (!allowed) return;
+  if (!allowed) return { status: "error", message: REFUS };
+
+  const { data: rdvs } = await allowed.supabase
+    .from("appointments")
+    .select(RDV_COLONNES)
+    .eq("client_id", parsed.data.clientId);
+  const refus = refusChangement(rdvs ?? [], parsed.data.id, parsed.data.status, new Date());
+  if (refus) return { status: "error", message: refus };
+  const avant = (rdvs ?? []).find((r) => r.id === parsed.data.id) as RendezVousANotifier & {
+    status: string;
+  };
 
   const { error } = await allowed.supabase
     .from("appointments")
     .update({ status: parsed.data.status })
     .eq("id", parsed.data.id)
     .eq("client_id", parsed.data.clientId);
-  if (error) return;
+  if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
 
   await journaliser(allowed.staff.id, parsed.data.id, `appointment.${parsed.data.status}`);
+
+  // Ce que le client doit apprendre : une annulation, ou un rendez-vous
+  // rétabli qui est encore à venir. Terminé, non honoré, rouvert : du
+  // classement interne, rien ne part.
+  if (parsed.data.status === "annule") {
+    await annulerEtPrevenir({ supabase: allowed.supabase, rdv: avant });
+  } else if (avant.status === "annule" && new Date(avant.date).getTime() > Date.now()) {
+    await inviterAuRendezVous({ supabase: allowed.supabase, rdv: avant, motif: "planifie" });
+  }
+
   revalidate(parsed.data.clientId);
+  return { status: "success" };
 }
 
 const planifierSchema = z.object({
   clientId: z.uuid(),
-  type: z.enum(["R1", "R2"]),
+  type: z.enum(["R0", "R1", "R2"]),
   // `datetime-local` : heure du cabinet, sans fuseau.
   quand: z.string(),
   mode: z.enum(["presentiel", "visio"]),
@@ -130,8 +201,8 @@ const planifierSchema = z.object({
  *
  * L'insertion est directe, sans passer par `book_slot` : ce RPC réserve un
  * créneau ouvert au nom de l'utilisateur connecté, ce qu'un conseiller agissant
- * pour un client n'est pas. En contrepartie, ni événement d'agenda ni email ne
- * part d'ici - le conseiller convient de l'heure avec son client.
+ * pour un client n'est pas. L'événement d'agenda et les emails suivent,
+ * par `inviterAuRendezVous`, comme pour une réservation du client.
  */
 export async function planifierEtape(
   _previous: ActionState,
@@ -154,6 +225,9 @@ export async function planifierEtape(
 
   const allowed = await autoriser(parsed.data.clientId);
   if (!allowed) return { status: "error", message: REFUS };
+
+  const titulaire = await titulaireDuCreneau(allowed, new Date(date), dureeRendezVous(parsed.data.type));
+  if (!titulaire) return { status: "error", message: SANS_CONSEILLER };
 
   const { data: existants } = await allowed.supabase
     .from("appointments")
@@ -197,16 +271,13 @@ export async function planifierEtape(
     if (clotureError) {
       return { status: "error", message: "Le rendez-vous précédent n'a pas pu être clos." };
     }
-    await journaliser(allowed.staff.id, aTerminer.id, "appointment.termine");
   }
 
   const { data: cree, error } = await allowed.supabase
     .from("appointments")
     .insert({
       client_id: parsed.data.clientId,
-      // Le référent s'il existe, sinon celui qui pose l'étape : un rendez-vous
-      // sans conseiller n'apparaîtrait nulle part dans le tableau de bord.
-      advisor_id: allowed.advisorId ?? allowed.staff.id,
+      advisor_id: titulaire,
       type: parsed.data.type,
       status: "planifie",
       date,
@@ -218,9 +289,119 @@ export async function planifierEtape(
     .select("id")
     .maybeSingle();
 
+  if (error) {
+    // La clôture n'a de sens qu'avec la suite : sans elle, le rendez-vous
+    // précédent retrouve son statut, et le conseiller réessaie depuis le même
+    // état.
+    if (aTerminer) {
+      await allowed.supabase
+        .from("appointments")
+        .update({ status: aTerminer.status })
+        .eq("id", aTerminer.id)
+        .eq("client_id", parsed.data.clientId);
+    }
+    return { status: "error", message: "Enregistrement impossible. Réessayez." };
+  }
+
+  if (aTerminer) await journaliser(allowed.staff.id, aTerminer.id, "appointment.termine");
+  if (cree?.id) {
+    await journaliser(allowed.staff.id, cree.id, "appointment.planifie");
+    await inviterAuRendezVous({
+      supabase: allowed.supabase,
+      rdv: {
+        id: cree.id,
+        client_id: parsed.data.clientId,
+        advisor_id: titulaire,
+        type: parsed.data.type,
+        mode: parsed.data.mode,
+        date,
+        calendar_event_id: null,
+      },
+      motif: "planifie",
+    });
+  }
+
+  // L'étape est posée : la relance qui l'attendait n'a plus d'objet. Le cron le
+  // constaterait à l'échéance, mais d'ici là la case resterait dans l'agenda.
+  if (parsed.data.type === "R0" || parsed.data.type === "R1") {
+    const { data: caducs } = await allowed.supabase
+      .from("reminders")
+      .update({ status: "sans_objet" })
+      .eq("client_id", parsed.data.clientId)
+      .eq("etape", parsed.data.type)
+      .eq("status", "en_attente")
+      .select("calendar_event_id");
+    for (const r of caducs ?? []) {
+      if (r.calendar_event_id) await deleteAppointmentEvent(r.calendar_event_id);
+    }
+  }
+
+  revalidate(parsed.data.clientId);
+  return { status: "success" };
+}
+
+/**
+ * Déplace un rendez-vous encore posé. Même ligne, même statut : il n'est ni
+ * annulé ni recréé, donc les statistiques ne comptent pas une annulation qui
+ * n'en est pas une. Le client reçoit la nouvelle heure et une invitation à jour.
+ */
+export async function deplacerRendezVous(
+  _previous: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = z
+    .object({ id: z.uuid(), clientId: z.uuid(), quand: z.string() })
+    .safeParse({
+      id: formData.get("id"),
+      clientId: formData.get("clientId"),
+      quand: formData.get("quand"),
+    });
+  if (!parsed.success) return { status: "error", message: "Choisissez une date et une heure." };
+
+  const date = cabinetLocalToIso(parsed.data.quand);
+  if (!date) return { status: "error", message: "Date ou heure invalide." };
+  if (new Date(date).getTime() <= Date.now()) {
+    return { status: "error", message: "Choisissez une heure à venir." };
+  }
+
+  const allowed = await autoriser(parsed.data.clientId);
+  if (!allowed) return { status: "error", message: REFUS };
+
+  const { data: rdv } = await allowed.supabase
+    .from("appointments")
+    .select(RDV_COLONNES)
+    .eq("id", parsed.data.id)
+    .eq("client_id", parsed.data.clientId)
+    .maybeSingle();
+  if (!rdv) return { status: "error", message: "Ce rendez-vous n'appartient pas à ce client." };
+  if (rdv.status !== "planifie" && rdv.status !== "confirme") {
+    return { status: "error", message: "Seul un rendez-vous encore posé se déplace." };
+  }
+
+  // Le titulaire reste, s'il est conseiller ; sinon (un admin, un compte sans
+  // rôle) le rendez-vous rejoint l'agenda d'un vrai conseiller.
+  const titulaire = await titulaireDuCreneau(
+    allowed,
+    new Date(date),
+    dureeRendezVous(rdv.type),
+    { id: rdv.id, advisor_id: rdv.advisor_id }
+  );
+  if (!titulaire) return { status: "error", message: SANS_CONSEILLER };
+
+  const { error } = await allowed.supabase
+    .from("appointments")
+    .update({ date, advisor_id: titulaire })
+    .eq("id", rdv.id)
+    .eq("client_id", parsed.data.clientId);
   if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
 
-  if (cree?.id) await journaliser(allowed.staff.id, cree.id, "appointment.planifie");
+  await journaliser(allowed.staff.id, rdv.id, "appointment.deplace");
+  await inviterAuRendezVous({
+    supabase: allowed.supabase,
+    rdv: { ...(rdv as RendezVousANotifier), date, advisor_id: titulaire },
+    motif: "deplace",
+  });
+
   revalidate(parsed.data.clientId);
   return { status: "success" };
 }
@@ -482,6 +663,31 @@ export async function annulerRappel(formData: FormData): Promise<void> {
   revalidate(parsed.data.clientId);
 }
 
+/**
+ * Remet en file un rappel que le cron a cessé de retenter. L'échéance, passée,
+ * reste la même : il part à la passe suivante.
+ */
+export async function relancerRappel(formData: FormData): Promise<void> {
+  const parsed = z
+    .object({ id: z.uuid(), clientId: z.uuid() })
+    .safeParse({ id: formData.get("id"), clientId: formData.get("clientId") });
+  if (!parsed.success) return;
+
+  const allowed = await autoriser(parsed.data.clientId);
+  if (!allowed) return;
+
+  const { error } = await allowed.supabase
+    .from("reminders")
+    .update({ attempts: 0, last_error: null })
+    .eq("id", parsed.data.id)
+    .eq("client_id", parsed.data.clientId)
+    .eq("status", "en_attente");
+  if (error) return;
+
+  await journaliser(allowed.staff.id, parsed.data.id, "reminder.relance");
+  revalidate(parsed.data.clientId);
+}
+
 // ---------------------------------------------------------------------------
 // Disponibilité du conseiller pour l'étape qu'on s'apprête à poser
 // ---------------------------------------------------------------------------
@@ -505,6 +711,12 @@ export type Disponibilite =
       conflits: Conflit[];
       /** Hors jour ouvré, avant l'ouverture, sur le déjeuner ou après la fermeture. */
       horsHoraires: boolean;
+      /** L'agenda lu est celui de la personne connectée. */
+      soi: boolean;
+      /** Le conseiller qui tiendra le rendez-vous. */
+      nom: string;
+      /** L'heure choisie est déjà passée. */
+      passe: boolean;
     };
 
 const heureFmt = new Intl.DateTimeFormat("fr-FR", {
@@ -536,23 +748,24 @@ function dansLesHoraires(debut: Date, dureeMin: number): boolean {
  * un verrou - un R1 posé volontairement en face d'autre chose reste possible,
  * et `planifierEtape` n'en tient pas compte.
  *
- * L'agenda consulté est celui de la personne connectée - celle qui pose l'étape
- * et qui tiendra le rendez-vous. C'est la seule question qu'elle se pose en
- * choisissant une heure : « suis-je libre à ce moment-là ? »
- *
- * La règle de `client-access` fait qu'un conseiller n'intervient que sur ses
- * propres dossiers ou sur ceux sans référent : son agenda est donc bien celui
- * du titulaire du rendez-vous. Un admin, lui, voit le sien, qui ne porte
- * normalement aucun rendez-vous client.
+ * L'agenda consulté est celui qui tiendra le rendez-vous, selon la même règle
+ * que `planifierEtape` et `deplacerRendezVous` (`titulaireDuCreneau`).
  */
 export async function verifierCreneau(
   clientId: string,
   type: string,
-  quand: string
+  quand: string,
+  /** Le rendez-vous qu'on déplace : sa place actuelle n'est pas un conflit. */
+  ignorer?: string
 ): Promise<Disponibilite> {
   const parsed = z
-    .object({ clientId: z.uuid(), type: z.enum(["R1", "R2"]), quand: z.string() })
-    .safeParse({ clientId, type, quand });
+    .object({
+      clientId: z.uuid(),
+      type: z.enum(["R0", "R1", "R2", "revue", "autre"]),
+      quand: z.string(),
+      ignorer: z.uuid().optional(),
+    })
+    .safeParse({ clientId, type, quand, ignorer });
   if (!parsed.success) return { etat: "inconnu" };
 
   const iso = cabinetLocalToIso(parsed.data.quand);
@@ -563,6 +776,23 @@ export async function verifierCreneau(
 
   const duree = dureeRendezVous(parsed.data.type);
   const debut = new Date(iso);
+
+  const { data: deplace } = parsed.data.ignorer
+    ? await allowed.supabase
+        .from("appointments")
+        .select("id, advisor_id")
+        .eq("id", parsed.data.ignorer)
+        .eq("client_id", parsed.data.clientId)
+        .maybeSingle()
+    : { data: null };
+  const titulaire = await titulaireDuCreneau(allowed, debut, duree, deplace ?? undefined);
+  if (!titulaire) return { etat: "inconnu" };
+
+  const { data: tenant } = await allowed.supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", titulaire)
+    .maybeSingle();
   const fin = new Date(debut.getTime() + duree * 60_000);
 
   // Fenêtre de lecture volontairement large : un rendez-vous commencé avant
@@ -570,13 +800,15 @@ export async function verifierCreneau(
   // plus longue durée du cabinet (1 h 30).
   const depuis = new Date(debut.getTime() - 4 * 3_600_000).toISOString();
 
-  const { data: rdvs } = await allowed.supabase
+  let requete = allowed.supabase
     .from("appointments")
     .select("id, type, date, duration_minutes, client_id, client:client_id(first_name, last_name)")
-    .eq("advisor_id", allowed.staff.id)
+    .eq("advisor_id", titulaire)
     .in("status", ["planifie", "confirme"])
     .gte("date", depuis)
     .lt("date", fin.toISOString());
+  if (parsed.data.ignorer) requete = requete.neq("id", parsed.data.ignorer);
+  const { data: rdvs } = await requete;
 
   type Personne = { first_name: string | null; last_name: string | null };
   const nom = (p: Personne | Personne[] | null | undefined) => {
@@ -607,5 +839,8 @@ export async function verifierCreneau(
     duree: libelleDuree(duree),
     conflits,
     horsHoraires: !dansLesHoraires(debut, duree),
+    soi: titulaire === allowed.staff.id,
+    nom: [tenant?.first_name, tenant?.last_name].filter(Boolean).join(" ") || "Le conseiller",
+    passe: debut.getTime() < Date.now(),
   };
 }

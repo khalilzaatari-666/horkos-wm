@@ -1,6 +1,6 @@
 /** Constantes partagées entre la page serveur et la barre de filtres cliente. */
 
-export const RDV_STATUTS = ["planifie", "confirme", "termine", "annule"] as const;
+export const RDV_STATUTS = ["planifie", "confirme", "termine", "non_honore", "annule"] as const;
 export type RdvStatut = (typeof RDV_STATUTS)[number];
 
 interface Style {
@@ -24,6 +24,12 @@ export const RDV_STATUT_STYLES: Record<RdvStatut, Style> = {
     label: "Terminé",
     pill: "bg-ink/[0.06] text-ink border-ink/15",
     dot: "bg-ink",
+  },
+  // Le client n'est pas venu : ni tenu ni annulé, compté comme manqué.
+  non_honore: {
+    label: "Non honoré",
+    pill: "bg-amber-50 text-amber-800 border-amber-200",
+    dot: "bg-amber-500",
   },
   annule: {
     label: "Annulé",
@@ -55,7 +61,7 @@ export type RdvType = (typeof RDV_TYPES)[number];
 export const RDV_TYPE_LABELS: Record<RdvType, string> = {
   R0: "R0 · Audit patrimonial",
   R1: "R1 · Stratégie",
-  R2: "R2 · Mise en place",
+  R2: "R2 · Gouvernance",
 };
 
 export const MODES = ["presentiel", "visio"] as const;

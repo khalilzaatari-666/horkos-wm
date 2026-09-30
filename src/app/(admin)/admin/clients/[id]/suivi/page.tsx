@@ -12,15 +12,15 @@ import {
   etatEtape,
   jalonSuivant,
   libelleType,
+  refusChangement,
   type EtapeState,
 } from "@/lib/parcours";
-import { peutAccederAuDossier } from "@/lib/client-access";
 import { param, pick, sensDe, trier, instant } from "@/lib/liste";
 import { RDV_STATUT_STYLES, type RdvStatut } from "../../../rendez-vous/constants";
 import { RdvActions } from "./rdv-actions";
 import { EtapeSuivanteButton } from "./etape-suivante";
 import { RappelForm } from "./rappel-form";
-import { annulerRappel } from "./actions";
+import { annulerRappel, relancerRappel } from "./actions";
 import { OuvrirFicheButton } from "../audits/ouvrir-fiche";
 import { r0ARelancer } from "@/lib/rappels";
 
@@ -63,13 +63,47 @@ const ETAT_TONES: Record<EtapeState, "succes" | "attente" | "neutre"> = {
   avenir: "neutre",
 };
 
+/**
+ * « En cours » dit où en est le client, pas si le rendez-vous a eu lieu. Côté
+ * cabinet on précise : encore à venir, ou passé et en attente de clôture.
+ */
+function badgeEtape(
+  state: EtapeState,
+  duType: Rdv[],
+  maintenant: Date
+): { label: string; tone: "succes" | "attente" | "neutre" | "info" } {
+  if (state !== "encours") return { label: ETAT_LABELS[state], tone: ETAT_TONES[state] };
+  const aVenir = duType.some(
+    (r) =>
+      (r.status === "planifie" || r.status === "confirme") &&
+      new Date(r.date).getTime() > maintenant.getTime()
+  );
+  return aVenir ? { label: "Planifiée", tone: "info" } : { label: "À clôturer", tone: "attente" };
+}
+
+/**
+ * Le rendez-vous qui représente l'étape sur sa carte : celui qui l'a franchie,
+ * sinon celui qui est posé, sinon le plus récent. Le plus récent seul ferait
+ * afficher un R0 annulé à la place du R0 tenu qui porte la fiche d'audit.
+ */
+function repereEtape(duType: Rdv[]): Rdv | undefined {
+  return (
+    duType.find((r) => r.status === "termine") ??
+    duType.find((r) => r.status === "planifie" || r.status === "confirme") ??
+    duType[0]
+  );
+}
+
+/** Les statuts vers lesquels une ligne peut basculer : voir `RdvActions`. */
+const CIBLES = ["confirme", "termine", "non_honore", "annule"] as const;
+
 const MODE_LABELS: Record<string, string> = {
   presentiel: "Au cabinet",
   visio: "En visio",
 };
 
 const TRIS = ["quand", "etape", "statut"] as const;
-const STATUTS = ["planifie", "confirme", "termine", "annule"] as const;
+const STATUTS = ["planifie", "confirme", "termine", "non_honore", "annule"] as const;
 
 export default async function ClientSuiviPage({
   params,
@@ -88,15 +122,11 @@ export default async function ClientSuiviPage({
   // est rejeté par la règle de pureté des composants.
   const maintenant = new Date();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) notFound();
-
-  const [{ data: client }, { data: me }, { data: rdvData }, { data: auditData }] =
+  // Le droit d'entrée est vérifié par le layout du dossier (`peutAccederAuDossier`) :
+  // qui arrive ici pilote ce dossier, et les actions le revérifient.
+  const [{ data: client }, { data: rdvData }, { data: auditData }, { data: rappelData }] =
     await Promise.all([
       supabase.from("profiles").select("advisor_id").eq("id", id).maybeSingle(),
-      supabase.from("profiles").select("id, role").eq("id", user.id).maybeSingle(),
       supabase
         .from("appointments")
         .select("id, type, status, date, mode, meeting_url, notes, advisor_id")
@@ -105,15 +135,15 @@ export default async function ClientSuiviPage({
       // Les fiches d'audit, pour savoir si le R0 a déjà la sienne - et si elle
       // est clôturée, ce qui conditionne le rappel de relance.
       supabase.from("audits").select("id, appointment_id, status").eq("client_id", id),
+      // Les rappels, en attente et envoyés : les premiers se gèrent, les seconds
+      // disent quand le cabinet a relancé pour la dernière fois.
+      supabase
+        .from("reminders")
+        .select("id, etape, status, due_at, sent_at, note, attempts, last_error, calendar_event_id")
+        .eq("client_id", id)
+        .in("status", ["en_attente", "envoye"])
+        .order("sent_at", { ascending: false }),
     ]);
-
-  // Les rappels de relance en attente. Un seul par étape : c'est l'index unique
-  // partiel de la migration 029 qui le garantit.
-  const { data: rappelData } = await supabase
-    .from("reminders")
-    .select("id, etape, due_at, note, attempts, last_error, calendar_event_id")
-    .eq("client_id", id)
-    .eq("status", "en_attente");
 
   if (!client) notFound();
 
@@ -144,12 +174,17 @@ export default async function ClientSuiviPage({
       .map((a) => [a.appointment_id, { id: a.id, status: a.status }])
   );
 
-  const rappelParEtape = new Map((rappelData ?? []).map((r) => [r.etape as string, r]));
-
-  const pilote = peutAccederAuDossier(
-    { id: user.id, role: me?.role ?? "" },
-    client.advisor_id ?? null
+  // En attente : un seul par étape, c'est l'index unique partiel de la
+  // migration 029 qui le garantit.
+  const rappels = rappelData ?? [];
+  const rappelParEtape = new Map(
+    rappels.filter((r) => r.status === "en_attente").map((r) => [r.etape as string, r])
   );
+  const derniereRelance = (etape: string) =>
+    rappels.find((r) => r.etape === etape && r.status === "envoye" && r.sent_at)?.sent_at as
+      | string
+      | undefined;
+
   const suivante = jalonSuivant(rdvs);
 
   // L'étape en cours dont l'heure est passée : elle a très probablement eu lieu,
@@ -190,10 +225,10 @@ export default async function ClientSuiviPage({
           Le parcours du client et tous ses rendez-vous, annulés compris. Le client voit le même
           parcours depuis « Mon accompagnement ».
         </p>
-        {pilote && suivante && (
+        {suivante && (
           <EtapeSuivanteButton clientId={id} etape={{ type: suivante.type, title: suivante.title }} />
         )}
-        {pilote && !suivante && aCloturer && suivanteApresCloture && (
+        {!suivante && aCloturer && suivanteApresCloture && (
           <EtapeSuivanteButton
             clientId={id}
             etape={{ type: suivanteApresCloture.type, title: suivanteApresCloture.title }}
@@ -209,7 +244,10 @@ export default async function ClientSuiviPage({
           <ol className="grid gap-3 sm:grid-cols-3">
             {PARCOURS.map((etape, i) => {
               const state = etatEtape(etape.type, rdvs);
-              const dernier = rdvs.filter((r) => r.type === etape.type)[0];
+              const duType = rdvs.filter((r) => r.type === etape.type);
+              const dernier = repereEtape(duType);
+              const relanceLe = derniereRelance(etape.type);
+              const badge = badgeEtape(state, duType, maintenant);
               return (
                 <li
                   key={etape.type}
@@ -221,33 +259,58 @@ export default async function ClientSuiviPage({
                     <span className="font-heading text-[15px] font-semibold text-ink">
                       {i + 1}. {etape.type}
                     </span>
-                    <AdminBadge tone={ETAT_TONES[state]}>{ETAT_LABELS[state]}</AdminBadge>
+                    <AdminBadge tone={badge.tone}>{badge.label}</AdminBadge>
                   </div>
                   <div className="text-[13px] text-charcoal mt-1.5">{etape.title}</div>
                   <div className="text-[12px] text-warm-grey mt-1">
-                    {dernier ? formatDateTime(dernier.date) : "Pas encore posée"}
+                    {dernier
+                      ? formatDateTime(dernier.date) +
+                        (dernier.status === "annule" || dernier.status === "non_honore"
+                          ? ` · ${RDV_STATUT_STYLES[dernier.status].label.toLowerCase()}`
+                          : "")
+                      : "Pas encore posée"}
                   </div>
+                  {relanceLe && (
+                    <div className="text-[11.5px] text-warm-grey mt-0.5">
+                      Dernière relance envoyée le {rappelFmt.format(new Date(relanceLe))}
+                    </div>
+                  )}
                   {/* La fiche d'audit se remplit au R0 : le conseiller la trouve
-                      sur l'étape qui la produit, pas dans un autre onglet. */}
+                      sur l'étape qui la produit, pas dans un autre onglet. Elle
+                      s'ouvre à l'heure du rendez-vous, pas avant ; un R0 annulé
+                      n'en produit pas. */}
                   {etape.type === "R0" && dernier && (
                     <div className="mt-3">
                       {(() => {
                         const fiche = ficheParRdv.get(dernier.id);
-                        return fiche ? (
-                          <Link
-                            href={`/admin/clients/${id}/audits/${fiche.id}`}
-                            className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
-                          >
-                            Fiche d&apos;audit →
-                          </Link>
-                        ) : (
-                          pilote && (
-                            <OuvrirFicheButton
-                              clientId={id}
-                              appointmentId={dernier.id}
-                              libelle="Ouvrir la fiche d'audit"
-                            />
-                          )
+                        if (fiche) {
+                          return (
+                            <Link
+                              href={`/admin/clients/${id}/audits/${fiche.id}`}
+                              className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                            >
+                              {fiche.status === "termine"
+                                ? "Fiche d'audit clôturée →"
+                                : "Fiche d'audit en cours →"}
+                            </Link>
+                          );
+                        }
+                        if (dernier.status === "annule" || dernier.status === "non_honore") {
+                          return null;
+                        }
+                        if (new Date(dernier.date).getTime() > maintenant.getTime()) {
+                          return (
+                            <span className="text-[12px] text-warm-grey">
+                              Fiche d&apos;audit disponible à l&apos;heure du rendez-vous.
+                            </span>
+                          );
+                        }
+                        return (
+                          <OuvrirFicheButton
+                            clientId={id}
+                            appointmentId={dernier.id}
+                            libelle="Ouvrir la fiche d'audit"
+                          />
                         );
                       })()}
                     </div>
@@ -256,7 +319,7 @@ export default async function ClientSuiviPage({
                   {/* Le rappel de R0 : client inscrit sans rendez-vous, qui ne
                       veut pas encore de R0, R0 annulé ou passé sans avoir eu
                       lieu. La balle est dans le camp du cabinet. */}
-                  {etape.type === "R0" && pilote && (() => {
+                  {etape.type === "R0" && (() => {
                     const rappel = rappelParEtape.get("R0");
                     if (rappel) return <RappelEnAttente clientId={id} rappel={rappel} />;
                     if (!r0ARelancer(rdvs, maintenant)) return null;
@@ -269,15 +332,21 @@ export default async function ClientSuiviPage({
 
                   {/* La relance du R1 : une fois le R0 tenu et son audit rendu,
                       c'est au cabinet de reprendre contact pour la stratégie. */}
-                  {etape.type === "R1" && pilote && (() => {
+                  {etape.type === "R1" && (() => {
                     const rappel = rappelParEtape.get("R1");
                     if (rappel) return <RappelEnAttente clientId={id} rappel={rappel} />;
                     const r0Tenu = rdvs.find((r) => r.type === "R0" && r.status === "termine");
-                    const relanceOuverte =
-                      state === "avenir" &&
-                      !!r0Tenu &&
-                      ficheParRdv.get(r0Tenu.id)?.status === "termine";
-                    if (!relanceOuverte) return null;
+                    if (state !== "avenir" || !r0Tenu) return null;
+                    // Dire ce qui manque plutôt que de taire le formulaire.
+                    if (ficheParRdv.get(r0Tenu.id)?.status !== "termine") {
+                      return (
+                        <p className="pt-3 mt-3 border-t border-cream-deep text-[12px] text-warm-grey leading-[1.55]">
+                          {ficheParRdv.has(r0Tenu.id)
+                            ? "Clôturez la fiche d'audit du R0 pour programmer la relance R1."
+                            : "Ouvrez puis clôturez la fiche d'audit du R0 pour programmer la relance R1."}
+                        </p>
+                      );
+                    }
                     return (
                       <div className="pt-3 mt-3 border-t border-cream-deep">
                         <RappelForm clientId={id} etape="R1" appointmentId={r0Tenu.id} />
@@ -291,15 +360,13 @@ export default async function ClientSuiviPage({
 
           {/* Dire pourquoi rien n'est proposé vaut mieux qu'une absence de bouton. */}
           <p className="text-[12.5px] text-warm-grey leading-[1.6] mt-4">
-            {!pilote
-              ? "Lecture seule : ce dossier est piloté par son conseiller référent."
-              : suivante
-                ? `Étape à poser : ${suivante.type} - ${suivante.title}.`
-                : aCloturer && suivanteApresCloture
-                  ? `Le ${aCloturer.type} est passé sans être clos. Planifier le ${suivanteApresCloture.type} le marquera terminé - c'est ce qui alimente le taux de rendez-vous honorés.`
-                  : aCloturer
-                    ? `Le ${aCloturer.type} est passé : marquez-le terminé ou annulé dans la liste ci-dessous.`
-                    : "Rien à planifier : l'étape suivante est déjà posée, ou le parcours est complet."}
+            {suivante
+              ? `Étape à poser : ${suivante.type} - ${suivante.title}.`
+              : aCloturer && suivanteApresCloture
+                ? `Le ${aCloturer.type} est passé sans être clos. S'il a eu lieu, planifier le ${suivanteApresCloture.type} le marquera terminé ; sinon, marquez-le « Absent » dans la liste ci-dessous. C'est ce qui alimente le taux de rendez-vous honorés.`
+                : aCloturer
+                  ? `Le ${aCloturer.type} est passé : marquez-le terminé, absent ou annulé dans la liste ci-dessous.`
+                  : "Rien à planifier : l'étape suivante est déjà posée, ou le parcours est complet."}
           </p>
         </AdminCard>
       </AnimateIn>
@@ -338,7 +405,7 @@ export default async function ClientSuiviPage({
             "Format",
             "Conseiller",
             <TriHeader key="s" label="Statut" colonne="statut" tri={tri} sens={sens} params={qs} />,
-            pilote ? "" : "Note",
+            "",
           ]}
           isEmpty={lignes.length === 0}
           empty={
@@ -351,21 +418,23 @@ export default async function ClientSuiviPage({
             const style = RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
             return (
               <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
-                <Td className="whitespace-nowrap">
+                <Td className="whitespace-nowrap min-w-[260px]">
                   <div className="font-medium text-ink">{formatDateTime(r.date)}</div>
                   {r.notes && (
-                    <div className="text-[12px] text-warm-grey mt-1 max-w-[260px] whitespace-normal">
+                    <div className="text-[12px] text-warm-grey mt-1 max-w-[340px] whitespace-normal">
                       {r.notes}
                     </div>
                   )}
                 </Td>
-                <Td className="whitespace-nowrap">
-                  <div className="text-ink">{libelleType(r.type)}</div>
-                  <span className="inline-block text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded mt-1">
-                    {r.type}
-                  </span>
+                <Td className="whitespace-nowrap min-w-[300px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded">
+                      {r.type}
+                    </span>
+                    <span className="text-ink">{libelleType(r.type)}</span>
+                  </div>
                 </Td>
-                <Td className="whitespace-nowrap">
+                <Td className="whitespace-nowrap min-w-[160px]">
                   {r.mode === "visio" && r.meeting_url ? (
                     <a
                       href={r.meeting_url}
@@ -379,10 +448,10 @@ export default async function ClientSuiviPage({
                     (MODE_LABELS[r.mode ?? ""] ?? "-")
                   )}
                 </Td>
-                <Td className="whitespace-nowrap text-warm-grey">
+                <Td className="whitespace-nowrap min-w-[180px] text-warm-grey">
                   {r.advisor_id ? (advisorName.get(r.advisor_id) ?? "-") : "-"}
                 </Td>
-                <Td className="whitespace-nowrap">
+                <Td className="whitespace-nowrap min-w-[150px]">
                   <span
                     className={`inline-flex items-center gap-1.5 text-[11.5px] font-medium border px-2 py-1 rounded ${style.pill}`}
                   >
@@ -391,11 +460,15 @@ export default async function ClientSuiviPage({
                   </span>
                 </Td>
                 <Td>
-                  {pilote ? (
-                    <RdvActions clientId={id} id={r.id} status={r.status} />
-                  ) : (
-                    <span className="text-warm-grey">-</span>
-                  )}
+                  <RdvActions
+                    clientId={id}
+                    id={r.id}
+                    type={r.type}
+                    status={r.status}
+                    refus={Object.fromEntries(
+                      CIBLES.map((c) => [c, refusChangement(rdvs, r.id, c, maintenant)])
+                    )}
+                  />
                 </Td>
               </tr>
             );
@@ -440,16 +513,30 @@ function RappelEnAttente({
           {rappel.last_error ? ` : ${rappel.last_error}` : "."}
         </div>
       )}
-      <form action={annulerRappel} className="mt-1.5">
-        <input type="hidden" name="id" value={rappel.id} />
-        <input type="hidden" name="clientId" value={clientId} />
-        <button
-          type="submit"
-          className="text-[12px] text-warm-grey hover:text-red-600 transition-colors cursor-pointer"
-        >
-          Annuler le rappel
-        </button>
-      </form>
+      <div className="flex items-center gap-3 mt-1.5">
+        {rappel.attempts >= TENTATIVES_MAX && (
+          <form action={relancerRappel}>
+            <input type="hidden" name="id" value={rappel.id} />
+            <input type="hidden" name="clientId" value={clientId} />
+            <button
+              type="submit"
+              className="text-[12px] font-medium text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+            >
+              Réessayer l&apos;envoi
+            </button>
+          </form>
+        )}
+        <form action={annulerRappel}>
+          <input type="hidden" name="id" value={rappel.id} />
+          <input type="hidden" name="clientId" value={clientId} />
+          <button
+            type="submit"
+            className="text-[12px] text-warm-grey hover:text-red-600 transition-colors cursor-pointer"
+          >
+            Annuler le rappel
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

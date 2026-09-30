@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { jalonSuivant, libelleType } from "./parcours";
+import { jalonSuivant, libelleType, refusChangement } from "./parcours";
 
 /**
  * `jalonSuivant` porte la règle que le back-office applique : une étape ne se
@@ -76,5 +76,45 @@ describe("libelleType", () => {
   it("nomme les rendez-vous hors parcours", () => {
     expect(libelleType("revue")).toBe("Point de suivi");
     expect(libelleType("autre")).toBe("Échange");
+  });
+});
+
+/** Le verrou des commandes du suivi : ce qui est grisé à l'écran et refusé au serveur. */
+describe("refusChangement", () => {
+  const maintenant = new Date("2026-09-29T12:00:00Z");
+  const passe = "2026-09-01T10:00:00Z";
+  const futur = "2026-10-15T10:00:00Z";
+  const r0 = { id: "a", type: "R0", status: "termine", date: passe };
+  const r1 = { id: "b", type: "R1", status: "planifie", date: futur };
+
+  it("refuse d'annuler ou de rouvrir le R0 quand le R1 est posé", () => {
+    expect(refusChangement([r0, r1], "a", "annule", maintenant)).toMatch(/suivante/);
+    expect(refusChangement([r0, r1], "a", "confirme", maintenant)).toMatch(/suivante/);
+  });
+
+  it("laisse annuler le R1, ou le R0 quand rien ne suit", () => {
+    expect(refusChangement([r0, r1], "b", "annule", maintenant)).toBeNull();
+    expect(refusChangement([r0], "a", "annule", maintenant)).toBeNull();
+  });
+
+  it("n'ignore pas un autre R0 terminé", () => {
+    const autre = { ...r0, id: "c" };
+    expect(refusChangement([r0, autre, r1], "a", "annule", maintenant)).toBeNull();
+  });
+
+  it("refuse de rétablir un doublon", () => {
+    const annule = { id: "c", type: "R0", status: "annule", date: passe };
+    expect(refusChangement([r0, annule], "c", "confirme", maintenant)).toMatch(/Un autre R0/);
+  });
+
+  it("ne constate pas un rendez-vous à venir", () => {
+    expect(refusChangement([r0, r1], "b", "termine", maintenant)).toMatch(/pas encore eu lieu/);
+    expect(refusChangement([r0, r1], "b", "non_honore", maintenant)).toMatch(/pas encore/);
+  });
+
+  it("ne bloque pas un dossier déjà incohérent", () => {
+    const annule = { ...r0, status: "annule" };
+    expect(refusChangement([annule, r1], "b", "annule", maintenant)).toBeNull();
+    expect(refusChangement([annule, r1], "a", "confirme", maintenant)).toBeNull();
   });
 });

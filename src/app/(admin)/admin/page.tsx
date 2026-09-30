@@ -312,6 +312,7 @@ export default async function AdminDashboardPage() {
   const statutsPasses = ((rdvPasses90j ?? []) as { status: string }[]).map((r) => r.status);
   const honores = statutsPasses.filter((s) => s === "termine").length;
   const annules = statutsPasses.filter((s) => s === "annule").length;
+  const absents = statutsPasses.filter((s) => s === "non_honore").length;
 
   // Demandes d'échange en attente. Requête à part : elle ne nourrit ni la frise
   // ni les compteurs, et la table peut ne pas encore exister sur une base qui
@@ -528,10 +529,10 @@ export default async function AdminDashboardPage() {
             detail="marqués terminés · 90 j"
           />
           <TuileTaux
-            label="Annulations"
-            numerateur={annules}
+            label="Annulations et absences"
+            numerateur={annules + absents}
             denominateur={statutsPasses.length}
-            detail="rendez-vous passés · 90 j"
+            detail={`dont ${absents} client${absents > 1 ? "s" : ""} absent${absents > 1 ? "s" : ""} · 90 j`}
           />
           <TuileTaux
             label="Clients suivis"

@@ -197,7 +197,9 @@ function immobilier(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
     const valeurTotale = somme(locatifs.map((b) => b.valeurEstimee));
     const loyersTotaux = somme(locatifs.map((b) => b.loyersPercus));
     doc.tableau(
-      colonnes([2.4, 1.2, 1.2, 1, 1, 1], [{ fort: true }]),
+      // Les montants gardent la place d'un « 10 000 000 MAD » sur une ligne ;
+      // c'est l'adresse, texte libre, qui passe à la ligne.
+      colonnes([1.7, 1.5, 1.5, 1.2, 1.2, 0.9], [{ fort: true }]),
       ["Adresse", "Valeur", "Restant dû", "Mensualité", "Loyers", "Rendement"],
       locatifs.map(ligne),
       [

@@ -126,17 +126,15 @@ export default async function AdminSemainePage({
     ? single("type")!
     : null;
 
-  // Absence de paramètre = « mon agenda » pour un conseiller, « tout le cabinet »
-  // pour un admin. « tous » s'écrit explicitement pour élargir.
+  // Un conseiller ne voit que son agenda, quel que soit le paramètre. L'admin
+  // voit tout le cabinet, ou le conseiller qu'il choisit.
   const conseillerParam = single("conseiller");
   const conseiller =
-    conseillerParam === "tous"
-      ? null
+    staff.role === "conseiller"
+      ? staff.id
       : conseillerParam && REGEX_UUID.test(conseillerParam)
         ? conseillerParam
-        : staff.role === "conseiller"
-          ? staff.id
-          : null;
+        : null;
 
   const egalites: Record<string, string> = {};
   if (statut) egalites.status = statut;
@@ -357,7 +355,7 @@ export default async function AdminSemainePage({
 
       <AnimateIn variant="fade-up" delay={40}>
         <FiltresSemaine
-          conseillers={conseillers}
+          conseillers={staff.role === "admin" ? conseillers : []}
           valeurConseiller={conseiller ?? "tous"}
           total={blocs.length}
         />

@@ -16,20 +16,25 @@ vi.mock("@/lib/google-calendar", () => ({
 }));
 vi.mock("@/lib/email/appointment", () => ({
   sendAppointmentEmails: vi.fn(),
+  sendCancellationEmail: vi.fn(),
+}));
+vi.mock("@/lib/email/recipients", () => ({
+  advisorRecipient: vi.fn().mockResolvedValue({ name: "Amine Benali", email: "amine@horkos.co" }),
 }));
 
-import { bookAndNotify } from "./booking";
+import { bookAndNotify, inviterAuRendezVous, annulerEtPrevenir } from "./booking";
 import {
   createAppointmentEvent,
   addEventAttendee,
   deleteAppointmentEvent,
 } from "@/lib/google-calendar";
-import { sendAppointmentEmails } from "@/lib/email/appointment";
+import { sendAppointmentEmails, sendCancellationEmail } from "@/lib/email/appointment";
 
 const mockCreateEvent = vi.mocked(createAppointmentEvent);
 const mockAddAttendee = vi.mocked(addEventAttendee);
 const mockDeleteEvent = vi.mocked(deleteAppointmentEvent);
 const mockEmails = vi.mocked(sendAppointmentEmails);
+const mockCancelEmail = vi.mocked(sendCancellationEmail);
 
 const SLOT = "2026-09-01T09:00:00+01:00";
 const TOKEN = "11111111-1111-4111-8111-111111111111";
@@ -66,6 +71,7 @@ beforeEach(() => {
   mockAddAttendee.mockReset();
   mockDeleteEvent.mockReset();
   mockEmails.mockReset();
+  mockCancelEmail.mockReset();
 });
 
 describe("visio - chemin nominal", () => {
@@ -154,5 +160,94 @@ describe("Google indisponible", () => {
     // Le rendez-vous existe : les emails partent.
     expect(mockEmails).toHaveBeenCalledOnce();
     expect(result).not.toBeNull();
+  });
+});
+
+/**
+ * Un client Supabase pour les commandes du suivi : `profiles` rend le client,
+ * `appointments.update` est enregistré pour qu'on vérifie ce qui a été rattaché.
+ */
+function supabaseSuivi() {
+  const updates: unknown[] = [];
+  const client = {
+    from: (table: string) => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () =>
+            table === "profiles"
+              ? { data: { first_name: "Jean", last_name: "Dupont", email: "jean@dupont.com" } }
+              : { data: null },
+        }),
+      }),
+      update: (values: unknown) => {
+        updates.push(values);
+        return { eq: async () => ({ error: null }) };
+      },
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+  return { client, updates };
+}
+
+const rdvSuivi = {
+  id: "appt-2",
+  client_id: "client-1",
+  advisor_id: "advisor-1",
+  type: "R1",
+  mode: "visio",
+  date: "2099-01-05T10:00:00Z",
+  calendar_event_id: "evt-ancien",
+};
+
+describe("inviterAuRendezVous - rendez-vous fixé par le cabinet", () => {
+  it("remplace l'événement, invite client et conseiller avec Meet, rattache le lien et prévient", async () => {
+    mockCreateEvent.mockResolvedValue({ eventId: "evt-neuf", meetLink: "https://meet.google.com/xyz" });
+    const { client, updates } = supabaseSuivi();
+
+    await inviterAuRendezVous({ supabase: client, rdv: rdvSuivi, motif: "deplace" });
+
+    expect(mockDeleteEvent).toHaveBeenCalledWith("evt-ancien");
+    expect(mockCreateEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        withMeet: true,
+        attendees: [
+          { email: "jean@dupont.com", displayName: "Jean Dupont" },
+          { email: "amine@horkos.co", displayName: "Amine Benali" },
+        ],
+      })
+    );
+    expect(updates).toContainEqual({
+      calendar_event_id: "evt-neuf",
+      meeting_url: "https://meet.google.com/xyz",
+    });
+    expect(mockEmails).toHaveBeenCalledWith(
+      expect.objectContaining({ motif: "deplace", meetingUrl: "https://meet.google.com/xyz" })
+    );
+  });
+});
+
+describe("annulerEtPrevenir", () => {
+  it("retire l'événement et prévient le client d'un rendez-vous à venir", async () => {
+    const { client, updates } = supabaseSuivi();
+
+    await annulerEtPrevenir({ supabase: client, rdv: rdvSuivi });
+
+    expect(mockDeleteEvent).toHaveBeenCalledWith("evt-ancien");
+    expect(updates).toContainEqual({ calendar_event_id: null, meeting_url: null });
+    expect(mockCancelEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ appointmentId: "appt-2", client: expect.objectContaining({ email: "jean@dupont.com" }) })
+    );
+  });
+
+  it("n'écrit pas au client pour un rendez-vous déjà passé", async () => {
+    const { client } = supabaseSuivi();
+
+    await annulerEtPrevenir({
+      supabase: client,
+      rdv: { ...rdvSuivi, date: "2020-01-05T10:00:00Z", calendar_event_id: null },
+    });
+
+    expect(mockDeleteEvent).not.toHaveBeenCalled();
+    expect(mockCancelEmail).not.toHaveBeenCalled();
   });
 });

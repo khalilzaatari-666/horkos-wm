@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { titreRendezVous, dureeRendezVous, libelleDuree, DUREES } from "./rendez-vous";
+import {
+  titreRendezVous,
+  dureeRendezVous,
+  libelleDuree,
+  choisirConseiller,
+  DUREES,
+} from "./rendez-vous";
 
 /**
  * L'intitulé et la durée sont recopiés à quatre endroits qui ne se parlent pas
@@ -66,5 +72,29 @@ describe("libelleDuree", () => {
     expect(libelleDuree(60)).toBe("1 heure");
     expect(libelleDuree(90)).toBe("1 h 30");
     expect(libelleDuree(120)).toBe("2 heures");
+  });
+});
+
+describe("choisirConseiller", () => {
+  const debut = new Date("2026-10-20T10:00:00Z");
+  const rdv = (advisor_id: string, date: string) => ({ id: date, advisor_id, date, duration_minutes: 60 });
+
+  it("garde le titulaire puis le référent, s'ils sont conseillers", () => {
+    expect(choisirConseiller(["a", "b"], ["b", "a"], [], debut, 60)).toBe("b");
+    expect(choisirConseiller(["a", "b"], [null, "a"], [], debut, 60)).toBe("a");
+  });
+
+  it("ignore un titulaire ou un référent qui n'est pas conseiller (un admin)", () => {
+    expect(choisirConseiller(["k"], ["admin", "admin"], [], debut, 60)).toBe("k");
+  });
+
+  it("sans référent : le conseiller libre, puis le moins chargé", () => {
+    const occ = [rdv("a", "2026-10-20T10:30:00Z"), rdv("b", "2026-10-20T15:00:00Z"), rdv("c", "2026-10-20T08:00:00Z"), rdv("c", "2026-10-20T16:00:00Z")];
+    expect(choisirConseiller(["a", "b", "c"], [], occ, debut, 60)).toBe("b");
+    expect(choisirConseiller(["a"], [], occ, debut, 60)).toBe("a");
+  });
+
+  it("aucun conseiller : null", () => {
+    expect(choisirConseiller([], ["admin"], [], debut, 60)).toBeNull();
   });
 });

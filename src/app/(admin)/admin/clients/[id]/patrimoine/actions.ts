@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff, type ActionState } from "@/lib/staff";
+import { requireDossier, type ActionState } from "@/lib/staff";
 import { ASSET_TYPES } from "@/lib/patrimoine";
 
 const TYPE_VALUES = ASSET_TYPES.map((t) => t.value) as [string, ...string[]];
@@ -39,14 +39,15 @@ export async function updateAsset(
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase)))
+  if (!(await requireDossier(supabase, parsed.data.clientId)))
     return { status: "error", message: "Seule l'équipe peut modifier un patrimoine." };
 
   const d = parsed.data;
   const { error } = await supabase
     .from("assets")
     .update({ type: d.type, label: d.label, value: d.value })
-    .eq("id", id.data);
+    .eq("id", id.data)
+    .eq("client_id", d.clientId);
 
   if (error) return { status: "error", message: "Enregistrement impossible. Réessayez." };
 
@@ -60,9 +61,9 @@ export async function deleteAsset(formData: FormData): Promise<void> {
   if (!id.success || !clientId.success) return;
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase))) return;
+  if (!(await requireDossier(supabase, clientId.data))) return;
 
-  await supabase.from("assets").delete().eq("id", id.data);
+  await supabase.from("assets").delete().eq("id", id.data).eq("client_id", clientId.data);
   revalidate(clientId.data);
 }
 
@@ -86,10 +87,18 @@ export async function recordValuation(
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  if (!(await requireStaff(supabase)))
+  if (!(await requireDossier(supabase, parsed.data.clientId)))
     return { status: "error", message: "Seule l'équipe peut valoriser un actif." };
 
   const d = parsed.data;
+  // L'actif doit appartenir au client dont on a vérifié le dossier.
+  const { data: actif } = await supabase
+    .from("assets")
+    .select("id")
+    .eq("id", d.assetId)
+    .eq("client_id", d.clientId)
+    .maybeSingle();
+  if (!actif) return { status: "error", message: "Actif introuvable." };
   const { error } = await supabase
     .from("asset_valuations")
     .upsert(

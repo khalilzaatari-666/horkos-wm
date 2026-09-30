@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { Panel, PanelHead } from "@/components/client/ui";
 import { BookingPanel } from "./booking-panel";
+import { refusReservation } from "@/lib/parcours";
 
 export const metadata: Metadata = { title: "Prendre rendez-vous" };
 
@@ -23,13 +24,28 @@ export default async function EspaceRendezVousPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase
-        .from("profiles")
-        .select("advisor_id, advisor:advisor_id(first_name, last_name, role)")
-        .eq("id", user.id)
-        .maybeSingle()
-    : { data: null };
+  const [{ data: profile }, { data: r0s }] = user
+    ? await Promise.all([
+        supabase
+          .from("profiles")
+          .select("advisor_id, advisor:advisor_id(first_name, last_name, role)")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.from("appointments").select("status, date").eq("client_id", user.id).eq("type", "R0"),
+      ])
+    : [{ data: null }, { data: null }];
+
+  // Un R0 tenu ou déjà prévu : pas d'agenda en libre-service, on dit pourquoi.
+  // Un seul instant de référence : `Date.now` est rejeté par la règle de pureté.
+  const maintenant = new Date();
+  const refus = refusReservation(r0s ?? [], maintenant);
+  if (refus) {
+    return (
+      <Panel narrow>
+        <PanelHead eyebrow="À votre convenance" title="Prendre rendez-vous" desc={refus} />
+      </Panel>
+    );
+  }
 
   type Referent = { first_name: string | null; last_name: string | null; role: string };
   const advisor = one(profile?.advisor as unknown as Referent | Referent[] | null);
