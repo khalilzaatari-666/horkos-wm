@@ -50,8 +50,13 @@ const individuelles: Category[] = [
   },
   {
     name: "Immobilier",
-    count: "4 solutions",
+    count: "5 solutions",
     products: [
+      {
+        title: "Immobilier résidentiel",
+        oneline: "Appartements et villas, à habiter ou à louer.",
+        detail: "Acquisition d'un bien résidentiel, résidence principale, secondaire ou investissement locatif. Nous vous aidons à définir le projet, sélectionner le bien avec notre réseau d'agents partenaires et structurer le financement (crédit, apport, détention en nom propre ou en société). Un actif tangible, qui se valorise dans la durée.",
+      },
       {
         title: "Locaux commerciaux - rendement locatif",
         oneline: "Acquisition de commerces loués pour un revenu régulier.",
@@ -209,15 +214,18 @@ function CategoryBlock({
   ouvert,
   basculer,
 }: { category: Category; delay: number; variant?: "cream" | "white" } & Ouverture) {
+  // Une catégorie à une seule solution n'occupe qu'une colonne : deux voisines
+  // (Private Equity, Venture Capital) se rangent côte à côte.
+  const large = category.products.length > 1;
   return (
-    <div className="mb-10">
+    <div className={`mb-10 ${large ? "col-span-2" : ""}`}>
       <AnimateIn variant="fade-right" delay={delay}>
         <div className="flex items-baseline justify-between mb-4">
           <h3 className="text-[19.5px] font-semibold">{category.name}</h3>
           <span className="text-[12px] text-warm-grey font-medium">{category.count}</span>
         </div>
       </AnimateIn>
-      <div className="grid md:grid-cols-2 gap-3">
+      <div className={`grid gap-3 ${large ? "grid-cols-2" : ""}`}>
         {category.products.map((p, i) => (
           <AnimateIn key={p.title} variant="scale-in" delay={delay + (i * 80)}>
             <ProductCard
@@ -350,7 +358,7 @@ export default function ProduitsPage() {
           </AnimateIn>
 
           {/* Desktop: full catalogue, grouped by category */}
-          <div className="hidden md:block">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-x-3">
             {individuelles.map((cat, i) => (
               <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="cream" {...ouverture} />
             ))}
@@ -388,7 +396,7 @@ export default function ProduitsPage() {
           </AnimateIn>
 
           {/* Desktop: full catalogue, grouped by category */}
-          <div className="hidden md:block">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-x-3">
             {entreprises.map((cat, i) => (
               <CategoryBlock key={cat.name} category={cat} delay={i * 80} variant="white" {...ouverture} />
             ))}

@@ -514,6 +514,7 @@ create table public.events (
   description text,
   date timestamptz not null,
   location text,
+  cover_url text,
   is_published boolean default false,
   created_at timestamptz default now()
 );

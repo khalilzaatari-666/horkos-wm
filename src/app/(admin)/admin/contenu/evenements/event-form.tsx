@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import Link from "next/link";
+import { MediaUpload } from "@/components/admin/media-upload";
 import type { ContentState } from "../shared";
 
 const initialState: ContentState = { status: "idle" };
@@ -18,6 +19,7 @@ export interface EventInitial {
   location: string;
   /** ISO stocké ; réduit à « AAAA-MM-JJThh:mm » pour le champ datetime-local. */
   date: string;
+  cover_url: string;
   is_published: boolean;
 }
 
@@ -26,6 +28,7 @@ const EMPTY: EventInitial = {
   description: "",
   location: "",
   date: "",
+  cover_url: "",
   is_published: false,
 };
 
@@ -104,6 +107,16 @@ export function EventForm({
           className={area}
         />
       </div>
+
+      <MediaUpload
+        name="cover_url"
+        folder="evenements"
+        kind="image"
+        label="Image de couverture"
+        required
+        hint="JPG ou PNG, 5 Mo maximum."
+        initialUrl={initial.cover_url}
+      />
 
       <label className="flex items-center gap-2.5 cursor-pointer">
         <input

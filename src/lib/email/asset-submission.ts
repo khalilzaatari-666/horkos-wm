@@ -9,7 +9,7 @@ import { SITE_NAME, CABINET_EMAIL } from "@/lib/site";
  * Notifie l'équipe qu'un nouveau dossier de cession vient d'arriver. La
  * soumission est déjà enregistrée en base quand on arrive ici : comme pour les
  * rendez-vous, l'échec d'envoi ne doit jamais bloquer le visiteur - il est
- * seulement journalisé. Le back-office (/admin/soumissions) reste la source de
+ * seulement journalisé. Le back-office (/admin/demandes/cessions) reste la source de
  * vérité ; cet email n'est qu'une alerte.
  */
 

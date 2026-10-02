@@ -17,7 +17,7 @@ export default async function EventEditPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: event } = await supabase
     .from("events")
-    .select("id, title, description, location, date, is_published")
+    .select("id, title, description, location, date, cover_url, is_published")
     .eq("id", id)
     .maybeSingle();
 
@@ -29,6 +29,7 @@ export default async function EventEditPage({ params }: PageProps) {
     description: event.description ?? "",
     location: event.location ?? "",
     date: event.date ?? "",
+    cover_url: event.cover_url ?? "",
     is_published: event.is_published ?? false,
   };
 

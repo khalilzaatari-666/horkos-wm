@@ -18,7 +18,7 @@ const schema = z.object({
   category: z.string().trim().max(60).optional().or(z.literal("")),
   excerpt: z.string().trim().max(400, "L'extrait est trop long.").optional().or(z.literal("")),
   content: z.string().trim().max(50000).optional().or(z.literal("")),
-  cover_url: z.string().trim().url("URL de couverture invalide.").optional().or(z.literal("")),
+  cover_url: z.string().trim().min(1, "Ajoutez une image de couverture.").url("URL de couverture invalide."),
   is_published: z.boolean(),
 });
 
@@ -60,7 +60,7 @@ export async function createArticle(
     category: d.category || null,
     excerpt: d.excerpt || null,
     content: d.content || null,
-    cover_url: d.cover_url || null,
+    cover_url: d.cover_url,
     is_published: d.is_published,
     author_id: staff.id,
     published_at: d.is_published ? new Date().toISOString() : null,
@@ -118,7 +118,7 @@ export async function updateArticle(
       category: d.category || null,
       excerpt: d.excerpt || null,
       content: d.content || null,
-      cover_url: d.cover_url || null,
+      cover_url: d.cover_url,
       is_published: d.is_published,
       published_at,
       updated_at: new Date().toISOString(),

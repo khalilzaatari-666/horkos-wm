@@ -36,6 +36,7 @@ export interface HorkosEvent {
   description: string | null;
   date: string;
   location: string | null;
+  cover_url: string | null;
 }
 
 export interface Faq {
@@ -83,7 +84,7 @@ export async function getEvents(): Promise<HorkosEvent[]> {
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("events")
-    .select("id, title, description, date, location")
+    .select("id, title, description, date, location, cover_url")
     .eq("is_published", true)
     .order("date", { ascending: false });
 

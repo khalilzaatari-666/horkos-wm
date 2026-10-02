@@ -143,7 +143,8 @@ export function GuideForm({
         name="cover_url"
         folder="guides"
         kind="image"
-        label="Image de couverture (optionnel)"
+        label="Image de couverture"
+        required
         hint="JPG ou PNG, 5 Mo maximum."
         initialUrl={initial.cover_url}
       />

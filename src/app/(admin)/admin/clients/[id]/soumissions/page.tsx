@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { AdminTable, Td, AdminBadge } from "@/components/admin/ui";
+import { AdminTable, Td } from "@/components/admin/ui";
 import { TriHeader } from "@/components/admin/tri-header";
 import { FiltresListe } from "@/components/ui/filtres-liste";
 import { formatDateLong } from "@/lib/dates";
+import { StatutCession } from "@/app/(admin)/admin/demandes/cessions/statut-cession";
 import { formatMAD } from "@/lib/patrimoine";
 import { param, pick, sensDe, trier, instant } from "@/lib/liste";
 
@@ -118,7 +119,6 @@ export default async function ClientSoumissionsPage({
           empty={statut ? "Aucun dossier dans cet état." : "Aucun dossier pour l'instant."}
         >
           {rows.map((s) => {
-            const status = STATUS[s.status] ?? { label: s.status, tone: "neutre" as const };
             return (
               <tr key={s.id} className="hover:bg-cream/40 transition-colors align-top">
                 <Td className="max-w-[280px]">
@@ -134,7 +134,8 @@ export default async function ClientSoumissionsPage({
                 <Td>{s.horizon ?? "-"}</Td>
                 <Td className="whitespace-nowrap text-warm-grey">{formatDateLong(s.created_at)}</Td>
                 <Td>
-                  <AdminBadge tone={status.tone}>{status.label}</AdminBadge>
+                  {/* La clé suit le statut : après enregistrement, le menu repart de la valeur relue. */}
+                  <StatutCession key={s.status} id={s.id} statut={s.status} />
                 </Td>
               </tr>
             );

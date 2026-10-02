@@ -39,7 +39,7 @@ const FEED_META: Record<FeedKind, { label: string; dot: string; href?: string }>
   inscription: { label: "Nouvelle inscription", dot: "bg-bronze", href: "/admin/utilisateurs" },
   demande: { label: "Demande de rendez-vous", dot: "bg-blue-500", href: "/admin/rendez-vous" },
   contact: { label: "Message de contact", dot: "bg-emerald-500", href: "/admin/demandes/contacts" },
-  cession: { label: "Dossier de cession", dot: "bg-amber-500", href: "/admin/soumissions" },
+  cession: { label: "Dossier de cession", dot: "bg-amber-500", href: "/admin/demandes/cessions" },
   guide: { label: "Guide téléchargé", dot: "bg-violet-500", href: "/admin/contenu/guides" },
   partenariat: {
     label: "Demande de partenariat",
@@ -464,7 +464,7 @@ export default async function AdminDashboardPage() {
             label="Dossiers de cession"
             value={String(cessionsOuvertes ?? 0)}
             note="Soumis ou en revue"
-            href="/admin/soumissions"
+            href="/admin/demandes/cessions"
             emphasis={(cessionsOuvertes ?? 0) > 0}
           />
           <AdminKpi

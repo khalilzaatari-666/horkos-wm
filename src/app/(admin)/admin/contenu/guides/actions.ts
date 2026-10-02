@@ -18,7 +18,7 @@ const schema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
   partner: z.string().trim().max(120).optional().or(z.literal("")),
   cover_label: z.string().trim().max(120).optional().or(z.literal("")),
-  cover_url: z.string().trim().url("URL de couverture invalide.").optional().or(z.literal("")),
+  cover_url: z.string().trim().min(1, "Ajoutez une image de couverture.").url("URL de couverture invalide."),
   pdf_url: z.string().trim().url("URL du PDF invalide.").optional().or(z.literal("")),
   is_published: z.boolean(),
 });
@@ -43,7 +43,7 @@ function row(d: z.infer<typeof schema>) {
     description: d.description || null,
     partner: d.partner || null,
     cover_label: d.cover_label || null,
-    cover_url: d.cover_url || null,
+    cover_url: d.cover_url,
     pdf_url: d.pdf_url || null,
     is_published: d.is_published,
   };

@@ -18,6 +18,7 @@ export function MediaUpload({
   label,
   hint,
   initialUrl = "",
+  required = false,
 }: {
   name: string;
   folder: string;
@@ -25,6 +26,8 @@ export function MediaUpload({
   label: string;
   hint?: string;
   initialUrl?: string;
+  /** Le champ caché ne se valide pas : c'est le sélecteur qui bloque l'envoi tant qu'aucun fichier n'est posé. */
+  required?: boolean;
 }) {
   const [url, setUrl] = useState(initialUrl);
   const [busy, setBusy] = useState(false);
@@ -111,6 +114,7 @@ export function MediaUpload({
         ref={inputRef}
         type="file"
         accept={accept}
+        required={required && !url}
         onChange={onChange}
         disabled={busy}
         className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-cream-deep file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"

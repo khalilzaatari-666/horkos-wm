@@ -11,6 +11,7 @@ const schema = z.object({
   description: z.string().trim().max(4000).optional().or(z.literal("")),
   location: z.string().trim().max(160).optional().or(z.literal("")),
   date: z.string().min(1, "Indiquez une date et une heure."),
+  cover_url: z.string().trim().min(1, "Ajoutez une image de couverture.").url("URL de couverture invalide."),
   is_published: z.boolean(),
 });
 
@@ -32,6 +33,7 @@ function parse(formData: FormData) {
     description: formData.get("description") ?? "",
     location: formData.get("location") ?? "",
     date: formData.get("date") ?? "",
+    cover_url: formData.get("cover_url") ?? "",
     is_published: formData.get("is_published") === "on",
   });
 }
@@ -61,6 +63,7 @@ export async function createEvent(
     description: d.description || null,
     location: d.location || null,
     date: iso,
+    cover_url: d.cover_url,
     is_published: d.is_published,
   });
 
@@ -96,6 +99,7 @@ export async function updateEvent(
       description: d.description || null,
       location: d.location || null,
       date: iso,
+      cover_url: d.cover_url,
       is_published: d.is_published,
     })
     .eq("id", id.data);

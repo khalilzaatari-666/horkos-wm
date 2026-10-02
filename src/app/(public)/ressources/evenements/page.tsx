@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { PageHero } from "@/components/public/page-hero";
 import { EmptyState } from "@/components/public/empty-state";
 import { CtaBand } from "@/components/public/cta-band";
@@ -51,6 +52,16 @@ export default async function EvenementsPage() {
                           {month}
                         </div>
                       </div>
+
+                      {event.cover_url && (
+                        <Image
+                          src={event.cover_url}
+                          alt=""
+                          width={160}
+                          height={100}
+                          className="hidden sm:block shrink-0 w-[160px] h-[100px] object-cover rounded-lg"
+                        />
+                      )}
 
                       <div className="flex-1 min-w-0">
                         <h2 className="font-heading text-[19px] font-semibold text-ink leading-[1.35]">

@@ -170,10 +170,10 @@ export default async function EspacePage() {
         </div>
       </AnimateIn>
 
-      {/* Deux tiers / un tiers : la répartition porte une légende par classe
-          d'actifs et supporte mal d'être comprimée à moitié d'écran. Le parcours
-          et les recommandations, plus courts, se partagent l'autre tiers. */}
-      <div className="grid lg:grid-cols-[3fr_2fr] gap-3.5 mt-3.5">
+      {/* Moitié / moitié : la répartition s'aligne sur deux cartes du dessus,
+          le conseiller, le parcours et les recommandations prennent l'autre
+          moitié. */}
+      <div className="grid lg:grid-cols-2 gap-3.5 mt-3.5">
         <AnimateIn variant="fade-up" delay={160} className="h-full">
           <Card center className="p-6 h-full">
             <CardTitle>Répartition de mon patrimoine</CardTitle>

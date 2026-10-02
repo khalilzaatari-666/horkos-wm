@@ -60,13 +60,11 @@ const cases: UseCase[] = [
   },
 ];
 
-function CaseCard({ useCase }: { useCase: UseCase }) {
-  const [open, setOpen] = useState(false);
-
+function CaseCard({ useCase, open, onToggle }: { useCase: UseCase; open: boolean; onToggle: () => void }) {
   return (
     <div
       className="bg-cream rounded-lg p-7 border border-cream-deep shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full flex flex-col"
-      onClick={() => setOpen(!open)}
+      onClick={onToggle}
     >
       <div className="w-10 h-10 rounded-full bg-ink text-cream flex items-center justify-center font-heading text-[18px] font-semibold mb-4">
         {useCase.icon}
@@ -103,6 +101,16 @@ function CaseCard({ useCase }: { useCase: UseCase }) {
 
 export default function CasUsagePage() {
   const cardsRef = useRef<HTMLDivElement>(null);
+  // Une seule carte ouverte à la fois : en ouvrir une referme la précédente.
+  const [ouvert, setOuvert] = useState<string | null>(null);
+  const carte = (c: UseCase) => (
+    <CaseCard
+      key={c.icon}
+      useCase={c}
+      open={ouvert === c.icon}
+      onToggle={() => setOuvert((o) => (o === c.icon ? null : c.icon))}
+    />
+  );
 
   useEffect(() => {
     const mm = gsap.matchMedia();
@@ -167,7 +175,7 @@ export default function CasUsagePage() {
           <div ref={cardsRef} className="hidden md:grid md:grid-cols-3 md:items-start gap-6">
             {cases.map((c) => (
               <div key={c.icon} data-case-card style={{ opacity: 0 }}>
-                <CaseCard useCase={c} />
+                {carte(c)}
               </div>
             ))}
           </div>
@@ -175,9 +183,7 @@ export default function CasUsagePage() {
           {/* Mobile: card deck that stacks as you scroll */}
           <StackCards
             className="md:hidden"
-            items={cases.map((c) => (
-              <CaseCard key={c.icon} useCase={c} />
-            ))}
+            items={cases.map(carte)}
           />
         </div>
       </section>

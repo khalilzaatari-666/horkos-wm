@@ -131,7 +131,8 @@ export function ArticleForm({
         name="cover_url"
         folder="articles"
         kind="image"
-        label="Image de couverture (optionnel)"
+        label="Image de couverture"
+        required
         hint="JPG ou PNG, 5 Mo maximum. Format paysage recommandé."
         initialUrl={initial.cover_url}
       />
