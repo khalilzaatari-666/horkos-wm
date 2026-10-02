@@ -14,7 +14,7 @@ import { choisirConseiller, dureeRendezVous, libelleDuree, titreRendezVous } fro
 import { OUVERTURE, FERMETURE, DEJEUNER_DEBUT, DEJEUNER_FIN } from "@/components/booking/grille";
 import { advisorRecipient } from "@/lib/email/recipients";
 import { SITE_URL } from "@/lib/site";
-import { annulerEtPrevenir, inviterAuRendezVous, type RendezVousANotifier } from "@/lib/booking";
+import { annulerEtPrevenir, inviterAuRendezVous, occupationsAdmin, type RendezVousANotifier } from "@/lib/booking";
 
 /** Les statuts qu'une commande du suivi peut poser. */
 const STATUTS = ["confirme", "termine", "non_honore", "annule"] as const;
@@ -833,6 +833,17 @@ export async function verifierCreneau(
         client: nom(r.client as Personne | Personne[] | null) || null,
       };
     });
+
+  // L'agenda Google de l'admin, sur toute la durée de l'étape (1 h 30 pour un
+  // R1) : un avis de plus, comme le reste. Les rendez-vous de l'app en sont
+  // exclus, ils figurent déjà ci-dessus. Google muet -> rien d'ajouté.
+  for (const o of (await occupationsAdmin(debut.toISOString(), fin.toISOString())) ?? []) {
+    conflits.push({
+      creneau: `${heureFmt.format(o.debut)} - ${heureFmt.format(o.fin)}`,
+      intitule: "Occupé dans l'agenda Google de l'admin",
+      client: null,
+    });
+  }
 
   return {
     etat: conflits.length > 0 ? "occupe" : "libre",

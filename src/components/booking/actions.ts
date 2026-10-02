@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { occupationsAdmin } from "@/lib/booking";
 import { chevauche } from "@/lib/google-calendar";
-import { DUREE_RDV_MIN } from "./grille";
+import { dureeRendezVous } from "@/lib/rendez-vous";
 
 /**
  * Fine enveloppe des RPC de réservation (migration 010). Toute la logique -
@@ -45,12 +45,13 @@ export async function fetchAvailability(
   if (error || !data) return [];
   const slots = data as SlotAvailability[];
 
-  // L'agenda Google de l'admin retire ses heures prises. Deux jours de marge
+  // L'agenda Google de l'admin retire ses heures prises, sur la durée d'un R0 :
+  // c'est la seule étape réservable en ligne (public et espace client). Deux jours de marge
   // après `to` couvrent le fuseau ; sans réponse de Google, la grille reste
   // celle de Postgres.
   const fin = new Date(Date.parse(`${parsed.data.to}T00:00:00Z`) + 2 * 86_400_000).toISOString();
   const occupe = await occupationsAdmin(`${parsed.data.from}T00:00:00Z`, fin);
-  return occupe ? slots.filter((s) => !chevauche(s.slot_start, DUREE_RDV_MIN, occupe)) : slots;
+  return occupe ? slots.filter((s) => !chevauche(s.slot_start, dureeRendezVous("R0"), occupe)) : slots;
 }
 
 export async function holdSlot(slotStart: string, token: string): Promise<boolean> {
