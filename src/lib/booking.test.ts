@@ -9,11 +9,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * trois traitements d'échec distincts.
  */
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/google-calendar", () => ({
+vi.mock("@/lib/google-calendar", async (importOriginal) => ({
+  // `chevauche` reste le vrai : c'est lui qui décide du refus testé plus bas.
+  chevauche: (await importOriginal<typeof import("@/lib/google-calendar")>()).chevauche,
   createAppointmentEvent: vi.fn(),
   addEventAttendee: vi.fn(),
   deleteAppointmentEvent: vi.fn(),
+  agendaOccupe: vi.fn(),
 }));
+// Sans clé de service, l'agenda de l'admin n'est pas lu : c'est le cas par
+// défaut ici, et le bloc « agenda de l'admin » la fournit.
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn(() => null) }));
 vi.mock("@/lib/email/appointment", () => ({
   sendAppointmentEmails: vi.fn(),
   sendCancellationEmail: vi.fn(),
@@ -29,6 +35,8 @@ import {
   deleteAppointmentEvent,
 } from "@/lib/google-calendar";
 import { sendAppointmentEmails, sendCancellationEmail } from "@/lib/email/appointment";
+import { agendaOccupe } from "@/lib/google-calendar";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const mockCreateEvent = vi.mocked(createAppointmentEvent);
 const mockAddAttendee = vi.mocked(addEventAttendee);
@@ -124,6 +132,58 @@ describe("présentiel - chemin nominal", () => {
       "book_slot",
       expect.objectContaining({ p_mode: "presentiel", p_meeting_url: null })
     );
+  });
+});
+
+describe("agenda Google de l'admin", () => {
+  /** Une clé de service dont la lecture des rendez-vous rend la liste donnée. */
+  function adminAvec(ids: string[]) {
+    const chain = {
+      select: () => chain,
+      not: () => chain,
+      gte: () => chain,
+      lt: async () => ({ data: ids.map((calendar_event_id) => ({ calendar_event_id })), error: null }),
+      update: () => ({ eq: async () => ({}) }),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(createAdminClient).mockReturnValue({ from: () => chain } as any);
+  }
+
+  beforeEach(() => vi.mocked(agendaOccupe).mockReset());
+
+  it("refuse un créneau où l'admin est pris, sans créer d'événement ni réserver", async () => {
+    adminAvec(["evt-app"]);
+    const debut = Date.parse(SLOT);
+    vi.mocked(agendaOccupe).mockResolvedValue([{ debut: debut + 30 * 60_000, fin: debut + 90 * 60_000 }]);
+    const supabase = supabaseWith({ data: bookResult("visio"), error: null });
+
+    const res = await bookAndNotify({ ...baseInput, supabase, mode: "visio" });
+
+    expect(res).toBeNull();
+    expect(mockCreateEvent).not.toHaveBeenCalled();
+    expect(supabase.rpc).not.toHaveBeenCalled();
+    // Les rendez-vous de l'app sont écartés de la lecture.
+    expect(vi.mocked(agendaOccupe).mock.calls[0][2]).toEqual(new Set(["evt-app"]));
+  });
+
+  it("réserve quand l'agenda est libre sur le créneau", async () => {
+    adminAvec([]);
+    const debut = Date.parse(SLOT);
+    vi.mocked(agendaOccupe).mockResolvedValue([{ debut: debut - 60 * 60_000, fin: debut }]);
+    mockCreateEvent.mockResolvedValue(null);
+    const supabase = supabaseWith({ data: bookResult("presentiel"), error: null });
+
+    expect(await bookAndNotify({ ...baseInput, supabase, mode: "presentiel" })).not.toBeNull();
+  });
+
+  it("réserve quand Google ne répond pas", async () => {
+    adminAvec([]);
+    vi.mocked(agendaOccupe).mockResolvedValue(null);
+    mockCreateEvent.mockResolvedValue(null);
+    const supabase = supabaseWith({ data: bookResult("presentiel"), error: null });
+
+    expect(await bookAndNotify({ ...baseInput, supabase, mode: "presentiel" })).not.toBeNull();
+    vi.mocked(createAdminClient).mockReturnValue(null);
   });
 });
 

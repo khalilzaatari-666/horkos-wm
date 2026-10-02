@@ -273,3 +273,89 @@ export async function createReminderEvent(options: {
     return null;
   }
 }
+
+/** Une plage où l'agenda est pris, en millisecondes epoch. */
+export interface Occupation {
+  debut: number;
+  fin: number;
+}
+
+interface AgendaItem {
+  id?: string;
+  status?: string;
+  transparency?: string;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  attendees?: { self?: boolean; responseStatus?: string }[];
+}
+
+/**
+ * Les événements qui rendent réellement l'agenda indisponible. Ne bloquent pas :
+ * un événement annulé, marqué « Disponible » (dont les pense-bêtes de relance),
+ * une invitation déclinée, ni ceux de `ignorer` - les rendez-vous de l'app, que
+ * Postgres compte déjà conseiller par conseiller.
+ */
+export function occupationsDe(items: AgendaItem[], ignorer: Set<string>): Occupation[] {
+  const out: Occupation[] = [];
+  for (const e of items) {
+    if (e.status === "cancelled" || e.transparency === "transparent") continue;
+    if (e.id && ignorer.has(e.id)) continue;
+    if (e.attendees?.some((a) => a.self && a.responseStatus === "declined")) continue;
+    // ponytail: une journée entière est lue à minuit UTC ; le décalage de
+    // Casablanca ne déplace le bord que d'une heure, la nuit, hors des heures
+    // d'ouverture. Passer par le fuseau si la grille ouvre un jour la nuit.
+    const debut = Date.parse(e.start?.dateTime ?? `${e.start?.date}T00:00:00Z`);
+    const fin = Date.parse(e.end?.dateTime ?? `${e.end?.date}T00:00:00Z`);
+    if (Number.isFinite(debut) && Number.isFinite(fin)) out.push({ debut, fin });
+  }
+  return out;
+}
+
+/** Le créneau `[debut, debut + dureeMin)` croise-t-il une plage prise ? */
+export function chevauche(debutIso: string, dureeMin: number, occupations: Occupation[]): boolean {
+  const debut = Date.parse(debutIso);
+  const fin = debut + dureeMin * 60_000;
+  return occupations.some((o) => o.debut < fin && o.fin > debut);
+}
+
+/**
+ * Les plages prises de l'agenda du compte délégué (celui de l'admin) entre deux
+ * instants. Lu par `events.list`, que le scope `calendar.events` autorise déjà :
+ * freeBusy demanderait un scope de plus, et ne saurait pas écarter les
+ * rendez-vous de l'app.
+ *
+ * `null` si Google n'est pas configuré ou ne répond pas : l'appelant ne filtre
+ * alors rien, une panne Google ne doit jamais coûter un créneau.
+ */
+export async function agendaOccupe(
+  fromIso: string,
+  toIso: string,
+  ignorer: Set<string>
+): Promise<Occupation[] | null> {
+  const token = await accessToken();
+  if (!token) return null;
+
+  const params = new URLSearchParams({
+    timeMin: new Date(fromIso).toISOString(),
+    timeMax: new Date(toIso).toISOString(),
+    singleEvents: "true",
+    maxResults: "2500",
+    fields: "items(id,status,transparency,start,end,attendees(self,responseStatus))",
+  });
+
+  try {
+    const response = await fetch(`${API}?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      console.error("[calendar] lecture de l'agenda refusée:", response.status, await response.text());
+      return null;
+    }
+    const data = (await response.json()) as { items?: AgendaItem[] };
+    return occupationsDe(data.items ?? [], ignorer);
+  } catch (error) {
+    console.error("[calendar] lecture de l'agenda impossible:", error);
+    return null;
+  }
+}

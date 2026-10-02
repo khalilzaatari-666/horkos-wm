@@ -5,6 +5,9 @@ import {
   createAppointmentEvent,
   addEventAttendee,
   deleteAppointmentEvent,
+  agendaOccupe,
+  chevauche,
+  type Occupation,
 } from "@/lib/google-calendar";
 import { sendAppointmentEmails, sendCancellationEmail } from "@/lib/email/appointment";
 import { advisorRecipient } from "@/lib/email/recipients";
@@ -65,6 +68,12 @@ export async function bookAndNotify(
   // règle dans l'agenda, dans l'invitation ICS et dans les emails.
   const titre = titreRendezVous(type, client.name);
   const duree = dureeRendezVous(type);
+
+  // L'agenda de l'admin a pu se remplir depuis l'affichage des créneaux : même
+  // refus que si le créneau était parti, l'appelant recharge la disponibilité.
+  const finIso = new Date(Date.parse(slotStart) + duree * 60_000).toISOString();
+  const occupe = await occupationsAdmin(slotStart, finIso);
+  if (occupe && chevauche(slotStart, duree, occupe)) return null;
 
   const event = await createAppointmentEvent({
     summary: titre,
@@ -132,6 +141,36 @@ export async function bookAndNotify(
   });
 
   return booked;
+}
+
+/**
+ * Les plages où l'admin est pris dans son agenda Google, rendez-vous de l'app
+ * exclus : ceux-là, Postgres les compte déjà conseiller par conseiller, et les
+ * laisser bloquer fermerait le créneau aux autres conseillers libres.
+ *
+ * Clé de service, faute de session chez un visiteur : elle ne lit que les
+ * identifiants d'événements, et rien de ce qu'elle lit ne sort d'ici.
+ * `null` -> ne rien filtrer (Google ou la clé indisponibles).
+ */
+export async function occupationsAdmin(
+  fromIso: string,
+  toIso: string
+): Promise<Occupation[] | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  // Une journée de marge avant : un rendez-vous commencé la veille de la fenêtre
+  // peut encore y déborder.
+  const { data, error } = await admin
+    .from("appointments")
+    .select("calendar_event_id")
+    .not("calendar_event_id", "is", null)
+    .gte("date", new Date(Date.parse(fromIso) - 86_400_000).toISOString())
+    .lt("date", toIso);
+  if (error) return null;
+
+  const ids = new Set((data ?? []).map((r: { calendar_event_id: string }) => r.calendar_event_id));
+  return agendaOccupe(fromIso, toIso, ids);
 }
 
 /** Un rendez-vous tel que le suivi le relit avant de prévenir qui que ce soit. */
