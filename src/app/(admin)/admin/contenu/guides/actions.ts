@@ -16,6 +16,7 @@ const schema = z.object({
     .max(80)
     .regex(/^[a-z0-9-]+$/, "Le slug ne peut contenir que des minuscules, chiffres et tirets."),
   description: z.string().trim().max(2000).optional().or(z.literal("")),
+  category: z.string().trim().max(60).optional().or(z.literal("")),
   partner: z.string().trim().max(120).optional().or(z.literal("")),
   cover_label: z.string().trim().max(120).optional().or(z.literal("")),
   cover_url: z.string().trim().min(1, "Ajoutez une image de couverture.").url("URL de couverture invalide."),
@@ -28,6 +29,7 @@ function parse(formData: FormData) {
     title: formData.get("title"),
     slug: slugify(String(formData.get("slug") ?? formData.get("title") ?? "")),
     description: formData.get("description") ?? "",
+    category: formData.get("category") ?? "",
     partner: formData.get("partner") ?? "",
     cover_label: formData.get("cover_label") ?? "",
     cover_url: formData.get("cover_url") ?? "",
@@ -41,6 +43,7 @@ function row(d: z.infer<typeof schema>) {
     title: d.title,
     slug: d.slug,
     description: d.description || null,
+    category: d.category || null,
     partner: d.partner || null,
     cover_label: d.cover_label || null,
     cover_url: d.cover_url,

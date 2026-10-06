@@ -23,6 +23,13 @@ export default async function ArticleEditPage({ params }: PageProps) {
 
   if (!article) notFound();
 
+  const { data: cats } = await supabase
+    .from("article_categories")
+    .select("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  const categories = (cats ?? []).map((c) => c.name as string);
+
   const initial: ArticleInitial = {
     id: article.id,
     title: article.title ?? "",
@@ -37,7 +44,7 @@ export default async function ArticleEditPage({ params }: PageProps) {
   return (
     <>
       <AdminHead title="Modifier l'article" desc="Les changements sont visibles dès l'enregistrement." />
-      <ArticleForm action={updateArticle} initial={initial} />
+      <ArticleForm action={updateArticle} initial={initial} categories={categories} />
     </>
   );
 }

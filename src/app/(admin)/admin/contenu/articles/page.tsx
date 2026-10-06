@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { TriHeader } from "@/components/admin/tri-header";
 import { FiltresListe } from "@/components/ui/filtres-liste";
+import { GestionCategories } from "../categories/gestion";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
 import { ArticleCreate } from "./article-create";
@@ -37,6 +38,12 @@ export default async function AdminArticlesPage({
     .select("id, title, slug, category, is_published, published_at, created_at")
     .order("created_at", { ascending: false })
     .limit(LIMITE_LISTE);
+  const { data: cats } = await supabase
+    .from("article_categories")
+    .select("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  const categories = (cats ?? []).map((c) => c.name as string);
 
   // Filtré et trié en mémoire : la liste est bornée par la requête, et un tri
   // délégué à Postgres obligerait à réassigner le constructeur de requête - ce
@@ -67,9 +74,13 @@ export default async function AdminArticlesPage({
           desc="Les articles publiés alimentent la page Ressources du site. Un brouillon reste invisible tant qu'il n'est pas publié."
         />
         <AnimateIn variant="fade-up">
-          <ArticleCreate />
+          <ArticleCreate categories={categories} />
         </AnimateIn>
       </div>
+
+      <AnimateIn variant="fade-up" delay={20}>
+        <GestionCategories type="articles" />
+      </AnimateIn>
 
       <AnimateIn variant="fade-up" delay={40}>
         <FiltresListe

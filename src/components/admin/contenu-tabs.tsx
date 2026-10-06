@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
  * Onglets de la section Contenu. L'onglet actif est déduit du chemin courant,
  * comme pour le dossier client.
  *
- * Les quatre pages restent à leur URL d'origine : seul l'habillage change, donc
+ * Les pages restent à leur URL d'origine : seul l'habillage change, donc
  * aucun lien déjà envoyé ou mis en favori ne casse.
  */
 const ONGLETS = [

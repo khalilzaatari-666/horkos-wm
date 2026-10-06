@@ -36,7 +36,7 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
   const [{ data: guide }, { data: demandes, count }] = await Promise.all([
     supabase
       .from("guides")
-      .select("id, title, slug, description, partner, cover_label, cover_url, pdf_url, is_published")
+      .select("id, title, slug, description, category, partner, cover_label, cover_url, pdf_url, is_published")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -49,11 +49,19 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
 
   if (!guide) notFound();
 
+  const { data: cats } = await supabase
+    .from("guide_categories")
+    .select("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  const categories = (cats ?? []).map((c) => c.name as string);
+
   const initial: GuideInitial = {
     id: guide.id,
     title: guide.title ?? "",
     slug: guide.slug ?? "",
     description: guide.description ?? "",
+    category: guide.category ?? "",
     partner: guide.partner ?? "",
     cover_label: guide.cover_label ?? "",
     cover_url: guide.cover_url ?? "",
@@ -80,7 +88,7 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
         title="Modifier le guide"
         desc="Les changements sont visibles dès l'enregistrement."
       />
-      <GuideForm action={updateGuide} initial={initial} />
+      <GuideForm action={updateGuide} initial={initial} categories={categories} />
 
       <section className="mt-10">
         <h2 className="font-heading text-[17.5px] font-semibold text-ink">Demandes reçues</h2>

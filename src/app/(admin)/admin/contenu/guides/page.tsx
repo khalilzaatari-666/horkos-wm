@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { AdminHead, AdminTable, Td, AdminBadge } from "@/components/admin/ui";
 import { TriHeader } from "@/components/admin/tri-header";
 import { FiltresListe } from "@/components/ui/filtres-liste";
+import { GestionCategories } from "../categories/gestion";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { formatDateLong } from "@/lib/dates";
 import { GuideCreate } from "./guide-create";
@@ -40,15 +41,21 @@ export default async function AdminGuidesPage({
   const supabase = await createClient();
   const { data } = await supabase
     .from("guides")
-    .select("id, title, slug, partner, pdf_url, is_published, created_at")
+    .select("id, title, slug, category, partner, pdf_url, is_published, created_at")
     .order("created_at", { ascending: false });
+  const { data: cats } = await supabase
+    .from("guide_categories")
+    .select("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+  const categories = (cats ?? []).map((c) => c.name as string);
 
   const rows = trier(
     (data ?? []).filter(
       (g) =>
         (etat === null || (etat === "publies") === Boolean(g.is_published)) &&
         (pdf === null || (pdf === "avec") === Boolean(g.pdf_url)) &&
-        contient([g.title, g.partner, g.slug], q)
+        contient([g.title, g.category, g.partner, g.slug], q)
     ),
     (g) =>
       tri === "titre"
@@ -72,9 +79,13 @@ export default async function AdminGuidesPage({
           desc="Les guides téléchargeables proposés sur la page Ressources. Le PDF est le fichier envoyé aux personnes qui le demandent."
         />
         <AnimateIn variant="fade-up">
-          <GuideCreate />
+          <GuideCreate categories={categories} />
         </AnimateIn>
       </div>
+
+      <AnimateIn variant="fade-up" delay={20}>
+        <GestionCategories type="guides" />
+      </AnimateIn>
 
       <AnimateIn variant="fade-up" delay={40}>
         <FiltresListe
@@ -122,6 +133,7 @@ export default async function AdminGuidesPage({
                   {g.title}
                 </Link>
                 <div className="text-[11.5px] text-warm-grey mt-0.5">
+                  {g.category ? `${g.category} · ` : ""}
                   {g.partner ? `${g.partner} · ` : ""}
                   <span className="font-mono">/{g.slug}</span>
                 </div>

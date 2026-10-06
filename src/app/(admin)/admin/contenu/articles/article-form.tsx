@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { slugify } from "@/lib/slug";
 import type { ContentState } from "../shared";
+import { CategorieSelect } from "../categories/categorie-select";
 
 const initialState: ContentState = { status: "idle" };
 
@@ -37,11 +38,14 @@ const EMPTY: ArticleInitial = {
 export function ArticleForm({
   action,
   initial = EMPTY,
+  categories,
   onCancel,
   onSuccess,
 }: {
   action: (prev: ContentState, formData: FormData) => Promise<ContentState>;
   initial?: ArticleInitial;
+  /** Les catégories gérées en haut de la liste des articles. */
+  categories: string[];
   /** Fournis en modale : annuler ferme, un succès ferme et rafraîchit la liste. */
   onCancel?: () => void;
   onSuccess?: () => void;
@@ -99,19 +103,7 @@ export function ArticleForm({
         </p>
       </div>
 
-      <div>
-        <label htmlFor="category" className="block text-[12px] font-medium text-ink mb-1.5">
-          Catégorie <span className="text-warm-grey font-normal">(optionnel)</span>
-        </label>
-        <input
-          id="category"
-          name="category"
-          maxLength={60}
-          defaultValue={initial.category}
-          placeholder="Patrimoine, Fiscalité, Marchés…"
-          className={field}
-        />
-      </div>
+      <CategorieSelect categories={categories} defaultValue={initial.category} />
 
       <div>
         <label htmlFor="excerpt" className="block text-[12px] font-medium text-ink mb-1.5">

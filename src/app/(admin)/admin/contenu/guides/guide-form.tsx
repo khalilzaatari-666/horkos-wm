@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MediaUpload } from "@/components/admin/media-upload";
 import { slugify } from "@/lib/slug";
 import type { ContentState } from "../shared";
+import { CategorieSelect } from "../categories/categorie-select";
 
 const initialState: ContentState = { status: "idle" };
 
@@ -18,6 +19,7 @@ export interface GuideInitial {
   title: string;
   slug: string;
   description: string;
+  category: string;
   partner: string;
   cover_label: string;
   cover_url: string;
@@ -29,6 +31,7 @@ const EMPTY: GuideInitial = {
   title: "",
   slug: "",
   description: "",
+  category: "",
   partner: "",
   cover_label: "",
   cover_url: "",
@@ -39,11 +42,14 @@ const EMPTY: GuideInitial = {
 export function GuideForm({
   action,
   initial = EMPTY,
+  categories,
   onCancel,
   onSuccess,
 }: {
   action: (prev: ContentState, formData: FormData) => Promise<ContentState>;
   initial?: GuideInitial;
+  /** Les catégories gérées en haut de la liste des guides. */
+  categories: string[];
   onCancel?: () => void;
   onSuccess?: () => void;
 }) {
@@ -109,6 +115,8 @@ export function GuideForm({
           className={area}
         />
       </div>
+
+      <CategorieSelect categories={categories} defaultValue={initial.category} />
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>

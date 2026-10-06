@@ -7,7 +7,7 @@ import { ArticleForm } from "./article-form";
 import { createArticle } from "./actions";
 
 /** Bouton « Nouvel article » : ouvre le formulaire de création en modale. */
-export function ArticleCreate() {
+export function ArticleCreate({ categories }: { categories: string[] }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -24,6 +24,7 @@ export function ArticleCreate() {
         <AdminModal title="Nouvel article" onClose={() => setOpen(false)}>
           <ArticleForm
             action={createArticle}
+            categories={categories}
             onCancel={() => setOpen(false)}
             onSuccess={() => {
               setOpen(false);

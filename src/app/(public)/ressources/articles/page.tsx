@@ -4,7 +4,8 @@ import { PageHero } from "@/components/public/page-hero";
 import { EmptyState } from "@/components/public/empty-state";
 import { CtaBand } from "@/components/public/cta-band";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { getArticles, formatLongDate } from "@/lib/content";
+import { getArticles, getCategories, filtrerParCategorie, formatLongDate } from "@/lib/content";
+import { FiltreCategories } from "@/components/public/filtre-categories";
 
 export const metadata: Metadata = {
   title: "Nos articles | Horkos Wealth Management",
@@ -14,8 +15,17 @@ export const metadata: Metadata = {
 
 export const revalidate = 300;
 
-export default async function ArticlesPage() {
-  const articles = await getArticles();
+export default async function ArticlesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ categorie?: string | string[] }>;
+}) {
+  const [articles, ordre, { categorie }] = await Promise.all([
+    getArticles(),
+    getCategories("articles"),
+    searchParams,
+  ]);
+  const { categories, active, visibles } = filtrerParCategorie(articles, ordre, categorie);
 
   return (
     <>
@@ -34,7 +44,8 @@ export default async function ArticlesPage() {
             />
           ) : (
             <div>
-              {articles.map((article, i) => (
+              <FiltreCategories base="/ressources/articles" categories={categories} active={active} />
+              {visibles.map((article, i) => (
                 <AnimateIn key={article.id} variant="fade-up" mobileVariant="fade-left" delay={i * 80}>
                   <Link
                     href={`/ressources/articles/${article.slug}`}

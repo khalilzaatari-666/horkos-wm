@@ -434,6 +434,31 @@ create policy "Staff manage partner submissions"
   using (public.is_staff());
 
 -- ============================================
+-- CATÉGORIES DU CONTENU (une liste par page, migration 032)
+-- ============================================
+create table public.article_categories (
+  name text primary key check (length(trim(name)) between 1 and 60),
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table public.guide_categories (
+  name text primary key check (length(trim(name)) between 1 and 60),
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.article_categories enable row level security;
+alter table public.guide_categories enable row level security;
+
+create policy "Anyone can view categories" on public.article_categories for select using (true);
+create policy "Staff manage categories" on public.article_categories for all
+  using (public.is_staff()) with check (public.is_staff());
+create policy "Anyone can view categories" on public.guide_categories for select using (true);
+create policy "Staff manage categories" on public.guide_categories for all
+  using (public.is_staff()) with check (public.is_staff());
+
+-- ============================================
 -- ARTICLES (CMS)
 -- ============================================
 create table public.articles (
@@ -443,7 +468,7 @@ create table public.articles (
   excerpt text,
   content text,
   cover_url text,
-  category text,
+  category text references public.article_categories(name) on update cascade on delete set null,
   is_published boolean default false,
   author_id uuid references public.profiles(id),
   published_at timestamptz,
@@ -471,6 +496,7 @@ create table public.guides (
   description text,
   cover_url text,
   pdf_url text,
+  category text references public.guide_categories(name) on update cascade on delete set null,
   is_published boolean default false,
   created_at timestamptz default now()
 );

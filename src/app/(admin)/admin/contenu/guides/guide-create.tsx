@@ -7,7 +7,7 @@ import { GuideForm } from "./guide-form";
 import { createGuide } from "./actions";
 
 /** Bouton « Nouveau guide » : ouvre le formulaire de création en modale. */
-export function GuideCreate() {
+export function GuideCreate({ categories }: { categories: string[] }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -24,6 +24,7 @@ export function GuideCreate() {
         <AdminModal title="Nouveau guide" onClose={() => setOpen(false)}>
           <GuideForm
             action={createGuide}
+            categories={categories}
             onCancel={() => setOpen(false)}
             onSuccess={() => {
               setOpen(false);

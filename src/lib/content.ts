@@ -28,6 +28,7 @@ export interface Guide {
   cover_url: string | null;
   cover_label: string | null;
   partner: string | null;
+  category: string | null;
 }
 
 export interface HorkosEvent {
@@ -68,11 +69,37 @@ export async function getArticle(slug: string): Promise<Article | null> {
   return data ?? null;
 }
 
+/** Les catégories d'une page, dans l'ordre choisi au back-office. */
+export async function getCategories(page: "articles" | "guides"): Promise<string[]> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from(page === "articles" ? "article_categories" : "guide_categories")
+    .select("name")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  return (data ?? []).map((c: { name: string }) => c.name);
+}
+
+/**
+ * Le filtre d'une page Ressources : les catégories qui ont au moins un contenu
+ * sur la page, et celle demandée par `?categorie=` si elle en fait partie.
+ */
+export function filtrerParCategorie<T extends { category: string | null }>(
+  items: T[],
+  ordre: string[],
+  demandee: string | string[] | undefined
+): { categories: string[]; active: string | null; visibles: T[] } {
+  const categories = ordre.filter((c) => items.some((i) => i.category === c));
+  const active = typeof demandee === "string" && categories.includes(demandee) ? demandee : null;
+  return { categories, active, visibles: active ? items.filter((i) => i.category === active) : items };
+}
+
 export async function getGuides(): Promise<Guide[]> {
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("guides")
-    .select("id, title, slug, description, cover_url, cover_label, partner")
+    .select("id, title, slug, description, cover_url, cover_label, partner, category")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
