@@ -37,7 +37,7 @@ function Section({
 }) {
   return (
     <AdminCard className="p-5 sm:p-6">
-      <h2 className="font-heading text-[17.5px] font-semibold text-ink">{titre}</h2>
+      <h2 className="font-heading text-[17.5px] font-normal text-ink">{titre}</h2>
       {aide && <p className="text-[12.5px] text-warm-grey leading-[1.6] mt-1 mb-4">{aide}</p>}
       <div className={aide ? "" : "mt-4"}>{children}</div>
     </AdminCard>
@@ -48,7 +48,7 @@ function Champ({ label, valeur }: { label: string; valeur: string }) {
   if (!texteRempli(valeur)) return null;
   return (
     <div>
-      <div className="text-[11px] font-semibold tracking-[1.2px] uppercase text-warm-grey">
+      <div className="text-[13px] font-medium text-warm-grey">
         {label}
       </div>
       <div className="text-[13.5px] text-ink mt-0.5 leading-[1.5]">{valeur}</div>
@@ -87,7 +87,7 @@ function BlocPersonne({ titre, personne }: { titre: string; personne: Personne }
   const nomComplet = [personne.prenom, personne.nom].filter(texteRempli).join(" ");
   return (
     <div>
-      <h3 className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey mb-3">
+      <h3 className="text-[13px] font-normal text-warm-grey mb-3">
         {titre}
       </h3>
       <div className={grille}>
@@ -229,8 +229,8 @@ export function FicheVue({
           <Section titre="Biens locatifs">
             <div className="space-y-5">
               {locatifsRemplis.map((bien, i) => (
-                <div key={i} className="border border-cream-deep rounded-lg p-4">
-                  <span className="block text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey mb-3">
+                <div key={i} className="border border-ink/10 rounded-lg p-4">
+                  <span className="block text-[13px] font-medium text-warm-grey mb-3">
                     Bien {i + 1}
                   </span>
                   <BlocBien bien={bien} avecLoyers />
@@ -244,8 +244,8 @@ export function FicheVue({
           <Section titre="Autres crédits">
             <div className="space-y-4">
               {creditsRemplis.map((credit, i) => (
-                <div key={i} className="border border-cream-deep rounded-lg p-4">
-                  <span className="block text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey mb-3">
+                <div key={i} className="border border-ink/10 rounded-lg p-4">
+                  <span className="block text-[13px] font-medium text-warm-grey mb-3">
                     Crédit {i + 1}
                   </span>
                   <div className={grille}>
@@ -267,7 +267,7 @@ export function FicheVue({
           <Section titre="Patrimoine financier">
             <div className="space-y-4">
               {financierRempli.map((ligne: LigneFinanciere, i) => (
-                <div key={i} className="border border-cream-deep rounded-lg p-4">
+                <div key={i} className="border border-ink/10 rounded-lg p-4">
                   <div className={grille}>
                     <Champ
                       label="Type"
@@ -300,7 +300,7 @@ export function FicheVue({
             </div>
             {fiche.profil.objectifs.length > 0 && (
               <div>
-                <div className="text-[11px] font-semibold tracking-[1.2px] uppercase text-warm-grey mb-1.5">
+                <div className="text-[13px] font-medium text-warm-grey mb-1.5">
                   Objectifs
                 </div>
                 <ul className="list-disc list-inside space-y-1">

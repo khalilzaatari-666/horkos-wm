@@ -8,7 +8,7 @@ import type { ActionState } from "@/lib/staff";
 const initialState: ActionState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export function AssignmentEditForm({
   clientId,
@@ -55,7 +55,7 @@ export function AssignmentEditForm({
           rows={3}
           maxLength={2000}
           defaultValue={assignment.notes}
-          className="w-full px-3 py-2.5 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y"
+          className="w-full px-3 py-2.5 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function AssignmentEditForm({
       )}
 
       <div className="flex items-center gap-3 pt-1">
-        <button type="submit" disabled={pending} className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+        <button type="submit" disabled={pending} className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>
         <button type="button" onClick={onCancel} className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors cursor-pointer">

@@ -64,7 +64,7 @@ export default async function EspaceRendezVousPage() {
         desc={
           referent
             ? `Choisissez le créneau qui vous arrange dans l'agenda de ${referent}, votre conseiller référent : il est confirmé immédiatement.`
-            : "Choisissez le créneau qui vous arrange : il est confirmé immédiatement avec l'un de nos conseillers."
+            : "Choisissez le créneau qui vous arrange : il est confirmé immédiatement avec l’un de nos conseillers."
         }
       />
       <AnimateIn variant="fade-up" delay={80}>

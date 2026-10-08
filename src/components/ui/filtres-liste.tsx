@@ -32,10 +32,10 @@ export interface ChampFiltre {
 }
 
 export const CLASSE_SELECT =
-  "h-9 px-3 pr-8 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer appearance-none";
+  "h-9 px-3 pr-8 text-[12.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer appearance-none";
 
 const CLASSE_CHAMP =
-  "h-9 px-3 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "h-9 px-3 text-[12.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export function FiltresListe({
   champs = [],
@@ -134,7 +134,7 @@ export function FiltresListe({
             for (const cle of cles) next.delete(cle);
             aller(next);
           }}
-          className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+          className="text-[12.5px] text-ink hover:text-ink/70 transition-colors cursor-pointer"
         >
           Réinitialiser
         </button>

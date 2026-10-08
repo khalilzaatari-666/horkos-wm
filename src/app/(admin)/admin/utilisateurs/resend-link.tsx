@@ -19,7 +19,7 @@ export function ResendLink({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="text-[11.5px] font-medium text-bronze-dark hover:text-bronze underline underline-offset-2 decoration-cream-deep hover:decoration-bronze transition-colors cursor-pointer disabled:opacity-60"
+        className="text-[11.5px] font-medium text-ink hover:text-ink/70 underline underline-offset-2 decoration-cream-deep hover:decoration-ink transition-colors cursor-pointer disabled:opacity-60"
       >
         {pending ? "Envoi…" : "Renvoyer le lien de mot de passe"}
       </button>

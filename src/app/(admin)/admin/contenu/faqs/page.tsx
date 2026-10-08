@@ -112,12 +112,12 @@ export default async function AdminFaqsPage({
           }
         >
           {rows.map((f) => (
-            <tr key={f.id} className="hover:bg-cream/40 transition-colors align-top">
+            <tr key={f.id} className="hover:bg-ink/[0.04] transition-colors align-top">
               <Td className="whitespace-nowrap tabular-nums text-warm-grey">{f.sort_order}</Td>
               <Td>
                 <Link
                   href={`/admin/contenu/faqs/${f.id}`}
-                  className="font-medium text-ink hover:text-bronze-dark transition-colors"
+                  className="font-medium text-ink hover:text-ink/70 transition-colors"
                 >
                   {f.question}
                 </Link>
@@ -134,7 +134,7 @@ export default async function AdminFaqsPage({
                 <div className="flex items-center gap-3 justify-end whitespace-nowrap">
                   <Link
                     href={`/admin/contenu/faqs/${f.id}`}
-                    className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors"
+                    className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors"
                   >
                     Modifier
                   </Link>

@@ -64,7 +64,7 @@ export default async function MfaPage({
       <MfaForm
         mode="indisponible"
         redirect={destination}
-        message="L'authentification à deux facteurs n'est pas activée sur le projet Supabase (Authentication > Multi-Factor). Contactez l'administrateur."
+        message="L’authentification à deux facteurs n’est pas activée sur le projet Supabase (Authentication > Multi-Factor). Contactez l’administrateur."
       />
     );
   }

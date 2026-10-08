@@ -43,10 +43,10 @@ export function AdminModal({
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-[720px] max-h-[92vh] sm:max-h-[88vh] overflow-y-auto bg-cream sm:rounded-2xl rounded-t-2xl border border-cream-deep shadow-xl"
+        className="w-full sm:max-w-[720px] max-h-[92vh] sm:max-h-[88vh] overflow-y-auto bg-cream-deep/40 sm:rounded-2xl rounded-t-2xl border border-ink/10 shadow-xl"
       >
-        <div className="sticky top-0 z-10 bg-cream border-b border-cream-deep px-6 py-4 flex items-center justify-between gap-3">
-          <h2 className="font-heading text-[18px] font-semibold text-ink">{title}</h2>
+        <div className="sticky top-0 z-10 bg-cream-deep/40 border-b border-ink/10 px-6 py-4 flex items-center justify-between gap-3">
+          <h2 className="font-heading text-[18px] font-normal text-ink">{title}</h2>
           <button
             type="button"
             onClick={onClose}

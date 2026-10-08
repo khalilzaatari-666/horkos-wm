@@ -65,7 +65,7 @@ export default async function ClientSoumissionsPage({
 
   return (
     <section>
-      <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-1">
+      <h2 className="font-heading text-[17.5px] font-normal text-ink mb-1">
         Cession d&apos;actifs
       </h2>
       <p className="text-[13px] text-warm-grey leading-[1.6] max-w-[560px] mb-4">
@@ -120,7 +120,7 @@ export default async function ClientSoumissionsPage({
         >
           {rows.map((s) => {
             return (
-              <tr key={s.id} className="hover:bg-cream/40 transition-colors align-top">
+              <tr key={s.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                 <Td className="max-w-[280px]">
                   <div className="font-medium text-ink">{s.asset_type}</div>
                   {s.description && (

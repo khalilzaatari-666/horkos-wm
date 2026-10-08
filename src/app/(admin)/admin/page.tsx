@@ -36,7 +36,7 @@ function fullName(p: NomPartiel | null): string {
 type FeedKind = "inscription" | "demande" | "contact" | "cession" | "guide" | "partenariat";
 
 const FEED_META: Record<FeedKind, { label: string; dot: string; href?: string }> = {
-  inscription: { label: "Nouvelle inscription", dot: "bg-bronze", href: "/admin/utilisateurs" },
+  inscription: { label: "Nouvelle inscription", dot: "bg-ink", href: "/admin/utilisateurs" },
   demande: { label: "Demande de rendez-vous", dot: "bg-blue-500", href: "/admin/rendez-vous" },
   contact: { label: "Message de contact", dot: "bg-emerald-500", href: "/admin/demandes/contacts" },
   cession: { label: "Dossier de cession", dot: "bg-amber-500", href: "/admin/demandes/cessions" },
@@ -351,15 +351,15 @@ export default async function AdminDashboardPage() {
 
       {conseillers === 0 && (
         <AnimateIn variant="fade-up">
-          <div className="mb-5 p-5 rounded-xl border border-bronze/40 bg-bronze/[0.07]">
-            <h2 className="text-[14px] font-semibold text-ink">Aucun conseiller enregistré</h2>
+          <div className="mb-5 p-5 rounded-xl border border-ink bg-ink/[0.07]">
+            <h2 className="text-[14px] font-normal text-ink">Aucun conseiller enregistré</h2>
             <p className="text-[13px] text-charcoal leading-[1.65] mt-1.5">
               Tant qu&apos;aucun profil ne porte le rôle « conseiller », le calendrier public
               affiche tous les créneaux comme complets : personne ne peut réserver.
             </p>
             <Link
               href="/admin/utilisateurs"
-              className="inline-block mt-3.5 px-4 py-2 text-[12.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
+              className="inline-block mt-3.5 px-4 py-2 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors"
             >
               Désigner un conseiller
             </Link>
@@ -372,14 +372,14 @@ export default async function AdminDashboardPage() {
           exactement ce qu'il ne faut pas manquer. */}
       {echanges.length > 0 && (
         <AnimateIn variant="fade-up">
-          <div className="mb-5 p-5 rounded-xl border border-bronze/40 bg-bronze/[0.07]">
+          <div className="mb-5 p-5 rounded-xl border border-ink bg-ink/[0.07]">
             <div className="flex items-center gap-2.5 mb-3">
-              <h2 className="text-[14px] font-semibold text-ink">
+              <h2 className="text-[14px] font-normal text-ink">
                 Demandes d&apos;échange sur une recommandation
               </h2>
               <AdminBadge tone="attente">{echanges.length}</AdminBadge>
             </div>
-            <ul className="divide-y divide-bronze/15">
+            <ul className="divide-y divide-ink/10">
               {echanges.map((d) => (
                 <li
                   key={d.id}
@@ -393,14 +393,14 @@ export default async function AdminDashboardPage() {
                     className="group min-w-0 flex items-baseline gap-1.5"
                     title={`Ouvrir les recommandations de ${d.who}`}
                   >
-                    <span className="text-[13px] font-medium text-ink group-hover:text-bronze-dark underline decoration-transparent group-hover:decoration-bronze-dark underline-offset-[3px] transition-colors">
+                    <span className="text-[13px] font-medium text-ink group-hover:text-ink/70 underline decoration-transparent group-hover:decoration-ink underline-offset-[3px] transition-colors">
                       {d.who}
                     </span>
-                    <span className="text-[12.5px] text-charcoal truncate group-hover:text-bronze-dark transition-colors">
-                      — {d.titre}
+                    <span className="text-[12.5px] text-charcoal truncate group-hover:text-ink/70 transition-colors">
+                      - {d.titre}
                     </span>
                     <ChevronRight
-                      className="w-3.5 h-3.5 shrink-0 self-center text-bronze-dark opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="w-3.5 h-3.5 shrink-0 self-center text-ink opacity-0 group-hover:opacity-100 transition-opacity"
                       aria-hidden="true"
                     />
                   </Link>
@@ -412,7 +412,7 @@ export default async function AdminDashboardPage() {
                       <input type="hidden" name="id" value={d.id} />
                       <button
                         type="submit"
-                        className="text-[12px] font-medium text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+                        className="text-[12px] font-medium text-ink hover:text-ink/70 transition-colors cursor-pointer"
                       >
                         Marquer traitée
                       </button>
@@ -484,7 +484,7 @@ export default async function AdminDashboardPage() {
 
       {/* Activité du site : volumes sur 30 jours, puis les taux qu'ils donnent. */}
       <AnimateIn variant="fade-up" delay={100}>
-        <h2 className="font-heading text-[17.5px] font-semibold text-ink mt-8 mb-3.5">
+        <h2 className="font-heading text-[17.5px] font-normal text-ink mt-8 mb-3.5">
           Activité du site
         </h2>
       </AnimateIn>
@@ -567,13 +567,13 @@ export default async function AdminDashboardPage() {
           vraies visites, pas des actes qui laissent une ligne quelque part. */}
       <AnimateIn variant="fade-up" delay={160}>
         <div className="flex items-center justify-between gap-3 mt-8 mb-3.5">
-          <h2 className="font-heading text-[17.5px] font-semibold text-ink">Visiteurs du site</h2>
+          <h2 className="font-heading text-[17.5px] font-normal text-ink">Visiteurs du site</h2>
           {umamiDashboardUrl && (
             <a
               href={umamiDashboardUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
+              className="text-[12.5px] text-ink hover:text-ink/70 transition-colors shrink-0"
             >
               Tableau Umami complet →
             </a>
@@ -615,7 +615,7 @@ export default async function AdminDashboardPage() {
                     umamiMissingVars().length === 1
                       ? "Il manque la variable"
                       : "Il manque les variables"
-                  } ${umamiMissingVars().join(", ")} — à renseigner dans Vercel, puis redéployer.`}
+                  } ${umamiMissingVars().join(", ")} - à renseigner dans Vercel, puis redéployer.`}
             </p>
           </AdminCard>
         )}
@@ -625,7 +625,7 @@ export default async function AdminDashboardPage() {
       <div className="grid lg:grid-cols-3 gap-3.5 mt-3.5">
         <AnimateIn variant="fade-up" delay={120} className="lg:col-span-2">
           <AdminCard className="p-6 h-full">
-            <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-4">
+            <h2 className="font-heading text-[17.5px] font-normal text-ink mb-4">
               Activité récente
             </h2>
 
@@ -634,7 +634,7 @@ export default async function AdminDashboardPage() {
                 {feed.map((e) => {
                   const meta = FEED_META[e.kind];
                   const row = (
-                    <div className="flex items-start gap-3 py-2.5 rounded-lg -mx-2 px-2 transition-colors hover:bg-cream/50">
+                    <div className="flex items-start gap-3 py-2.5 rounded-lg -mx-2 px-2 transition-colors hover:bg-ink/[0.04]">
                       <span
                         aria-hidden="true"
                         className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${meta.dot}`}
@@ -676,19 +676,19 @@ export default async function AdminDashboardPage() {
         <AnimateIn variant="fade-up" delay={150}>
           <AdminCard className="p-6 h-full">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+              <h2 className="font-heading text-[17.5px] font-normal text-ink">
                 Derniers inscrits
               </h2>
               <Link
                 href="/admin/utilisateurs"
-                className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
+                className="text-[12.5px] text-ink hover:text-ink/70 transition-colors shrink-0"
               >
                 Tous →
               </Link>
             </div>
 
             {nouveaux.length > 0 ? (
-              <ul className="divide-y divide-cream-deep">
+              <ul className="divide-y divide-ink/10">
                 {nouveaux.map((p) => (
                   <li key={p.id} className="flex items-center gap-2.5 py-2.5 first:pt-0 last:pb-0">
                     <div className="min-w-0 flex-1">
@@ -711,19 +711,19 @@ export default async function AdminDashboardPage() {
       <AnimateIn variant="fade-up" delay={120}>
         <AdminCard className="p-6 mt-3.5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+            <h2 className="font-heading text-[17.5px] font-normal text-ink">
               Derniers rendez-vous
             </h2>
             <Link
               href="/admin/rendez-vous"
-              className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
+              className="text-[12.5px] text-ink hover:text-ink/70 transition-colors shrink-0"
             >
               Tous les rendez-vous →
             </Link>
           </div>
 
           {recents.length > 0 ? (
-            <ul className="divide-y divide-cream-deep">
+            <ul className="divide-y divide-ink/10">
               {recents.map((r) => {
                 const style =
                   RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
@@ -736,7 +736,7 @@ export default async function AdminDashboardPage() {
                       </div>
                     </div>
                     <span
-                      className={`inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${style.pill}`}
+                      className={`inline-flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-[6px] border text-[11px] font-semibold ${style.pill}`}
                     >
                       <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                       {style.label}

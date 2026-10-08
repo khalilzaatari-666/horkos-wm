@@ -215,6 +215,6 @@ describe("simulation", () => {
     const c = calculer(ficheVide());
     const epargne = c.simulation.verdicts.find((v) => v.libelle === "Ratio d'épargne");
     expect(epargne?.conforme).toBeNull();
-    expect(epargne?.valeur).toBe("—");
+    expect(epargne?.valeur).toBe("-");
   });
 });

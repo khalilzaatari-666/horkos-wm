@@ -47,7 +47,7 @@ function ParcoursBar({ appointments }: { appointments: Appointment[] }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 mb-7">
-        <h2 className="font-heading text-[17px] font-semibold text-ink leading-[1.3]">
+        <h2 className="font-heading text-[17px] font-normal text-ink leading-[1.3]">
           Votre parcours
         </h2>
         {encours && <Badge tone="attente">Vous en êtes à {encours.type}</Badge>}
@@ -63,7 +63,7 @@ function ParcoursBar({ appointments }: { appointments: Appointment[] }) {
         />
         <div
           aria-hidden="true"
-          className="absolute top-[15px] h-[3px] rounded-full bg-bronze transition-[width] duration-500"
+          className="absolute top-[15px] h-[3px] rounded-full bg-ink transition-[width] duration-500"
           style={{
             left: `${100 / (PARCOURS.length * 2)}%`,
             width: `calc((100% - ${200 / (PARCOURS.length * 2)}%) * ${fill / 100})`,
@@ -81,13 +81,13 @@ function ParcoursBar({ appointments }: { appointments: Appointment[] }) {
                     state === "fait"
                       ? "bg-ink text-cream"
                       : state === "encours"
-                        ? "bg-bronze text-white"
+                        ? "bg-ink text-white"
                         : "bg-cream-deep text-warm-grey"
                   }`}
                 >
                   {state === "fait" ? "✓" : i + 1}
                 </span>
-                <span className="font-heading text-[15px] font-semibold text-ink mt-3">
+                <span className="font-heading text-[15px] font-normal text-ink mt-3">
                   {etape.type}
                 </span>
                 <span
@@ -136,15 +136,15 @@ function RendezVousGroup({
   return (
     <section>
       <AnimateIn variant="fade-up" delay={delay}>
-        <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+        <h2 className="text-ink text-[12px] font-normal mb-3">
           {titre}
         </h2>
         {rendezVous.length > 0 ? (
           <CardGrid min="300px">
             {rendezVous.map((a) => (
-              <Card key={a.id} center className={`p-5 h-full ${passe ? "bg-cream/40" : ""}`}>
+              <Card key={a.id} center className={`p-5 h-full ${passe ? "bg-cream-deep/40" : ""}`}>
                 <div className="flex items-start gap-2.5 mb-2">
-                  <span className="font-heading text-[17px] font-semibold text-ink leading-none flex-1">
+                  <span className="font-heading text-[17px] font-normal text-ink leading-none flex-1">
                     {libelleType(a.type)}
                     {/* Le code ne se suffit pas à lui-même, mais il rattache la
                         carte au jalon correspondant de la barre du parcours. */}
@@ -176,7 +176,7 @@ function RendezVousGroup({
                     href={a.meeting_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block mt-3.5 px-4 py-2 text-[12.5px] font-medium bg-ink text-cream rounded-lg hover:bg-navy transition-colors"
+                    className="inline-block mt-3.5 px-4 py-2 text-[12.5px] font-medium bg-ink text-cream rounded-[6px] hover:bg-navy transition-colors"
                   >
                     Rejoindre la visio
                   </a>
@@ -232,9 +232,9 @@ export default async function AccompagnementPage() {
   return (
     <Panel narrow>
       <PanelHead
-        eyebrow="Où j'en suis"
+        eyebrow="Où j’en suis"
         title="Mon accompagnement"
-        desc="Trois étapes, du premier échange à la gouvernance dans la durée, et tous vos rendez-vous au fil de l'eau."
+        desc="Trois étapes, du premier échange à la gouvernance dans la durée, et tous vos rendez-vous au fil de l’eau."
       />
 
       <AnimateIn variant="fade-up" delay={80}>
@@ -248,14 +248,14 @@ export default async function AccompagnementPage() {
           titre="À venir"
           rendezVous={avenir}
           delay={140}
-          vide="Aucun rendez-vous planifié pour l'instant."
+          vide="Aucun rendez-vous planifié pour l’instant."
         />
         <RendezVousGroup
           titre="Passés"
           rendezVous={passes}
           delay={200}
           passe
-          vide="Aucun rendez-vous passé pour l'instant."
+          vide="Aucun rendez-vous passé pour l’instant."
         />
       </div>
 
@@ -263,8 +263,8 @@ export default async function AccompagnementPage() {
         <AnimateIn variant="fade-up" delay={260}>
           <div className="mt-3.5">
             <EmptyPanel
-              title="Votre parcours n'a pas encore commencé"
-              desc="Le premier rendez-vous, l'audit patrimonial, est gratuit et sans engagement. Choisissez le créneau qui vous arrange : il est confirmé aussitôt, au cabinet ou en visioconférence."
+              title="Votre parcours n’a pas encore commencé"
+              desc="Le premier rendez-vous, l’audit patrimonial, est gratuit et sans engagement. Choisissez le créneau qui vous arrange : il est confirmé aussitôt, au cabinet ou en visioconférence."
               action={{ href: "/espace/rendez-vous", label: "Prendre rendez-vous" }}
             />
           </div>

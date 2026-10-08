@@ -148,13 +148,13 @@ export function refusChangement(
   maintenant: Date
 ): string | null {
   const rdv = appointments.find((a) => a.id === id);
-  if (!rdv) return "Ce rendez-vous n'appartient pas à ce client.";
+  if (!rdv) return "Ce rendez-vous n’appartient pas à ce client.";
 
   if (
     (status === "termine" || status === "non_honore") &&
     new Date(rdv.date).getTime() > maintenant.getTime()
   ) {
-    return "Le rendez-vous n'a pas encore eu lieu.";
+    return "Le rendez-vous n’a pas encore eu lieu.";
   }
 
   if (!parcoursCoherent(appointments)) return null;
@@ -163,7 +163,7 @@ export function refusChangement(
 
   return doublon(rdv.type, apres)
     ? `Un autre ${rdv.type} est déjà posé ou tenu.`
-    : "L'étape suivante est déjà posée : annulez-la d'abord.";
+    : "L’étape suivante est déjà posée : annulez-la d’abord.";
 }
 
 /**

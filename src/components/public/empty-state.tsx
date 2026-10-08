@@ -9,12 +9,10 @@ interface EmptyStateProps {
 export function EmptyState({ title, desc }: EmptyStateProps) {
   return (
     <AnimateIn variant="fade-up">
-      <div className="border border-dashed border-cream-deep rounded-lg bg-cream/60 px-7 py-14 text-center">
-        <span className="inline-block text-bronze-dark text-[11px] font-semibold tracking-[1.6px] uppercase mb-3">
-          Bientôt disponible
-        </span>
-        <h3 className="font-heading text-[20px] font-semibold text-ink">{title}</h3>
-        <p className="text-[13.5px] text-warm-grey leading-[1.65] max-w-[420px] mx-auto mt-2">
+      <div className="panel px-7 py-16 text-center">
+        <span className="text-[14px] text-warm-grey">Bientôt disponible</span>
+        <h3 className="display-md mt-6 text-ink">{title}</h3>
+        <p className="text-[16px] text-charcoal leading-relaxed max-w-[44ch] mx-auto mt-4">
           {desc}
         </p>
       </div>

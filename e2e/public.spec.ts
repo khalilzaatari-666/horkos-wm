@@ -16,7 +16,7 @@ test.describe("site public", () => {
     const response = await page.goto("/cette-page-n-existe-pas");
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("introuvable");
-    await expect(page.getByRole("link", { name: "Retour à l'accueil" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Retour à l’accueil" })).toBeVisible();
   });
 
   test("robots.txt et sitemap.xml répondent", async ({ request }) => {

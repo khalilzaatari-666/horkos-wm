@@ -14,7 +14,7 @@ export function DocumentCreate({ clientId }: { clientId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors cursor-pointer"
+        className="h-10 px-5 inline-flex items-center text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors cursor-pointer"
       >
         Déposer un document
       </button>

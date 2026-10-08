@@ -6,20 +6,32 @@
  * masque, et chaque page revérifie côté serveur - un menu caché n'est pas un
  * contrôle d'accès.
  */
+import {
+  LayoutGrid,
+  CalendarDays,
+  Users,
+  MessageSquareText,
+  Inbox,
+  FileText,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
+
 export interface AdminSection {
   href: string;
   label: string;
+  icon: LucideIcon;
   adminOnly?: boolean;
 }
 
 export const adminSections: AdminSection[] = [
-  { href: "/admin", label: "Tableau de bord" },
-  { href: "/admin/rendez-vous", label: "Rendez-vous" },
-  { href: "/admin/clients", label: "Clients" },
-  { href: "/admin/recommandations", label: "Recommandations" },
-  { href: "/admin/demandes", label: "Demandes" },
-  { href: "/admin/contenu", label: "Contenu" },
-  { href: "/admin/utilisateurs", label: "Utilisateurs", adminOnly: true },
+  { href: "/admin", label: "Tableau de bord", icon: LayoutGrid },
+  { href: "/admin/rendez-vous", label: "Rendez-vous", icon: CalendarDays },
+  { href: "/admin/clients", label: "Clients", icon: Users },
+  { href: "/admin/recommandations", label: "Recommandations", icon: MessageSquareText },
+  { href: "/admin/demandes", label: "Demandes", icon: Inbox },
+  { href: "/admin/contenu", label: "Contenu", icon: FileText },
+  { href: "/admin/utilisateurs", label: "Utilisateurs", icon: ShieldCheck, adminOnly: true },
 ];
 
 /** `/admin` est le préfixe de toutes les autres : sans ça, il reste allumé partout. */

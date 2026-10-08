@@ -11,7 +11,7 @@ const STATUTS = [
 
 const TEINTES: Record<string, string> = {
   accepte: "text-emerald-700 border-emerald-200 bg-emerald-50",
-  rejete: "text-warm-grey border-cream-deep bg-cream/60",
+  rejete: "text-warm-grey border-ink/10 bg-cream-deep/40",
 };
 
 /** Le statut d'un dossier de cession, modifiable sur place : il s'enregistre au choix. */
@@ -25,7 +25,7 @@ export function StatutCession({ id, statut }: { id: string; statut: string }) {
         aria-label="Statut du dossier"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
         className={`h-8 px-2.5 text-[12.5px] font-medium border rounded-lg outline-none focus:border-bronze cursor-pointer ${
-          TEINTES[statut] ?? "text-bronze-dark border-bronze/30 bg-bronze/5"
+          TEINTES[statut] ?? "text-ink border-ink bg-ink/5"
         }`}
       >
         {STATUTS.map((s) => (

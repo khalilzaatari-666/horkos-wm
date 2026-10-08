@@ -20,7 +20,7 @@ export function ClientTabs({ id }: { id: string }) {
   ];
 
   return (
-    <nav className="flex flex-wrap gap-1 border-b border-cream-deep mb-6" aria-label="Sections du dossier">
+    <nav className="flex flex-wrap gap-1 border-b border-ink/10 mb-6" aria-label="Sections du dossier">
       {tabs.map((t) => {
         const active = t.href === base ? pathname === base : pathname.startsWith(t.href);
         return (
@@ -30,7 +30,7 @@ export function ClientTabs({ id }: { id: string }) {
             aria-current={active ? "page" : undefined}
             className={`px-3.5 py-2.5 text-[13px] font-medium -mb-px border-b-2 transition-colors ${
               active
-                ? "border-bronze text-ink"
+                ? "border-ink text-ink"
                 : "border-transparent text-warm-grey hover:text-ink"
             }`}
           >

@@ -115,11 +115,11 @@ export default async function AdminArticlesPage({
           }
         >
           {rows.map((a) => (
-            <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
+            <tr key={a.id} className="hover:bg-ink/[0.04] transition-colors align-top">
               <Td>
                 <Link
                   href={`/admin/contenu/articles/${a.id}`}
-                  className="font-medium text-ink hover:text-bronze-dark transition-colors"
+                  className="font-medium text-ink hover:text-ink/70 transition-colors"
                 >
                   {a.title}
                 </Link>
@@ -140,7 +140,7 @@ export default async function AdminArticlesPage({
                 <div className="flex items-center gap-3 justify-end whitespace-nowrap">
                   <Link
                     href={`/admin/contenu/articles/${a.id}`}
-                    className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors"
+                    className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors"
                   >
                     Modifier
                   </Link>

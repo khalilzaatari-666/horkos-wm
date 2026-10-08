@@ -90,7 +90,7 @@ export function CodeInput({ value, onChange, disabled, autoFocus }: CodeInputPro
           onKeyDown={(e) => handleKeyDown(i, e)}
           onFocus={(e) => e.target.select()}
           aria-label={`Chiffre ${i + 1}`}
-          className="w-full h-13 min-w-0 text-center font-heading text-[24px] text-ink bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze focus:ring-2 focus:ring-bronze/20 disabled:opacity-60 transition-all"
+          className="w-full h-13 min-w-0 text-center font-heading text-[24px] text-ink bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze focus:ring-2 focus:ring-bronze/20 disabled:opacity-60 transition-all"
         />
       ))}
     </div>

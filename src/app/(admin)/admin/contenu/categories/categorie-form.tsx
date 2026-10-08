@@ -7,7 +7,7 @@ import type { ContentState } from "../shared";
 const initialState: ContentState = { status: "idle" };
 
 const field =
-  "h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 /** Une ligne nom + ordre : vide pour créer, préremplie pour renommer ou réordonner. */
 export function CategorieForm({
@@ -48,8 +48,8 @@ export function CategorieForm({
           disabled={pending}
           className={
             initial
-              ? "h-10 px-3 text-[12.5px] text-bronze-dark hover:text-bronze font-medium disabled:opacity-40 transition-colors cursor-pointer"
-              : "h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 transition-colors cursor-pointer"
+              ? "h-10 px-3 text-[12.5px] text-ink hover:text-ink/70 font-medium disabled:opacity-40 transition-colors cursor-pointer"
+              : "h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 transition-colors cursor-pointer"
           }
         >
           {pending ? "Enregistrement…" : initial ? "Enregistrer" : "Ajouter"}

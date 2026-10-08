@@ -15,7 +15,7 @@ export function CategorieSelect({
         id="category"
         name="category"
         defaultValue={defaultValue}
-        className="w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
+        className="w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
       >
         <option value="">Sans catégorie</option>
         {categories.map((c) => (

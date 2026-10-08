@@ -58,10 +58,10 @@ export function TuileActivite({
 }) {
   return (
     <AdminCard className="p-5 h-full">
-      <div className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+      <div className="text-[13px] font-medium text-warm-grey">
         {label}
       </div>
-      <div className="font-heading text-[26px] font-semibold text-ink mt-2 leading-none">
+      <div className="font-heading text-[26px] font-normal text-ink mt-2 leading-none">
         {actuel}
       </div>
       <div className="mt-2">
@@ -90,10 +90,10 @@ export function TuileTaux({
 
   return (
     <AdminCard className="p-5 h-full">
-      <div className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+      <div className="text-[13px] font-medium text-warm-grey">
         {label}
       </div>
-      <div className="font-heading text-[26px] font-semibold text-ink mt-2 leading-none">
+      <div className="font-heading text-[26px] font-normal text-ink mt-2 leading-none">
         {taux === null ? "-" : `${taux} %`}
       </div>
       <div className="text-[11.5px] text-warm-grey mt-2">
@@ -116,7 +116,7 @@ export function GrapheActivite({ semaines, series }: { semaines: string[]; serie
   return (
     <AdminCard className="p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-5">
-        <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+        <h2 className="font-heading text-[17.5px] font-normal text-ink">
           Activité des 12 dernières semaines
         </h2>
         <div className="flex items-center gap-4">
@@ -135,7 +135,7 @@ export function GrapheActivite({ semaines, series }: { semaines: string[]; serie
 
       <div className="relative">
         {/* Repère haut, discret : sans lui, la hauteur des barres n'a pas d'échelle. */}
-        <div className="absolute inset-x-0 top-0 border-t border-cream-deep" aria-hidden="true">
+        <div className="absolute inset-x-0 top-0 border-t border-ink/10" aria-hidden="true">
           <span className="absolute -top-2 right-0 text-[10.5px] text-warm-grey bg-white pl-1.5">
             {max}
           </span>
@@ -149,7 +149,7 @@ export function GrapheActivite({ semaines, series }: { semaines: string[]; serie
                 return (
                   <div
                     key={s.label}
-                    title={`${semaine} — ${s.label} : ${valeur}`}
+                    title={`${semaine} - ${s.label} : ${valeur}`}
                     className="flex-1 max-w-[14px] rounded-t-[4px] transition-opacity hover:opacity-75"
                     style={{
                       backgroundColor: s.color,

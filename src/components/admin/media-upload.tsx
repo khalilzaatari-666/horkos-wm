@@ -88,14 +88,14 @@ export function MediaUpload({
               alt=""
               width={120}
               height={72}
-              className="w-[120px] h-[72px] object-cover rounded-lg border border-cream-deep"
+              className="w-[120px] h-[72px] object-cover rounded-lg border border-ink/10"
             />
           ) : (
             <a
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[12.5px] text-bronze-dark hover:text-bronze underline underline-offset-2 transition-colors"
+              className="text-[12.5px] text-ink hover:text-ink/70 underline underline-offset-2 transition-colors"
             >
               Voir le fichier envoyé
             </a>
@@ -117,7 +117,7 @@ export function MediaUpload({
         required={required && !url}
         onChange={onChange}
         disabled={busy}
-        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-cream-deep file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
+        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-ink/10 file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
       />
 
       {busy && <p className="text-[11.5px] text-warm-grey mt-1">Envoi en cours…</p>}

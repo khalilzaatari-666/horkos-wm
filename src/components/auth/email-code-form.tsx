@@ -19,7 +19,7 @@ interface EmailCodeFormProps {
 }
 
 const inputClass =
-  "w-full h-11 px-3.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-12 px-4 text-[16px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 /**
  * Passwordless email flow.
@@ -92,7 +92,7 @@ export function EmailCodeForm({
         setError(
           <>
             Aucun compte n&apos;est associé à cette adresse.{" "}
-            <Link href="/inscription" className="text-bronze hover:text-bronze-dark font-medium">
+            <Link href="/inscription" className="text-ink hover:text-ink/70 font-medium">
               Créer un espace client
             </Link>
           </>
@@ -197,7 +197,7 @@ export function EmailCodeForm({
     return (
       <AnimateIn variant="fade-up" duration={0.45}>
         <div>
-          <h2 className="font-heading text-[19px] font-semibold text-ink">
+          <h2 className="font-heading text-[19px] font-normal text-ink">
             Entrez le code reçu
           </h2>
           <p className="text-[13px] text-warm-grey leading-[1.6] mt-1.5">
@@ -224,7 +224,7 @@ export function EmailCodeForm({
               type="button"
               onClick={() => sendCode(true)}
               disabled={cooldown > 0 || sending}
-              className="text-bronze hover:text-bronze-dark font-medium disabled:text-warm-grey disabled:cursor-not-allowed cursor-pointer"
+              className="text-ink hover:text-ink/70 font-medium disabled:text-warm-grey disabled:cursor-not-allowed cursor-pointer"
             >
               {cooldown > 0 ? `Renvoyer le code (${cooldown} s)` : "Renvoyer le code"}
             </button>
@@ -311,7 +311,7 @@ export function EmailCodeForm({
       <button
         type="submit"
         disabled={sending}
-        className="w-full h-11 text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-60 transition-colors cursor-pointer"
+        className="w-full h-11 text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-60 transition-colors cursor-pointer"
       >
         {sending ? "Envoi du code..." : "Recevoir un code par email"}
       </button>

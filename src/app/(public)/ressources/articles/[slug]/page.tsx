@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { SplitHeading } from "@/components/ui/split-heading";
+import { ArrowLeft } from "lucide-react";
+import { ReadingProgress } from "@/components/public/reading-progress";
 import { CtaBand } from "@/components/public/cta-band";
 import { ArticleJsonLd } from "@/components/public/structured-data";
 import { getArticle, getArticles, formatLongDate } from "@/lib/content";
@@ -45,64 +46,67 @@ export default async function ArticlePage({ params }: PageProps) {
         publishedAt={article.published_at ?? article.created_at}
         imageUrl={article.cover_url}
       />
-      <section className="bg-ink text-cream pt-[50px] pb-[36px] overflow-hidden">
-        <div className="max-w-[760px] mx-auto px-7">
-          <AnimateIn variant="blur-in" duration={0.5}>
-            <div className="flex items-center gap-3 mb-4 text-[11px] font-semibold tracking-[1.5px] uppercase">
-              {article.category && <span className="text-bronze-light">{article.category}</span>}
-              <span className="text-[#8E8474] normal-case tracking-normal font-normal text-[12.5px]">
-                {formatLongDate(article.published_at ?? article.created_at)}
-              </span>
-            </div>
+      <ReadingProgress target="article" />
+      <section className="shell pt-8 pb-12 lg:pt-12 lg:pb-16">
+        <nav aria-label="Fil d’Ariane" className="text-[14px] text-warm-grey">
+          <Link href="/" className="hover:text-ink transition-colors">Accueil</Link>
+          <span aria-hidden="true" className="mx-2">/</span>
+          <Link href="/ressources/articles" className="hover:text-ink transition-colors">Articles</Link>
+        </nav>
+        <div className="mx-auto mt-12 max-w-[860px] text-center lg:mt-20">
+          <p className="flex flex-wrap items-center justify-center gap-2 text-[14px] text-warm-grey">
+            {article.category && <span className="text-ink">{article.category} ·</span>}
+            <span>{formatLongDate(article.published_at ?? article.created_at)}</span>
+          </p>
+          <AnimateIn variant="fade-up" duration={1}>
+            <h1 className="display-lg mt-6 text-ink">{article.title}</h1>
           </AnimateIn>
-          <SplitHeading
-            text={article.title}
-            className="text-[clamp(1.8rem,4.3vw,2.2rem)] font-medium text-cream leading-[1.3]"
-            delay={200}
-          />
           {article.excerpt && (
-            <AnimateIn variant="fade-up" delay={400}>
-              <p className="text-[#D8CDBC] mt-3.5 text-[14.5px] leading-[1.7]">{article.excerpt}</p>
+            <AnimateIn variant="fade-up" delay={150}>
+              <p className="lead mx-auto mt-6 max-w-[58ch]">{article.excerpt}</p>
             </AnimateIn>
           )}
         </div>
       </section>
 
-      <article className="py-14">
-        <div className="max-w-[760px] mx-auto px-7">
-          {article.cover_url && (
-            <AnimateIn variant="scale-in">
-              <Image
-                src={article.cover_url}
-                alt=""
-                width={1200}
-                height={630}
-                className="w-full rounded-lg mb-9 object-cover"
-              />
-            </AnimateIn>
-          )}
-
-          <AnimateIn variant="fade-up" delay={120}>
-            {/* Stored as plain text from the back-office, so blank lines are paragraphs. */}
-            <div className="space-y-5">
-              {(article.content ?? "")
-                .split(/\n{2,}/)
-                .map((p) => p.trim())
-                .filter(Boolean)
-                .map((paragraph, i) => (
-                  <p key={i} className="text-[15px] text-charcoal leading-[1.8]">
-                    {paragraph}
-                  </p>
-                ))}
+      {article.cover_url && (
+        <div className="shell">
+          <AnimateIn variant="fade-up">
+            <div className="relative aspect-[21/9] overflow-hidden rounded-[24px] bg-cream-deep">
+              <Image src={article.cover_url} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" className="object-cover" priority />
             </div>
           </AnimateIn>
+        </div>
+      )}
 
-          <div className="mt-10 pt-6 border-t border-cream-deep">
-            <Link
-              href="/ressources/articles"
-              className="text-bronze text-[13px] font-medium hover:text-bronze-dark transition-colors"
-            >
-              ← Tous nos articles
+      <article id="article" className="shell py-16 lg:py-24">
+        <div className="mx-auto max-w-[680px]">
+          {/* Stored as plain text from the back-office, so blank lines are paragraphs. */}
+          <div className="space-y-6">
+            {(article.content ?? "")
+              .split(/\n{2,}/)
+              .map((p) => p.trim())
+              .filter(Boolean)
+              .map((paragraph, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? "text-[20px] leading-[1.7] text-ink"
+                      : "text-[18px] leading-[1.8] text-charcoal"
+                  }
+                >
+                  {paragraph}
+                </p>
+              ))}
+          </div>
+
+          <div className="mt-14 flex items-center justify-between gap-4 border-t border-ink/10 pt-8">
+            <Link href="/ressources/articles" className="link-arrow">
+              <ArrowLeft className="size-4" aria-hidden="true" /> Tous nos articles
+            </Link>
+            <Link href="/rendez-vous" className="btn btn-outline btn-sm">
+              En parler avec nous
             </Link>
           </div>
         </div>

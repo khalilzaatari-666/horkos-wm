@@ -14,7 +14,7 @@ import {
 const initialState: ActionState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export interface EtapeSuivante {
   type: string;
@@ -51,7 +51,7 @@ export function EtapeSuivanteButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors cursor-pointer"
+        className="h-10 px-5 inline-flex items-center text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors cursor-pointer"
       >
         {libelle}
       </button>
@@ -217,7 +217,7 @@ function EtapeForm({
       {cloture && <input type="hidden" name="terminerId" value={cloture.id} />}
 
       {cloture && (
-        <p className="text-[12.5px] text-charcoal leading-[1.6] bg-cream border border-cream-deep rounded-lg p-3">
+        <p className="text-[12.5px] text-charcoal leading-[1.6] bg-cream-deep/40 border border-ink/10 rounded-lg p-3">
           En enregistrant, le {cloture.type} est marqué <strong>terminé</strong> et le{" "}
           {etape.type} est planifié.
         </p>
@@ -263,7 +263,7 @@ function EtapeForm({
           name="notes"
           rows={3}
           maxLength={2000}
-          className="w-full px-3 py-2 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-none"
+          className="w-full px-3 py-2 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-none"
         />
       </div>
 
@@ -277,7 +277,7 @@ function EtapeForm({
         <button
           type="submit"
           disabled={pending}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Enregistrement…" : "Planifier"}
         </button>
@@ -384,7 +384,7 @@ function DeplacerForm({
         <button
           type="submit"
           disabled={pending}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Enregistrement…" : "Déplacer"}
         </button>

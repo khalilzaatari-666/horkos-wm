@@ -25,7 +25,7 @@ import { enregistrerFiche } from "./actions";
 const initialState: ActionState = { status: "idle" };
 
 const champStyle =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 const labelStyle = "block text-[12px] font-medium text-ink mb-1.5";
 
 /* ---------------------------------------------------------------- formats */
@@ -276,7 +276,7 @@ function Liste({
         onChange={(e) => onChange(e.target.value)}
         className={`${champStyle} cursor-pointer`}
       >
-        <option value="">—</option>
+        <option value="">-</option>
         {normalisees.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -306,7 +306,7 @@ function Zone({
         rows={rows}
         maxLength={2000}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-none"
+        className="w-full px-3 py-2 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-none"
       />
     </label>
   );
@@ -343,7 +343,7 @@ function Bascule({
  */
 function Optionnel() {
   return (
-    <span className="ml-2 align-middle text-[10.5px] font-medium normal-case tracking-normal text-warm-grey border border-cream-deep rounded-full px-2 py-0.5">
+    <span className="ml-2 align-middle text-[10.5px] font-medium normal-case tracking-normal text-warm-grey border border-ink/10 rounded-[6px] px-2 py-0.5">
       Optionnel
     </span>
   );
@@ -362,7 +362,7 @@ function Section({
 }) {
   return (
     <AdminCard className="p-5 sm:p-6">
-      <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+      <h2 className="font-heading text-[17.5px] font-normal text-ink">
         {titre}
         {optionnelle && <Optionnel />}
       </h2>
@@ -408,7 +408,7 @@ function BlocPersonne({
 
   return (
     <div>
-      <h3 className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey mb-3">
+      <h3 className="text-[13px] font-normal text-warm-grey mb-3">
         {titre}
         {optionnel && <Optionnel />}
       </h3>
@@ -552,7 +552,7 @@ function BlocBien({
           />
           <div>
             <span className={labelStyle}>Rendement locatif brut</span>
-            <div className={`${champStyle} flex items-center bg-cream text-warm-grey tabular-nums`}>
+            <div className={`${champStyle} flex items-center bg-cream-deep/40 text-warm-grey tabular-nums`}>
               {pourcent(rendementLocatif(bien))}
             </div>
           </div>
@@ -587,8 +587,8 @@ function BoutonLigne({
       onClick={onClick}
       className={`h-9 px-3.5 inline-flex items-center text-[12.5px] font-medium rounded-lg border transition-colors cursor-pointer ${
         ton === "retrait"
-          ? "border-cream-deep text-warm-grey hover:text-red-600 hover:border-red-200"
-          : "border-bronze/40 text-bronze-dark hover:bg-cream"
+          ? "border-ink/10 text-warm-grey hover:text-red-600 hover:border-red-200"
+          : "border-ink text-ink hover:bg-ink/[0.04]"
       }`}
     >
       {children}
@@ -600,7 +600,7 @@ function BoutonLigne({
 
 function Chiffre({ label, valeur, note }: { label: string; valeur: string; note?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-2 border-b border-cream-deep last:border-0">
+    <div className="flex items-baseline justify-between gap-3 py-2 border-b border-ink/10 last:border-0">
       <span className="text-[12.5px] text-warm-grey">{label}</span>
       <span className="text-right">
         <span className="text-[13.5px] font-medium text-ink tabular-nums">{valeur}</span>
@@ -611,7 +611,7 @@ function Chiffre({ label, valeur, note }: { label: string; valeur: string; note?
 }
 
 function pourcent(v: number | null): string {
-  return v === null ? "—" : `${(v * 100).toFixed(1).replace(".", ",")} %`;
+  return v === null ? "-" : `${(v * 100).toFixed(1).replace(".", ",")} %`;
 }
 
 /**
@@ -627,7 +627,7 @@ export function Recapitulatif({ fiche }: { fiche: FicheAudit }) {
   return (
     <div className="space-y-5">
       <AdminCard className="p-5">
-        <h3 className="font-heading text-[15px] font-semibold text-ink mb-2">Patrimoine</h3>
+        <h3 className="font-heading text-[15px] font-normal text-ink mb-2">Patrimoine</h3>
         <Chiffre label="Financier" valeur={formatMAD(c.totalFinancier)} />
         <Chiffre label="Immobilier" valeur={formatMAD(c.totalImmobilier)} />
         <Chiffre label="Dettes" valeur={formatMAD(c.totalDettes)} />
@@ -635,7 +635,7 @@ export function Recapitulatif({ fiche }: { fiche: FicheAudit }) {
       </AdminCard>
 
       <AdminCard className="p-5">
-        <h3 className="font-heading text-[15px] font-semibold text-ink mb-2">Endettement</h3>
+        <h3 className="font-heading text-[15px] font-normal text-ink mb-2">Endettement</h3>
         <Chiffre
           label="Revenu net du foyer"
           valeur={`${formatMAD(c.endettement.revenuMensuelNet)} / mois`}
@@ -646,14 +646,14 @@ export function Recapitulatif({ fiche }: { fiche: FicheAudit }) {
       </AdminCard>
 
       <AdminCard className="p-5">
-        <h3 className="font-heading text-[15px] font-semibold text-ink mb-1">Simulation</h3>
+        <h3 className="font-heading text-[15px] font-normal text-ink mb-1">Simulation</h3>
         <p className="text-[11.5px] text-warm-grey leading-[1.5] mb-2">
           Mensualité estimée {formatMAD(c.simulation.mensualite)}.
         </p>
         {c.simulation.verdicts.map((v) => (
           <div
             key={v.libelle}
-            className="flex items-baseline justify-between gap-3 py-2 border-b border-cream-deep last:border-0"
+            className="flex items-baseline justify-between gap-3 py-2 border-b border-ink/10 last:border-0"
           >
             <span className="text-[12.5px] text-warm-grey">{v.libelle}</span>
             <span className="text-right">
@@ -934,9 +934,9 @@ export function FicheForm({
         >
           <div className="space-y-5">
             {fiche.immobilier.locatifs.map((bien, i) => (
-              <div key={i} className="border border-cream-deep rounded-lg p-4">
+              <div key={i} className="border border-ink/10 rounded-lg p-4">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <span className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+                  <span className="text-[13px] font-medium text-warm-grey">
                     Bien {i + 1}
                   </span>
                   <BoutonLigne
@@ -970,9 +970,9 @@ export function FicheForm({
         <Section titre="Autres crédits" optionnelle>
           <div className="space-y-4">
             {fiche.immobilier.credits.map((credit, i) => (
-              <div key={i} className="border border-cream-deep rounded-lg p-4">
+              <div key={i} className="border border-ink/10 rounded-lg p-4">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <span className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+                  <span className="text-[13px] font-medium text-warm-grey">
                     Crédit {i + 1}
                   </span>
                   <BoutonLigne
@@ -1060,9 +1060,9 @@ export function FicheForm({
         >
           <div className="space-y-4">
             {fiche.financier.map((ligne, i) => (
-              <div key={i} className="border border-cream-deep rounded-lg p-4">
+              <div key={i} className="border border-ink/10 rounded-lg p-4">
                 <div className="flex items-center justify-between gap-3 mb-3">
-                  <span className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+                  <span className="text-[13px] font-medium text-warm-grey">
                     Ligne {i + 1}
                   </span>
                   <BoutonLigne
@@ -1295,7 +1295,7 @@ export function FicheForm({
           <button
             type="submit"
             disabled={pending}
-            className="w-full h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="w-full h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {pending ? "Enregistrement…" : "Enregistrer"}
           </button>

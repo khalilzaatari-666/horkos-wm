@@ -362,7 +362,7 @@ export default async function AdminRendezVousPage({
           <Link
             href={`?${toutePeriode.toString()}`}
             scroll={false}
-            className="text-bronze-dark hover:text-bronze font-medium transition-colors"
+            className="text-ink hover:text-ink/70 font-medium transition-colors"
           >
             Voir toute la période
           </Link>

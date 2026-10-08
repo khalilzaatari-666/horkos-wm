@@ -126,7 +126,7 @@ export default async function ClientRecommandationsPage({
           {groupes.map((groupe, gi) => (
             <section key={groupe.categorie}>
               <AnimateIn variant="fade-up" delay={60 + gi * 50}>
-                <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+                <h2 className="text-ink text-[12px] font-normal mb-3">
                   {groupe.categorie}
                 </h2>
                 <AdminTable
@@ -156,7 +156,7 @@ export default async function ClientRecommandationsPage({
                   empty=""
                 >
                   {groupe.rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
+                    <tr key={r.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                       {/* Chaque catégorie est un tableau distinct : sans
                           largeurs imposées, chacun calerait sa colonne Statut
                           sur la longueur de ses propres titres et les sections

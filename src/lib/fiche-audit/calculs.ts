@@ -164,7 +164,7 @@ function calculerEndettement(fiche: FicheAudit): Endettement {
 }
 
 function formatPourcent(v: number | null): string {
-  return v === null ? "—" : `${(v * 100).toFixed(1).replace(".", ",")} %`;
+  return v === null ? "-" : `${(v * 100).toFixed(1).replace(".", ",")} %`;
 }
 
 function calculerSimulation(

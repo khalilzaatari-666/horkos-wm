@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { LogOut, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { espaceSections, isSectionActive, initials, shortName } from "./espace-nav";
 import { signOut } from "./actions";
@@ -51,24 +53,16 @@ export function EspaceShell({
 
   const nav = (
     <>
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-cream-deep">
-        <span
-          aria-hidden="true"
-          className="grid place-items-center w-10 h-10 rounded-full bg-ink text-cream font-heading text-[14px] font-semibold shrink-0"
-        >
-          {initials(profile.first_name, profile.last_name, profile.email)}
-        </span>
-        <div className="min-w-0">
-          <div className="text-[13.5px] font-semibold text-ink truncate">
-            {shortName(profile.first_name, profile.last_name, profile.email)}
-          </div>
-          <div className="text-[11.5px] text-warm-grey">Client Horkos</div>
-        </div>
+      <div className="px-6 pt-7 pb-8">
+        <Link href="/" aria-label="Horkos Wealth Management, retour au site">
+          <Image src="/images/logo.png" alt="Horkos Wealth Management" width={746} height={248} className="h-9 w-auto" />
+        </Link>
       </div>
 
-      <nav className="p-3 flex-1" aria-label="Sections de mon espace">
+      <nav className="px-4 flex-1 space-y-1" aria-label="Sections de mon espace">
         {espaceSections.map((section) => {
           const active = isSectionActive(section.href, pathname);
+          const Icon = section.icon;
           return (
             <Link
               key={section.href}
@@ -77,63 +71,46 @@ export function EspaceShell({
               // c'est le geste de l'utilisateur qui ferme, pas la navigation.
               onClick={() => setOpen(false)}
               aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13.5px] transition-colors ${
-                active
-                  ? "bg-white text-ink font-medium shadow-sm"
-                  : "text-charcoal hover:bg-white/60 hover:text-ink"
+              className={`flex items-center gap-3 h-11 px-4 rounded-[6px] text-[15px] transition-colors ${
+                active ? "bg-ink text-white" : "text-charcoal hover:bg-ink/[0.05] hover:text-ink"
               }`}
             >
-              <span
-                aria-hidden="true"
-                className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                  active ? "bg-bronze" : "bg-cream-deep"
-                }`}
-              />
+              <Icon className="size-[18px] shrink-0" strokeWidth={1.6} aria-hidden="true" />
               {section.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-cream-deep">
-        {/* Un membre de l'équipe peut consulter son espace client, mais doit
-            pouvoir revenir au back-office sans réécrire l'URL. */}
-        {(profile.role === "admin" || profile.role === "conseiller") && (
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 px-3 py-2 mb-1 text-[12.5px] font-medium text-ink hover:text-bronze transition-colors"
+      <div className="m-4 rounded-[20px] bg-cream-deep/60 p-4">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="grid place-items-center size-10 rounded-full bg-ink text-cream text-[14px] font-medium shrink-0"
           >
-            <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-bronze shrink-0" />
-            Back-office
-          </Link>
-        )}
-        <Link
-          href="/"
-          className="block px-3 py-2 text-[12.5px] text-warm-grey hover:text-bronze transition-colors"
-        >
-          ← Retour au site
-        </Link>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="flex items-center gap-2 w-full px-3 py-2 text-[12.5px] text-warm-grey hover:text-red-700 transition-colors cursor-pointer"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="m16 17 5-5-5-5M21 12H9" />
-            </svg>
-            Se déconnecter
-          </button>
-        </form>
+            {initials(profile.first_name, profile.last_name, profile.email)}
+          </span>
+          <div className="min-w-0">
+            <div className="text-[15px] font-medium text-ink truncate">
+              {shortName(profile.first_name, profile.last_name, profile.email)}
+            </div>
+            <div className="text-[13px] text-warm-grey">Client Horkos</div>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+          {/* Un membre de l'équipe peut consulter son espace client, mais doit
+              pouvoir revenir au back-office sans réécrire l'URL. */}
+          {(profile.role === "admin" || profile.role === "conseiller") && (
+            <Link href="/admin" className="text-ink hover:underline">Back-office</Link>
+          )}
+          <Link href="/" className="text-warm-grey hover:text-ink transition-colors">Retour au site</Link>
+          <form action={signOut}>
+            <button type="submit" className="flex items-center gap-1.5 text-warm-grey hover:text-red-700 transition-colors cursor-pointer">
+              <LogOut className="size-3.5" aria-hidden="true" />
+              Se déconnecter
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );
@@ -145,27 +122,23 @@ export function EspaceShell({
           verrait qu'après avoir tout défilé. Bornée à l'écran, elle reste en
           place et son propre défilement prend le relais si la fenêtre est trop
           basse pour toutes les entrées. */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-cream border-r border-cream-deep sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden lg:flex w-[272px] shrink-0 flex-col bg-white border-r border-ink/[0.08] sticky top-0 h-screen overflow-y-auto">
         {nav}
       </aside>
 
       {/* Barre mobile : le titre de section vit dans chaque page, on ne garde
           ici que de quoi ouvrir la navigation. */}
-      <header className="lg:hidden fixed top-0 inset-x-0 z-40 flex items-center gap-3 h-14 px-4 bg-white border-b border-cream-deep">
+      <header className="lg:hidden fixed top-0 inset-x-0 z-40 flex items-center gap-3 h-14 px-4 bg-white border-b border-ink/10">
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Ouvrir la navigation"
           aria-expanded={open}
-          className="grid place-items-center w-9 h-9 -ml-1 rounded-lg text-ink hover:bg-cream transition-colors cursor-pointer"
+          className="grid place-items-center size-10 -ml-1 rounded-full text-ink hover:bg-ink/[0.05] transition-colors cursor-pointer"
         >
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-            <path d="M4 7h16M4 12h16M4 17h16" />
-          </svg>
+          <Menu className="size-5" aria-hidden="true" />
         </button>
-        <span className="font-heading text-[16px] font-semibold text-ink tracking-[1.5px]">
-          HORKOS
-        </span>
+        <Image src="/images/logo.png" alt="Horkos Wealth Management" width={746} height={248} className="h-7 w-auto" />
       </header>
 
       <div
@@ -181,14 +154,14 @@ export function EspaceShell({
         // sans l'ôter du flux, donc sans casser la transition de glissement.
         inert={!open}
         aria-label="Navigation de mon espace"
-        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-cream border-r border-cream-deep transition-transform duration-300 ease-out ${
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 w-[288px] flex flex-col bg-white border-r border-ink/10 transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {nav}
       </aside>
 
-      <main className="flex-1 min-w-0 pt-14 lg:pt-0">{children}</main>
+      <main className="flex-1 min-w-0 pt-14 lg:pt-0 bg-[color-mix(in_srgb,#EFE7D8_22%,white)]">{children}</main>
     </div>
   );
 }

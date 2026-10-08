@@ -10,9 +10,9 @@ import { CategorieSelect } from "../categories/categorie-select";
 const initialState: ContentState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 const area =
-  "w-full px-3 py-2.5 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors leading-[1.7] resize-y";
+  "w-full px-3 py-2.5 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors leading-[1.7] resize-y";
 
 export interface ArticleInitial {
   id?: string;
@@ -166,7 +166,7 @@ export function ArticleForm({
         <button
           type="submit"
           disabled={pending}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>

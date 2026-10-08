@@ -80,7 +80,7 @@ export default async function FicheAuditPage({
         <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="font-heading text-[22px] font-semibold text-ink leading-[1.2]">
+              <h1 className="font-heading text-[22px] font-normal text-ink leading-[1.2]">
                 Fiche d&apos;audit - {nom}
               </h1>
               <AdminBadge tone={audit.status === "termine" ? "succes" : "attente"}>
@@ -100,14 +100,14 @@ export default async function FicheAuditPage({
             <Link
               href={`/admin/clients/${id}/audits/${auditId}/export/pdf`}
               prefetch={false}
-              className="h-10 px-4 inline-flex items-center text-[13px] font-medium text-white bg-bronze rounded-lg hover:bg-bronze-dark transition-colors"
+              className="h-10 px-4 inline-flex items-center text-[13px] font-medium text-white bg-ink rounded-lg hover:bg-navy transition-colors"
             >
               Télécharger la fiche PDF
             </Link>
             <Link
               href={`/admin/clients/${id}/audits/${auditId}/export`}
               prefetch={false}
-              className="h-10 px-4 inline-flex items-center text-[13px] font-medium text-ink border border-cream-deep rounded-lg hover:border-bronze transition-colors"
+              className="h-10 px-4 inline-flex items-center text-[13px] font-medium text-ink border border-ink/10 rounded-lg hover:border-ink/40 transition-colors"
             >
               Télécharger le classeur
             </Link>

@@ -20,7 +20,7 @@ export function SkeletonHead() {
 /** Une carte blanche avec quelques lignes de texte. */
 export function SkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
-    <div className="bg-white border border-cream-deep rounded-xl shadow-sm p-5 space-y-3">
+    <div className="bg-white border border-ink/10 rounded-xl p-5 space-y-3">
       <Skeleton className="h-4 w-1/3" />
       {Array.from({ length: lines }, (_, i) => (
         <Skeleton key={i} className={`h-3.5 ${i === lines - 1 ? "w-1/2" : "w-full"}`} />
@@ -32,11 +32,11 @@ export function SkeletonCard({ lines = 3 }: { lines?: number }) {
 /** Une liste ou un tableau : une en-tête puis des lignes pleine largeur. */
 export function SkeletonRows({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="bg-white border border-cream-deep rounded-xl shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-cream-deep">
+    <div className="bg-white border border-ink/10 rounded-xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-ink/10">
         <Skeleton className="h-3 w-40" />
       </div>
-      <div className="divide-y divide-cream-deep">
+      <div className="divide-y divide-ink/10">
         {Array.from({ length: rows }, (_, i) => (
           <div key={i} className="px-5 py-4 flex items-center gap-4">
             <Skeleton className="h-4 w-1/4" />

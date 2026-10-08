@@ -2,16 +2,16 @@ import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
 
 export function AdminPanel({ children }: { children: React.ReactNode }) {
-  return <div className="max-w-[1500px] mx-auto px-5 sm:px-8 py-8">{children}</div>;
+  return <div className="max-w-[1500px] mx-auto px-5 sm:px-10 py-10">{children}</div>;
 }
 
 export function AdminHead({ title, desc }: { title: string; desc?: string }) {
   return (
-    <div className="mb-7">
+    <div className="mb-9">
       <AnimateIn variant="fade-up">
-        <h1 className="font-heading text-[26px] font-semibold text-ink leading-[1.2]">{title}</h1>
+        <h1 className="display-md text-ink">{title}</h1>
         {desc && (
-          <p className="text-[13.5px] text-warm-grey leading-[1.6] mt-1.5 max-w-[680px]">{desc}</p>
+          <p className="text-[15px] text-charcoal leading-relaxed mt-2.5 max-w-[680px]">{desc}</p>
         )}
       </AnimateIn>
     </div>
@@ -26,7 +26,7 @@ export function AdminCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-white border border-cream-deep rounded-xl shadow-sm ${className}`}>
+    <div className={`bg-white ring-1 ring-ink/[0.07] rounded-[20px] ${className}`}>
       {children}
     </div>
   );
@@ -54,19 +54,17 @@ export function AdminKpi({
 }) {
   const card = (
     <AdminCard
-      className={`p-5 h-full ${href ? "transition-colors hover:border-bronze/50" : ""}`}
+      className={`p-6 h-full ${href ? "transition-shadow hover:ring-ink/25" : ""}`}
     >
-      <div className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
-        {label}
-      </div>
+      <div className="text-[14px] text-warm-grey">{label}</div>
       <div
-        className={`font-heading text-[26px] font-semibold mt-2 leading-none ${
-          emphasis ? "text-bronze-dark" : "text-ink"
+        className={`font-heading font-light text-[34px] tracking-[-0.02em] mt-3 leading-none tabular-nums ${
+          emphasis ? "text-ink" : "text-ink"
         }`}
       >
         {value}
       </div>
-      {note && <div className="text-[11.5px] text-warm-grey mt-2">{note}</div>}
+      {note && <div className="text-[13px] text-warm-grey mt-3">{note}</div>}
     </AdminCard>
   );
 
@@ -100,7 +98,7 @@ export function AdminTable({
   if (isEmpty) {
     return (
       <AdminCard className="p-10 text-center">
-        <p className="text-[13.5px] text-warm-grey leading-[1.65] max-w-[440px] mx-auto">{empty}</p>
+        <p className="text-[15px] text-warm-grey leading-relaxed max-w-[440px] mx-auto">{empty}</p>
       </AdminCard>
     );
   }
@@ -110,18 +108,18 @@ export function AdminTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-cream-deep">
+            <tr className="border-b border-ink/[0.08] bg-ink/[0.02]">
               {headers.map((h, i) => (
                 <th
                   key={i}
-                  className="px-5 py-3 text-[11px] font-semibold tracking-[1.2px] uppercase text-warm-grey whitespace-nowrap"
+                  className="px-5 py-3.5 text-[13px] font-medium text-warm-grey whitespace-nowrap"
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-cream-deep">{children}</tbody>
+          <tbody className="divide-y divide-ink/[0.06]">{children}</tbody>
         </table>
       </div>
     </AdminCard>
@@ -135,15 +133,15 @@ export function Td({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <td className={`px-5 py-3.5 text-[13px] text-charcoal align-top ${className}`}>{children}</td>;
+  return <td className={`px-5 py-4 text-[14px] text-charcoal align-top ${className}`}>{children}</td>;
 }
 
 const TONES: Record<string, string> = {
-  neutre: "bg-cream-deep text-charcoal",
-  attente: "bg-bronze/12 text-bronze-dark",
-  succes: "bg-emerald-50 text-emerald-700",
-  refus: "bg-red-50 text-red-700",
-  info: "bg-blue-50 text-blue-700",
+  neutre: "text-charcoal before:bg-warm-grey",
+  attente: "text-ink before:bg-bronze",
+  succes: "text-emerald-700 before:bg-emerald-600",
+  refus: "text-red-700 before:bg-red-600",
+  info: "text-blue-700 before:bg-blue-600",
 };
 
 export function AdminBadge({
@@ -155,7 +153,7 @@ export function AdminBadge({
 }) {
   return (
     <span
-      className={`inline-block shrink-0 text-[10.5px] font-semibold tracking-[1.1px] uppercase px-2.5 py-1 rounded whitespace-nowrap ${TONES[tone]}`}
+      className={`inline-flex items-center gap-1.5 shrink-0 text-[13px] font-medium whitespace-nowrap before:size-1.5 before:rounded-full before:content-[''] ${TONES[tone]}`}
     >
       {children}
     </span>

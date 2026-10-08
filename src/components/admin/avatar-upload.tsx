@@ -91,13 +91,13 @@ export function AvatarUpload({
       width={size}
       height={size}
       unoptimized
-      className="rounded-full object-cover border border-cream-deep"
+      className="rounded-full object-cover border border-ink/10"
       style={{ width: size, height: size }}
     />
   ) : (
     <span
       aria-hidden="true"
-      className="grid place-items-center rounded-full bg-ink text-cream font-heading font-semibold border border-cream-deep"
+      className="grid place-items-center rounded-[6px] bg-ink text-cream font-heading font-normal border border-ink/10"
       style={{ width: size, height: size, fontSize: Math.round(size / 2.8) }}
     >
       {initials}
@@ -121,7 +121,7 @@ export function AvatarUpload({
   if (compact) {
     return (
       <label
-        className={`relative shrink-0 cursor-pointer rounded-full ring-offset-2 ring-offset-ink transition-shadow hover:ring-2 hover:ring-bronze ${
+        className={`relative shrink-0 cursor-pointer rounded-[6px] ring-offset-2 ring-offset-ink transition-shadow hover:ring-2 hover:ring-ink ${
           busy || pending ? "opacity-60" : ""
         } ${error ? "ring-2 ring-red-400" : ""}`}
         title={error || (busy || pending ? "Envoi…" : "Changer ma photo")}

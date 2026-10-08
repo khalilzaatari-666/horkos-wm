@@ -63,12 +63,12 @@ export function RequestSent({
 
   return (
     <AnimateIn variant="reveal-up">
-      <div className="bg-cream border border-cream-deep rounded-lg p-6 sm:p-8">
+      <div className="surface p-6 sm:p-8 sm:p-8">
         <div className="flex items-center gap-2.5 mb-2.5">
-          <span className="w-9 h-9 rounded-full bg-bronze/15 text-bronze-dark flex items-center justify-center shrink-0">
+          <span className="w-9 h-9 rounded-full bg-ink/15 text-ink flex items-center justify-center shrink-0">
             <Check className="w-4.5 h-4.5" />
           </span>
-          <h2 className="font-heading text-[21px] font-semibold text-ink leading-tight">
+          <h2 className="font-heading text-[21px] font-normal text-ink leading-tight">
             Votre rendez-vous est confirmé
           </h2>
         </div>
@@ -84,12 +84,12 @@ export function RequestSent({
         )}
         <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-2">
           {bookedMode === "visio"
-            ? "En visioconférence - le lien Google Meet et l'invitation calendrier arrivent dans votre boîte email."
-            : "Au cabinet, à Casablanca. L'adresse exacte et l'invitation calendrier arrivent dans votre boîte email."}{" "}
+            ? "En visioconférence - le lien Google Meet et l’invitation calendrier arrivent dans votre boîte email."
+            : "Au cabinet, à Casablanca. L’adresse exacte et l’invitation calendrier arrivent dans votre boîte email."}{" "}
           Le premier rendez-vous est gratuit et sans engagement.
         </p>
 
-        <div className="mt-6 pt-5 border-t border-cream-deep">
+        <div className="mt-6 pt-5 border-t border-ink/10">
           <p className="text-[13.5px] text-ink leading-[1.6]">
             Nous vous emmenons maintenant vers la création de votre espace client, avec vos
             informations déjà remplies.
@@ -98,7 +98,7 @@ export function RequestSent({
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4">
             <Link
               href={signupUrl}
-              className="inline-block px-[26px] py-[13px] text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
+              className="inline-block px-[26px] py-[13px] text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors"
             >
               Créer mon espace client →
             </Link>
@@ -108,8 +108,8 @@ export function RequestSent({
           </div>
 
           <p className="text-[12.5px] text-warm-grey mt-4">
-            <Link href="/" className="text-bronze hover:text-bronze-dark font-medium">
-              Revenir à l&apos;accueil
+            <Link href="/" className="text-ink underline decoration-ink/30 hover:decoration-ink font-medium">
+              Revenir à l’accueil
             </Link>{" "}
             - votre rendez-vous est déjà confirmé.
           </p>

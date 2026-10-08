@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthSplit } from "@/components/public/auth-split";
 
 // Auth pages carry no public value and shouldn't compete in search results.
 export const metadata: Metadata = {
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <AuthSplit>{children}</AuthSplit>;
 }

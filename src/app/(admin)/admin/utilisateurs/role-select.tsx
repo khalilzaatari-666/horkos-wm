@@ -51,7 +51,7 @@ export function RoleSelect({
           defaultValue={value}
           disabled={pending || isSelf}
           aria-label="Rôle du compte"
-          className="px-2.5 py-1.5 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="px-2.5 py-1.5 text-[12.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {ROLES.map((r) => (
             <option key={r} value={r}>
@@ -63,7 +63,7 @@ export function RoleSelect({
           <button
             type="submit"
             disabled={pending}
-            className="px-3 py-1.5 text-[12px] font-medium text-bronze-dark border border-cream-deep rounded-lg hover:border-bronze hover:bg-cream transition-colors cursor-pointer disabled:opacity-60"
+            className="px-3 py-1.5 text-[12px] font-medium text-ink border border-ink/10 rounded-lg hover:border-ink/40 hover:bg-ink/[0.04] transition-colors cursor-pointer disabled:opacity-60"
           >
             {pending ? "…" : "Appliquer"}
           </button>

@@ -115,7 +115,7 @@ export default async function RecommandationsPage({
       <PanelHead
         eyebrow="Ce que nous vous proposons"
         title="Mes recommandations"
-        desc="Chaque recommandation part d'un besoin identifié avec vous. Vous restez seul décisionnaire."
+        desc="Chaque recommandation part d’un besoin identifié avec vous. Vous restez seul décisionnaire."
       />
 
       {rows.length > 0 && (
@@ -143,12 +143,12 @@ export default async function RecommandationsPage({
             title={
               rows.length > 0
                 ? "Aucune recommandation ne correspond"
-                : "Aucune recommandation pour l'instant"
+                : "Aucune recommandation pour l’instant"
             }
             desc={
               rows.length > 0
                 ? "Changez de statut ou effacez la recherche pour retrouver vos fiches."
-                : "Elles sont formulées après l'audit patrimonial, une fois votre situation et vos objectifs établis avec votre conseiller."
+                : "Elles sont formulées après l’audit patrimonial, une fois votre situation et vos objectifs établis avec votre conseiller."
             }
           />
         </AnimateIn>
@@ -157,7 +157,7 @@ export default async function RecommandationsPage({
           {groupes.map((groupe, gi) => (
             <section key={groupe.categorie}>
               <AnimateIn variant="fade-up" delay={80 + gi * 60}>
-                <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+                <h2 className="text-ink text-[12px] font-normal mb-3">
                   {groupe.categorie}
                 </h2>
                 <CardGrid min="300px">
@@ -167,14 +167,14 @@ export default async function RecommandationsPage({
                     <Link key={r.id} href={`/espace/recommandations/${r.recommendations!.id}`}>
                       <Card
                         center
-                        className="p-5 h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-bronze/40"
+                        className="p-5 h-full transition-all duration-300 hover:border-ink/20 hover:border-ink/40"
                       >
                         {etat && (
                           <div className="flex items-start justify-end mb-2">
                             <Badge tone={etat.tone}>{etat.label}</Badge>
                           </div>
                         )}
-                        <h3 className="font-heading text-[17px] font-semibold text-ink leading-[1.3]">
+                        <h3 className="font-heading text-[17px] font-normal text-ink leading-[1.3]">
                           {r.recommendations!.title}
                         </h3>
                         {r.recommendations!.description && (

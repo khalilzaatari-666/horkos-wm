@@ -45,10 +45,10 @@ export function DocumentRow({
   const weight = formatSize(size);
 
   return (
-    <div className="flex flex-col h-full p-4 bg-white border border-cream-deep rounded-xl shadow-sm transition-all duration-300 hover:shadow-md hover:border-bronze/40">
+    <div className="flex flex-col h-full p-4 bg-white border border-ink/10 rounded-xl transition-all duration-300 hover:border-ink/20 hover:border-ink/40">
       <span
         aria-hidden="true"
-        className="grid place-items-center w-9 h-9 rounded-lg bg-cream text-bronze-dark shrink-0 mb-3"
+        className="grid place-items-center w-9 h-9 rounded-lg bg-cream-deep/40 text-ink shrink-0 mb-3"
       >
         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -74,7 +74,7 @@ export function DocumentRow({
         <button
           type="submit"
           disabled={pending}
-          className="w-full px-3.5 py-2 text-[12.5px] font-medium text-bronze-dark border border-cream-deep rounded-lg hover:border-bronze hover:bg-cream transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+          className="w-full px-3.5 py-2 text-[12.5px] font-medium text-ink border border-ink/10 rounded-lg hover:border-ink/40 hover:bg-ink/[0.04] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait"
         >
           {pending ? "Ouverture…" : "Ouvrir"}
         </button>

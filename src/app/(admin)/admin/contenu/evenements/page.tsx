@@ -120,11 +120,11 @@ export default async function AdminEventsPage({
           {rows.map((e) => {
             const past = e.date < nowIso;
             return (
-              <tr key={e.id} className="hover:bg-cream/40 transition-colors align-top">
+              <tr key={e.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                 <Td>
                   <Link
                     href={`/admin/contenu/evenements/${e.id}`}
-                    className="font-medium text-ink hover:text-bronze-dark transition-colors"
+                    className="font-medium text-ink hover:text-ink/70 transition-colors"
                   >
                     {e.title}
                   </Link>
@@ -147,7 +147,7 @@ export default async function AdminEventsPage({
                   <div className="flex items-center gap-3 justify-end whitespace-nowrap">
                     <Link
                       href={`/admin/contenu/evenements/${e.id}`}
-                      className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors"
+                      className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors"
                     >
                       Modifier
                     </Link>

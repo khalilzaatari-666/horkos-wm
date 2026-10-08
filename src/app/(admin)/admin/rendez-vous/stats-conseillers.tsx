@@ -38,10 +38,10 @@ function Compteur({ fait, objectif }: { fait: number; objectif: number }) {
 }
 
 const th =
-  "px-5 py-3 text-[11px] font-semibold tracking-[1.2px] uppercase text-warm-grey whitespace-nowrap";
+  "px-5 py-3.5 text-[13px] font-medium text-warm-grey whitespace-nowrap";
 const td = "px-5 py-3 text-[13px] text-charcoal whitespace-nowrap";
 const flecheClasse =
-  "grid place-items-center w-8 h-8 rounded-lg border border-cream-deep bg-white text-charcoal hover:border-bronze/50 hover:text-bronze-dark transition-colors";
+  "grid place-items-center w-8 h-8 rounded-lg border border-ink/10 bg-white text-charcoal hover:border-ink/40 hover:text-ink/70 transition-colors";
 
 /**
  * L'activité de la semaine, conseiller par conseiller, face à la règle d'or
@@ -74,14 +74,14 @@ export function StatsConseillers({
               </Link>
             </>
           )}
-          <h2 id="stats-conseillers" className={`font-heading text-[16px] font-semibold text-ink `}>
+          <h2 id="stats-conseillers" className={`font-heading text-[16px] font-normal text-ink `}>
             Activité des conseillers · semaine du {formatDateLong(`${lundi}T12:00:00Z`)}
           </h2>
           {lienSemaine && lundi !== semaineCourante && (
             <Link
               href={lienSemaine(semaineCourante)}
               scroll={false}
-              className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors ml-1"
+              className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors ml-1"
             >
               Cette semaine
             </Link>
@@ -97,26 +97,26 @@ export function StatsConseillers({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-cream-deep">
+              <tr className="border-b border-ink/10">
                 <th className={th} rowSpan={2}>Conseiller</th>
-                <th className={`${th} text-center border-l border-cream-deep`} colSpan={3}>
+                <th className={`${th} text-center border-l border-ink/10`} colSpan={3}>
                   Tenus
                 </th>
-                <th className={`${th} text-center border-l border-cream-deep`} colSpan={2}>
+                <th className={`${th} text-center border-l border-ink/10`} colSpan={2}>
                   Fixés avec des clients
                 </th>
               </tr>
-              <tr className="border-b border-cream-deep">
+              <tr className="border-b border-ink/10">
                 {ETAPES.map((e, i) => (
-                  <th key={`t-${e}`} className={`${th} text-center ${i === 0 ? "border-l border-cream-deep" : ""}`}>
+                  <th key={`t-${e}`} className={`${th} text-center ${i === 0 ? "border-l border-ink/10" : ""}`}>
                     {e}
                   </th>
                 ))}
-                <th className={`${th} text-center border-l border-cream-deep`}>R1</th>
+                <th className={`${th} text-center border-l border-ink/10`}>R1</th>
                 <th className={`${th} text-center`}>R2</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-cream-deep">
+            <tbody className="divide-y divide-ink/10">
               {stats.length === 0 && (
                 <tr>
                   <td className={`${td} text-warm-grey`} colSpan={6}>
@@ -128,11 +128,11 @@ export function StatsConseillers({
                 <tr key={s.id}>
                   <td className={`${td} font-medium text-ink`}>{s.nom}</td>
                   {ETAPES.map((e, i) => (
-                    <td key={`t-${e}`} className={`${td} text-center ${i === 0 ? "border-l border-cream-deep" : ""}`}>
+                    <td key={`t-${e}`} className={`${td} text-center ${i === 0 ? "border-l border-ink/10" : ""}`}>
                       <Compteur fait={s.tenus[e]} objectif={OBJECTIFS_HEBDO[e]} />
                     </td>
                   ))}
-                  <td className={`${td} text-center tabular-nums border-l border-cream-deep`}>{s.fixes.R1}</td>
+                  <td className={`${td} text-center tabular-nums border-l border-ink/10`}>{s.fixes.R1}</td>
                   <td className={`${td} text-center tabular-nums`}>{s.fixes.R2}</td>
                 </tr>
               ))}

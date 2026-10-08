@@ -55,21 +55,21 @@ export default async function ClientDossierLayout({
         <div className="min-w-0">
           <Link
             href="/admin/clients"
-            className="text-[12px] text-warm-grey hover:text-bronze transition-colors"
+            className="text-[12px] text-warm-grey hover:text-ink/70 transition-colors"
           >
             ← Tous les clients
           </Link>
-          <h1 className="font-heading text-[26px] font-semibold text-ink leading-[1.2] mt-1">
+          <h1 className="font-heading text-[26px] font-normal text-ink leading-[1.2] mt-1">
             {nom}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[12.5px]">
             {client.email && (
-              <a href={`mailto:${client.email}`} className="text-bronze-dark hover:text-bronze transition-colors">
+              <a href={`mailto:${client.email}`} className="text-ink hover:text-ink/70 transition-colors">
                 {client.email}
               </a>
             )}
             {client.phone && (
-              <a href={`tel:${client.phone}`} className="text-warm-grey hover:text-bronze transition-colors tabular-nums">
+              <a href={`tel:${client.phone}`} className="text-warm-grey hover:text-ink/70 transition-colors tabular-nums">
                 {client.phone}
               </a>
             )}
@@ -78,7 +78,7 @@ export default async function ClientDossierLayout({
 
         {/* Conseiller référent : modifiable par un admin, en lecture sinon. */}
         <div className="shrink-0">
-          <div className="text-[11px] font-semibold tracking-[1.2px] uppercase text-warm-grey mb-1.5">
+          <div className="text-[13px] font-medium text-warm-grey mb-1.5">
             Conseiller référent
           </div>
           {isAdmin ? (
@@ -87,7 +87,7 @@ export default async function ClientDossierLayout({
               <select
                 name="advisorId"
                 defaultValue={client.advisor_id ?? ""}
-                className="h-9 px-2.5 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
+                className="h-9 px-2.5 text-[12.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
               >
                 <option value="">Non assigné</option>
                 {advisors.map((c) => (
@@ -98,7 +98,7 @@ export default async function ClientDossierLayout({
               </select>
               <button
                 type="submit"
-                className="h-9 px-3 text-[12px] font-medium text-bronze-dark border border-cream-deep rounded-lg hover:border-bronze hover:bg-cream transition-colors cursor-pointer"
+                className="h-9 px-3 text-[12px] font-medium text-ink border border-ink/10 rounded-lg hover:border-ink/40 hover:bg-ink/[0.04] transition-colors cursor-pointer"
               >
                 Assigner
               </button>

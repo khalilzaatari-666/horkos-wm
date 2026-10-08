@@ -28,31 +28,32 @@ interface AnimateInProps {
   once?: boolean;
 }
 
-/** Full-travel, 3D-friendly values - desktop has the GPU headroom for them. */
+/**
+ * Entrées courtes et sobres : un léger glissement, jamais de rotation ni de
+ * zoom marqué. Les anciens noms de variantes restent acceptés, mais
+ * convergent vers le même vocabulaire discret.
+ */
 const desktopVariants: Record<AnimationVariant, gsap.TweenVars> = {
-  "fade-up": { opacity: 0, y: 40 },
-  "fade-down": { opacity: 0, y: -40 },
-  "fade-left": { opacity: 0, x: -50 },
-  "fade-right": { opacity: 0, x: 50 },
-  "scale-in": { opacity: 0, scale: 0.85 },
-  "reveal-up": { opacity: 0, y: 60, scale: 0.95 },
-  "rotate-in": { opacity: 0, y: 30, rotateX: 15 },
-  "blur-in": { opacity: 0, y: 20, filter: "blur(8px)" },
+  "fade-up": { opacity: 0, y: 24 },
+  "fade-down": { opacity: 0, y: -16 },
+  "fade-left": { opacity: 0, x: -24 },
+  "fade-right": { opacity: 0, x: 24 },
+  "scale-in": { opacity: 0, scale: 0.98, y: 12 },
+  "reveal-up": { opacity: 0, y: 32 },
+  "rotate-in": { opacity: 0, y: 24 },
+  "blur-in": { opacity: 0, y: 12, filter: "blur(6px)" },
 };
 
-/**
- * Mobile: shorter travel (a 50px slide eats a third of a 375px viewport),
- * no 3D rotation and no blur filter - both stutter on mid-range phones.
- */
+/** Mobile : course encore plus courte, ni flou ni échelle. */
 const mobileVariants: Record<AnimationVariant, gsap.TweenVars> = {
-  "fade-up": { opacity: 0, y: 20 },
-  "fade-down": { opacity: 0, y: -20 },
-  "fade-left": { opacity: 0, x: -22 },
-  "fade-right": { opacity: 0, x: 22 },
-  "scale-in": { opacity: 0, scale: 0.94 },
-  "reveal-up": { opacity: 0, y: 30, scale: 0.96 },
-  "rotate-in": { opacity: 0, y: 22 },
-  "blur-in": { opacity: 0, y: 14 },
+  "fade-up": { opacity: 0, y: 14 },
+  "fade-down": { opacity: 0, y: -10 },
+  "fade-left": { opacity: 0, y: 14 },
+  "fade-right": { opacity: 0, y: 14 },
+  "scale-in": { opacity: 0, y: 14 },
+  "reveal-up": { opacity: 0, y: 18 },
+  "rotate-in": { opacity: 0, y: 14 },
+  "blur-in": { opacity: 0, y: 10 },
 };
 
 /** Only reset the properties the `from` state actually touched. */
@@ -70,7 +71,7 @@ export function AnimateIn({
   children,
   className = "",
   delay = 0,
-  duration = 0.8,
+  duration = 0.9,
   variant = "fade-up",
   mobileVariant,
   stagger,
@@ -113,7 +114,7 @@ export function AnimateIn({
           ...restingState(from),
           duration: dur,
           delay: delay / 1000,
-          ease: "power3.out",
+          ease: "expo.out",
         };
 
         // Un élément déjà à l'écran au montage doit se révéler tout de suite :

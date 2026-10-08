@@ -22,8 +22,8 @@ export default function ConfidentialitePage() {
           Horkos Wealth Management accorde une importance particulière à la protection de vos
           données personnelles. La présente politique explique quelles données nous collectons,
           pourquoi, comment nous les utilisons et les protégeons, et quels sont vos droits. Elle
-          s&apos;inscrit dans le cadre de la loi n° 09-08 relative à la protection des personnes
-          physiques à l&apos;égard du traitement des données à caractère personnel et des textes pris
+          s’inscrit dans le cadre de la loi n° 09-08 relative à la protection des personnes
+          physiques à l’égard du traitement des données à caractère personnel et des textes pris
           pour son application, sous le contrôle de la Commission Nationale de contrôle de la
           protection des Données à caractère Personnel (CNDP).
         </p>
@@ -37,7 +37,7 @@ export default function ConfidentialitePage() {
             ["RC / ICE", "RC 709941 (Casablanca) - ICE 003835462000017"],
             [
               "Contact",
-              <a key="c" href={`mailto:${CABINET_EMAIL}`} className="text-bronze hover:text-bronze-dark">
+              <a key="c" href={`mailto:${CABINET_EMAIL}`} className="text-ink hover:text-ink/70">
                 {CABINET_EMAIL}
               </a>,
             ],
@@ -48,7 +48,7 @@ export default function ConfidentialitePage() {
       <LegalSection title="Données que nous collectons">
         <p>
           Nous ne collectons que les données nécessaires à chaque démarche. Selon votre usage du
-          site, il peut s&apos;agir de :
+          site, il peut s’agir de :
         </p>
         <LegalList
           items={[
@@ -62,8 +62,8 @@ export default function ConfidentialitePage() {
               éventuel, ainsi que le créneau et le format (visioconférence ou cabinet) choisis.
             </span>,
             <span key="3">
-              <strong className="font-medium text-ink">Demande de cession d&apos;actif</strong> :
-              type d&apos;actif, motif, valeur estimée, horizon, description et vos coordonnées.
+              <strong className="font-medium text-ink">Demande de cession d’actif</strong> :
+              type d’actif, motif, valeur estimée, horizon, description et vos coordonnées.
             </span>,
             <span key="4">
               <strong className="font-medium text-ink">Téléchargement de guides</strong> : adresse
@@ -92,7 +92,7 @@ export default function ConfidentialitePage() {
         <LegalList
           items={[
             "répondre à vos demandes de contact, de rendez-vous et de cession (exécution de mesures précontractuelles et intérêt légitime à vous répondre) ;",
-            "gérer et confirmer vos rendez-vous, y compris l'ajout à l'agenda et la création d'un lien de visioconférence ;",
+            "gérer et confirmer vos rendez-vous, y compris l’ajout à l’agenda et la création d’un lien de visioconférence ;",
             "vous donner accès à votre espace client et aux services associés (exécution du contrat) ;",
             "vous envoyer les guides et documents que vous demandez (consentement) ;",
             "assurer la sécurité, prévenir la fraude et respecter nos obligations légales.",
@@ -126,13 +126,13 @@ export default function ConfidentialitePage() {
             </span>,
             <span key="s4">
               <strong className="font-medium text-ink">Vercel</strong> - hébergement et diffusion de
-              l&apos;application.
+              l’application.
             </span>,
           ]}
         />
         <p>
           Certains de ces prestataires sont situés hors du Maroc. Les transferts de données vers
-          l&apos;étranger sont encadrés par les garanties appropriées, conformément à la loi
+          l’étranger sont encadrés par les garanties appropriées, conformément à la loi
           n° 09-08.
         </p>
       </LegalSection>
@@ -140,7 +140,7 @@ export default function ConfidentialitePage() {
       <LegalSection title="Durée de conservation">
         <p>
           Nous conservons vos données pour la durée nécessaire aux finalités ci-dessus : le temps de
-          traiter votre demande, puis pendant la durée de la relation avec le cabinet. À l&apos;issue
+          traiter votre demande, puis pendant la durée de la relation avec le cabinet. À l’issue
           de cette relation, ou de votre dernier contact avec nous, vos données sont conservées
           pendant une durée de cinq (5) ans, conformément aux délais légaux applicables. Passé ce
           délai, les données sont supprimées ou anonymisées.
@@ -158,22 +158,22 @@ export default function ConfidentialitePage() {
 
       <LegalSection title="Cookies">
         <p>
-          Le site n&apos;utilise que des cookies strictement nécessaires à son fonctionnement,
+          Le site n’utilise que des cookies strictement nécessaires à son fonctionnement,
           principalement pour maintenir votre session lorsque vous êtes connecté à votre espace
-          client. Nous n&apos;utilisons ni cookie publicitaire, ni traceur d&apos;analyse tiers.
+          client. Nous n’utilisons ni cookie publicitaire, ni traceur d’analyse tiers.
         </p>
       </LegalSection>
 
       <LegalSection title="Vos droits">
         <p>
-          Conformément à la loi n° 09-08, vous disposez d&apos;un droit d&apos;accès, de
-          rectification et d&apos;opposition au traitement de vos données, ainsi que du droit
-          d&apos;en demander la suppression lorsque cela est justifié. Vous pouvez exercer ces droits
+          Conformément à la loi n° 09-08, vous disposez d’un droit d’accès, de
+          rectification et d’opposition au traitement de vos données, ainsi que du droit
+          d’en demander la suppression lorsque cela est justifié. Vous pouvez exercer ces droits
           à tout moment en écrivant à{" "}
-          <a href={`mailto:${CABINET_EMAIL}`} className="text-bronze hover:text-bronze-dark">
+          <a href={`mailto:${CABINET_EMAIL}`} className="text-ink hover:text-ink/70">
             {CABINET_EMAIL}
           </a>
-          , en justifiant de votre identité. Vous avez également le droit d&apos;introduire une
+          , en justifiant de votre identité. Vous avez également le droit d’introduire une
           réclamation auprès de la CNDP.
         </p>
       </LegalSection>
@@ -189,11 +189,11 @@ export default function ConfidentialitePage() {
       <LegalSection title="Contact">
         <p>
           Pour toute question relative à vos données personnelles, contactez-nous à{" "}
-          <a href={`mailto:${CABINET_EMAIL}`} className="text-bronze hover:text-bronze-dark">
+          <a href={`mailto:${CABINET_EMAIL}`} className="text-ink hover:text-ink/70">
             {CABINET_EMAIL}
           </a>{" "}
           ou via notre{" "}
-          <Link href="/contact" className="text-bronze hover:text-bronze-dark">
+          <Link href="/contact" className="text-ink hover:text-ink/70">
             formulaire de contact
           </Link>
           .

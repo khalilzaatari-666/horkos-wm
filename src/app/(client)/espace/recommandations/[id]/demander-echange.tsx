@@ -17,7 +17,7 @@ export function DemanderEchange({ recommendationId }: { recommendationId: string
 
   if (state.status === "success") {
     return (
-      <p className="inline-flex items-center gap-2 mt-4 text-[13px] font-medium text-bronze-dark">
+      <p className="inline-flex items-center gap-2 mt-4 text-[13px] font-medium text-ink">
         <Check className="w-4 h-4 shrink-0" aria-hidden="true" />
         Votre conseiller a été prévenu, il revient vers vous.
       </p>
@@ -30,7 +30,7 @@ export function DemanderEchange({ recommendationId }: { recommendationId: string
       <button
         type="submit"
         disabled={pending}
-        className="inline-block mt-4 px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        className="inline-block mt-4 px-5 py-2.5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         {pending ? "Envoi…" : "En parler avec mon conseiller"}
       </button>

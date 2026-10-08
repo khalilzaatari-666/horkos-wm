@@ -24,7 +24,7 @@ const initialState: IntakeState = { status: "idle" };
 const AUTRE_BESOIN = "Autre besoin";
 
 const champ =
-  "w-full h-11 px-3.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-12 px-4 text-[16px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 /** Une pastille de choix, reprise du questionnaire de rendez-vous. */
 function Option({
@@ -43,8 +43,8 @@ function Option({
       aria-pressed={selected}
       className={`text-left px-3.5 py-2.5 text-[13.5px] rounded-lg border transition-colors cursor-pointer ${
         selected
-          ? "border-bronze bg-bronze/10 text-ink font-medium"
-          : "border-cream-deep bg-white text-charcoal hover:border-bronze/50"
+          ? "border-ink bg-ink/10 text-ink font-medium"
+          : "border-ink/10 bg-white text-charcoal hover:border-ink/40"
       }`}
     >
       {label}
@@ -63,7 +63,7 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="font-heading text-[16px] font-semibold text-ink">{titre}</h2>
+      <h2 className="font-heading text-[16px] font-normal text-ink">{titre}</h2>
       {aide && <p className="text-[12.5px] text-warm-grey mt-1 mb-3">{aide}</p>}
       <div className={aide ? "" : "mt-3"}>{children}</div>
     </section>
@@ -140,7 +140,7 @@ export function IntakeForm({
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="firstName" className="block text-[12.5px] font-medium text-ink mb-1.5">
-              Prénom <span className="text-bronze">*</span>
+              Prénom <span className="text-ink">*</span>
             </label>
             <input
               id="firstName"
@@ -153,7 +153,7 @@ export function IntakeForm({
           </div>
           <div>
             <label htmlFor="lastName" className="block text-[12.5px] font-medium text-ink mb-1.5">
-              Nom <span className="text-bronze">*</span>
+              Nom <span className="text-ink">*</span>
             </label>
             <input
               id="lastName"
@@ -168,7 +168,7 @@ export function IntakeForm({
 
         <div className="mt-4">
           <label htmlFor="phone" className="block text-[12.5px] font-medium text-ink mb-1.5">
-            Téléphone <span className="text-bronze">*</span>
+            Téléphone <span className="text-ink">*</span>
           </label>
           <PhoneInput
             id="phone"
@@ -185,7 +185,7 @@ export function IntakeForm({
 
         <div className="mt-4">
           <label htmlFor="ville" className="block text-[12.5px] font-medium text-ink mb-1.5">
-            Ville de résidence <span className="text-bronze">*</span>
+            Ville de résidence <span className="text-ink">*</span>
           </label>
           <input
             id="ville"
@@ -202,7 +202,7 @@ export function IntakeForm({
       </Section>
 
       <Section
-        titre="De quoi avez-vous besoin aujourd'hui ?"
+        titre="De quoi avez-vous besoin aujourd’hui ?"
         aide="Plusieurs réponses possibles."
       >
         <div className="grid sm:grid-cols-2 gap-2">
@@ -222,7 +222,7 @@ export function IntakeForm({
               htmlFor="besoinAutre"
               className="block text-[12.5px] font-medium text-ink mb-1.5"
             >
-              Précisez votre besoin <span className="text-bronze">*</span>
+              Précisez votre besoin <span className="text-ink">*</span>
             </label>
             <textarea
               id="besoinAutre"
@@ -232,7 +232,7 @@ export function IntakeForm({
               value={besoinAutre}
               onChange={(e) => setBesoinAutre(e.target.value)}
               placeholder="En quelques mots, ce que vous cherchez à accomplir."
-              className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
+              className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-y"
             />
           </div>
         )}
@@ -251,7 +251,7 @@ export function IntakeForm({
         </div>
       </Section>
 
-      <Section titre="Montant d'investissement envisagé à court terme ?">
+      <Section titre="Montant d’investissement envisagé à court terme ?">
         <div className="grid sm:grid-cols-2 gap-2">
           {investissementOptions.map((i) => (
             <Option
@@ -279,7 +279,7 @@ export function IntakeForm({
           rows={4}
           maxLength={MESSAGE_MAX}
           placeholder="Un contexte, une échéance, une question."
-          className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
+          className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-y"
         />
       </Section>
 
@@ -292,7 +292,7 @@ export function IntakeForm({
       <button
         type="submit"
         disabled={pending || !complet}
-        className="w-full h-12 text-[14px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        className="w-full h-12 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         {pending ? "Enregistrement…" : "Accéder à mon espace"}
       </button>

@@ -94,7 +94,7 @@ export default async function CoffrePage({
             desc={
               documents.length > 0
                 ? "Élargissez la rubrique ou effacez la recherche pour retrouver vos pièces."
-                : "Votre conseiller y dépose vos relevés, contrats et comptes rendus au fil de l'accompagnement. Vous serez prévenu à chaque nouveau document."
+                : "Votre conseiller y dépose vos relevés, contrats et comptes rendus au fil de l’accompagnement. Vous serez prévenu à chaque nouveau document."
             }
           />
         </AnimateIn>
@@ -103,7 +103,7 @@ export default async function CoffrePage({
           {remplies.map((rubrique, i) => (
             <section key={rubrique.key}>
               <AnimateIn variant="fade-up" delay={80 + i * 60}>
-                <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+                <h2 className="text-ink text-[12px] font-normal mb-3">
                   {rubrique.label}
                 </h2>
                 <CardGrid min="240px">

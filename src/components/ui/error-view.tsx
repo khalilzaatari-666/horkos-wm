@@ -33,17 +33,15 @@ export function ErrorView({
   }, [error]);
 
   const primary =
-    tone === "admin" ? "bg-ink text-cream hover:bg-navy" : "bg-bronze text-white hover:bg-bronze-dark";
+    tone === "admin" ? "bg-ink text-cream hover:bg-navy" : "bg-ink text-white hover:bg-navy";
 
   return (
     <div className="flex flex-col items-center justify-center text-center px-7 py-16 min-h-[50vh]">
-      <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-        Erreur
-      </span>
-      <h1 className="font-heading text-[clamp(1.4rem,4vw,1.9rem)] font-semibold text-ink mt-3">
+      <span className="text-[14px] text-warm-grey">Erreur</span>
+      <h1 className="display-md text-ink mt-5">
         {title}
       </h1>
-      <p className="text-warm-grey text-[14px] leading-[1.7] mt-3 max-w-[440px]">{desc}</p>
+      <p className="text-charcoal text-[16px] leading-relaxed mt-4 max-w-[46ch]">{desc}</p>
       {error.digest && (
         <p className="text-[11.5px] text-warm-grey/80 mt-2 font-mono">Réf. {error.digest}</p>
       )}
@@ -52,13 +50,13 @@ export function ErrorView({
         <button
           type="button"
           onClick={reset}
-          className={`px-6 py-3 text-[13.5px] font-medium rounded-lg transition-colors cursor-pointer ${primary}`}
+          className={`btn ${primary}`}
         >
           Réessayer
         </button>
         <Link
           href={fallback.href}
-          className="px-6 py-3 text-[13.5px] font-medium bg-white border border-cream-deep text-ink rounded-lg hover:border-bronze/50 transition-colors"
+          className="btn btn-outline"
         >
           {fallback.label}
         </Link>

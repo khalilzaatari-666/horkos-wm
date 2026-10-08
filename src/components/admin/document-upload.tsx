@@ -102,7 +102,7 @@ export function DocumentUpload({
         accept={accept}
         onChange={onChange}
         disabled={busy}
-        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-cream-deep file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
+        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-ink/10 file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
       />
 
       {busy && <p className="text-[11.5px] text-warm-grey mt-1">Envoi en cours…</p>}

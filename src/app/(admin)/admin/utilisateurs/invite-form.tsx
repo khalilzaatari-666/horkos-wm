@@ -9,7 +9,7 @@ import { formatNameInput, NAME_MAX, EMAIL_MAX } from "@/lib/validation";
 const initialState: InviteState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 /**
  * Invitation d'un membre de l'équipe. Supabase crée le compte et envoie le lien
@@ -22,7 +22,7 @@ export function InviteForm() {
 
   return (
     <AdminCard className="p-6 mb-5">
-      <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-1.5">
+      <h2 className="font-heading text-[17.5px] font-normal text-ink mb-1.5">
         Inviter un membre de l&apos;équipe
       </h2>
       <p className="text-[12.5px] text-warm-grey leading-[1.6] mb-4 max-w-[620px]">
@@ -95,7 +95,7 @@ export function InviteForm() {
         <button
           type="submit"
           disabled={pending}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Envoi…" : "Envoyer l'invitation"}
         </button>

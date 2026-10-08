@@ -17,16 +17,12 @@ export function FiltreCategories({
   if (categories.length === 0) return null;
 
   const pastille = (on: boolean) =>
-    `inline-flex items-center h-9 px-4 rounded-full border text-[13px] font-medium transition-colors ${
-      on
-        ? "bg-ink border-ink text-cream"
-        : "bg-white border-cream-deep text-charcoal hover:border-bronze hover:text-ink"
-    }`;
+    `relative pb-3 text-[15px] transition-colors ${on ? "text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-[2px] after:bg-ink" : "text-warm-grey hover:text-ink"}`;
 
   return (
     <nav
       aria-label="Filtrer par catégorie"
-      className="flex flex-wrap gap-2 mb-8"
+      className="flex flex-wrap gap-x-8 gap-y-2 border-b border-ink/10 mb-12"
     >
       <Link
         href={base}

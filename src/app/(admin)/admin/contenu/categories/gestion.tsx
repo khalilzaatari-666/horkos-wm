@@ -29,13 +29,13 @@ export async function GestionCategories({ type }: { type: "articles" | "guides" 
   const categories = (data ?? []) as Categorie[];
 
   return (
-    <details className="group max-w-[760px] mb-6 border border-cream-deep rounded-lg bg-white">
+    <details className="group max-w-[760px] mb-6 border border-ink/10 rounded-lg bg-white">
       <summary className="flex items-center justify-between gap-3 px-4 py-3 cursor-pointer select-none text-[13.5px] font-medium text-ink">
         <span>
           Catégories{" "}
           <span className="text-warm-grey font-normal tabular-nums">({categories.length})</span>
         </span>
-        <span className="text-bronze transition-transform duration-200 group-open:rotate-90">▸</span>
+        <span className="text-ink transition-transform duration-200 group-open:rotate-90">▸</span>
       </summary>
 
       <div className="px-4 pb-4">
@@ -46,11 +46,11 @@ export async function GestionCategories({ type }: { type: "articles" | "guides" 
         <CategorieForm type={type} />
 
         {categories.length > 0 && (
-          <ul className="mt-4 border-t border-cream-deep">
+          <ul className="mt-4 border-t border-ink/10">
             {categories.map((c) => {
               const nb = (contenus ?? []).filter((r) => r.category === c.name).length;
               return (
-                <li key={c.name} className="py-3 border-b border-cream-deep last:border-b-0">
+                <li key={c.name} className="py-3 border-b border-ink/10 last:border-b-0">
                   <div className="flex flex-wrap items-start gap-3">
                     {/* La clé suit les valeurs : après un enregistrement, le
                         formulaire repart de ce que la base a retenu. */}

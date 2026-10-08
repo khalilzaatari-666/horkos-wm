@@ -80,7 +80,7 @@ export function PhoneInput({
     close();
   };
 
-  const borderColour = hasError ? "border-red-500" : "border-cream-deep";
+  const borderColour = hasError ? "border-red-500" : "border-ink/10";
 
   // Morocco appears in both groups, so the key needs the group to stay unique.
   const renderOption = (c: (typeof COUNTRIES)[number], group = "all") => (
@@ -93,7 +93,7 @@ export function PhoneInput({
       className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors cursor-pointer ${
         c.iso === iso
           ? "bg-cream-deep text-ink font-medium"
-          : "bg-white text-charcoal hover:bg-cream"
+          : "bg-white text-charcoal hover:bg-ink/[0.04]"
       }`}
     >
       <span className="text-[16px] leading-none">{flagOf(c.iso)}</span>
@@ -111,7 +111,7 @@ export function PhoneInput({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={`Indicatif pays : ${country.name} ${country.dial}`}
-          className={`h-11 shrink-0 flex items-center gap-1.5 px-3 bg-white border ${borderColour} border-r-0 rounded-l-lg text-[14px] text-ink outline-none transition-colors hover:bg-cream/60 focus:border-bronze cursor-pointer`}
+          className={`h-11 shrink-0 flex items-center gap-1.5 px-3 bg-white border ${borderColour} border-r-0 rounded-l-lg text-[14px] text-ink outline-none transition-colors hover:bg-ink/[0.04] focus:border-bronze cursor-pointer`}
         >
           <span className="text-[17px] leading-none">{flagOf(country.iso)}</span>
           <span className="tabular-nums">{country.dial}</span>
@@ -135,8 +135,8 @@ export function PhoneInput({
           aria-required="true"
           aria-invalid={hasError ? true : undefined}
           aria-describedby={hasError ? `${id}-error` : undefined}
-          className={`h-11 w-full min-w-0 px-3.5 text-[14px] bg-white border ${borderColour} rounded-r-lg outline-none transition-colors ${
-            hasError ? "focus:border-red-500" : "focus:border-bronze"
+          className={`h-12 w-full min-w-0 px-4 text-[16px] bg-white border ${borderColour} rounded-r-lg outline-none transition-colors ${
+            hasError ? "focus:border-red-500" : "focus:border-bronze focus:ring-4 focus:ring-bronze/15"
           }`}
         />
       </div>
@@ -144,8 +144,8 @@ export function PhoneInput({
       {/* Opaque on purpose: the panel overlaps the fields below, so every layer
           paints its own background rather than letting them show through. */}
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-1.5 w-[290px] max-w-[calc(100vw-3.5rem)] bg-white border border-cream-deep rounded-lg shadow-2xl overflow-hidden">
-          <div className="p-2 bg-white border-b border-cream-deep">
+        <div className="absolute z-50 top-full left-0 mt-1.5 w-[290px] max-w-[calc(100vw-3.5rem)] bg-white border border-ink/10 rounded-lg shadow-2xl overflow-hidden">
+          <div className="p-2 bg-white border-b border-ink/10">
             <input
               ref={searchRef}
               type="text"
@@ -153,7 +153,7 @@ export function PhoneInput({
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher un pays ou un indicatif"
               aria-label="Rechercher un pays"
-              className="w-full h-9 px-2.5 text-[13px] bg-cream border border-cream-deep rounded-md outline-none focus:border-bronze transition-colors"
+              className="w-full h-9 px-2.5 text-[13px] bg-cream-deep/40 border border-ink/10 rounded-md outline-none focus:border-bronze transition-colors"
             />
           </div>
 
@@ -175,7 +175,7 @@ export function PhoneInput({
                   {suggested.map((c) => renderOption(c, "top"))}
                 </div>
                 <div role="group" aria-label="Tous les pays">
-                  <div className="px-3 pt-3 pb-1 bg-white text-[10.5px] font-semibold tracking-[1.2px] uppercase text-warm-grey border-t border-cream-deep mt-1">
+                  <div className="px-3 pt-3 pb-1 bg-white text-[10.5px] font-semibold tracking-[1.2px] uppercase text-warm-grey border-t border-ink/10 mt-1">
                     Tous les pays
                   </div>
                   {COUNTRIES.map((c) => renderOption(c, "all"))}

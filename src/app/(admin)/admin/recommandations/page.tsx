@@ -121,7 +121,7 @@ export default async function RecommandationsCataloguePage({
           {groupes.map((groupe, gi) => (
             <section key={groupe.categorie}>
               <AnimateIn variant="fade-up" delay={60 + gi * 50}>
-                <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+                <h2 className="text-ink text-[12px] font-normal mb-3">
                   {groupe.categorie}
                 </h2>
                 <AdminTable
@@ -160,7 +160,7 @@ export default async function RecommandationsCataloguePage({
                   empty=""
                 >
                   {groupe.rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
+                    <tr key={r.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                       {/* Le titre absorbe la largeur restante, le statut est
                           fixe : sans cela chaque section, qui est un tableau à
                           part, calerait sa colonne Statut sur la longueur de ses

@@ -103,7 +103,7 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
               <div
                 key={j.cle}
                 className={`text-center text-[12px] font-medium py-1.5 rounded-md ${
-                  j.aujourdhui ? "bg-bronze/12 text-bronze-dark" : "text-charcoal"
+                  j.aujourdhui ? "bg-ink/12 text-ink" : "text-charcoal"
                 }`}
               >
                 {j.label}
@@ -113,11 +113,11 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
 
           {/* Corps : une piste par jour, les blocs placés au prorata. */}
           <div
-            className="grid gap-px bg-cream-deep border border-cream-deep rounded-lg overflow-hidden"
+            className="grid gap-px bg-cream-deep border border-ink/10 rounded-lg overflow-hidden"
             style={{ gridTemplateColumns: `52px repeat(${jours.length}, minmax(0, 1fr))` }}
           >
             {/* Colonne des heures */}
-            <div className="relative bg-cream" style={{ height: hauteur }}>
+            <div className="relative bg-cream-deep/40" style={{ height: hauteur }}>
               {heures.map((m) => {
                 const haut = y(m);
                 // Les étiquettes sont centrées sur leur trait, sauf la première
@@ -151,7 +151,7 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
                     <div
                       key={m}
                       className={`absolute inset-x-0 border-t ${
-                        m % 60 === 0 ? "border-cream-deep" : "border-cream"
+                        m % 60 === 0 ? "border-ink/10" : "border-cream"
                       }`}
                       style={{ top: y(m) }}
                     />
@@ -162,7 +162,7 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
                 {dejeunerVisible && (
                   <div
                     aria-hidden="true"
-                    className="absolute inset-x-0 bg-cream/70"
+                    className="absolute inset-x-0 bg-cream-deep/40"
                     style={{
                       top: y(Math.max(DEJEUNER_DEBUT, debutGrille)),
                       height:
@@ -173,7 +173,7 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
                 )}
 
                 {j.aujourdhui && (
-                  <div aria-hidden="true" className="absolute inset-0 bg-bronze/[0.05]" />
+                  <div aria-hidden="true" className="absolute inset-0 bg-ink/[0.05]" />
                 )}
 
                 {blocs.map((b, i) => {
@@ -189,7 +189,7 @@ export function Calendrier({ jours, blocs }: { jours: JourSemaine[]; blocs: Bloc
                       type="button"
                       onClick={() => setOuvert(b.detail.id)}
                       title={`${b.heureCourte} - ${b.detail.nom || "Visiteur sans compte"}`}
-                      className={`absolute rounded-md border px-1.5 py-1 text-left overflow-hidden cursor-pointer transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-bronze/60 ${style.pill} ${
+                      className={`absolute rounded-md border px-1.5 py-1 text-left overflow-hidden cursor-pointer transition-shadow hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-bronze/60 ${style.pill} ${
                         annule ? "opacity-60" : ""
                       }`}
                       style={{

@@ -137,11 +137,11 @@ export default async function ClientDocumentsPage({
           empty={
             q || rubrique
               ? "Aucun document ne correspond à ces critères."
-              : "Aucun document. Déposez le premier — le client le retrouvera dans son coffre-fort."
+              : "Aucun document. Déposez le premier - le client le retrouvera dans son coffre-fort."
           }
         >
           {rows.map((d) => (
-            <tr key={d.id} className="hover:bg-cream/40 transition-colors align-top">
+            <tr key={d.id} className="hover:bg-ink/[0.04] transition-colors align-top">
               <Td className="text-ink font-medium">{d.name}</Td>
               <Td className="whitespace-nowrap text-charcoal">{documentCategoryLabel(d.category)}</Td>
               <Td className="whitespace-nowrap text-warm-grey tabular-nums">

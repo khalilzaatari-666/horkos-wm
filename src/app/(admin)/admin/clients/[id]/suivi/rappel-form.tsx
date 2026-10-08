@@ -59,7 +59,7 @@ export function RappelForm({
       <input type="hidden" name="etape" value={etape} />
       {appointmentId && <input type="hidden" name="appointmentId" value={appointmentId} />}
 
-      <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1.5">
+      <div className="text-[13px] font-medium text-warm-grey mb-1.5">
         Me rappeler de relancer dans
       </div>
 
@@ -73,14 +73,14 @@ export function RappelForm({
           step={1}
           value={quantite}
           onChange={(e) => setQuantite(Number(e.target.value))}
-          className="w-16 h-9 px-2 text-[13px] text-center tabular-nums bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+          className="w-16 h-9 px-2 text-[13px] text-center tabular-nums bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors"
         />
         <select
           name="unite"
           aria-label="Unité"
           value={unite}
           onChange={(e) => setUnite(e.target.value as Unite)}
-          className="h-9 px-2.5 text-[13px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
+          className="h-9 px-2.5 text-[13px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors cursor-pointer"
         >
           {UNITES.map((u) => (
             <option key={u} value={u}>
@@ -91,7 +91,7 @@ export function RappelForm({
         <button
           type="submit"
           disabled={pending || !prevue}
-          className="h-9 px-3.5 text-[12.5px] font-medium text-white bg-bronze rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-9 px-3.5 text-[12.5px] font-medium text-white bg-ink rounded-lg hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "…" : "Poser le rappel"}
         </button>
@@ -102,7 +102,7 @@ export function RappelForm({
         name="note"
         maxLength={500}
         placeholder="Note (facultative) - reprise dans l'email"
-        className="w-full h-9 px-2.5 mt-2 text-[12.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+        className="w-full h-9 px-2.5 mt-2 text-[12.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors"
       />
 
       <p className="text-[11.5px] text-warm-grey leading-[1.5] mt-2">

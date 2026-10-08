@@ -1,31 +1,28 @@
 import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
 
-/** En-tête de section : intitulé bronze, titre, sous-titre facultatif. */
+/**
+ * En-tête de page de l'espace : le titre en grand, une phrase d'appui.
+ * `eyebrow` reste accepté pour la compatibilité mais n'est plus affiché : le
+ * titre porte seul la hiérarchie, et la barre latérale situe déjà la page.
+ */
 export function PanelHead({
-  eyebrow,
   title,
   desc,
+  action,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   desc?: string;
+  action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-7">
-      <AnimateIn variant="fade-right" mobileVariant="fade-up">
-        <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-          {eyebrow}
-        </span>
+    <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+      <AnimateIn variant="fade-up">
+        <h1 className="display-md text-ink">{title}</h1>
+        {desc && <p className="mt-3 max-w-[60ch] text-[16px] leading-relaxed text-charcoal">{desc}</p>}
       </AnimateIn>
-      <AnimateIn variant="fade-up" delay={80}>
-        <h1 className="font-heading text-[clamp(1.5rem,3.2vw,1.8rem)] font-semibold text-ink mt-2 leading-[1.25]">
-          {title}
-        </h1>
-        {desc && (
-          <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-2 max-w-[620px]">{desc}</p>
-        )}
-      </AnimateIn>
+      {action}
     </div>
   );
 }
@@ -50,7 +47,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`bg-white border border-cream-deep rounded-xl shadow-sm ${
+      className={`bg-white ring-1 ring-ink/[0.07] rounded-[20px] ${
         center ? "flex flex-col justify-center" : ""
       } ${className}`}
     >
@@ -61,7 +58,7 @@ export function Card({
 
 export function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-heading text-[17.5px] font-semibold text-ink leading-[1.3] mb-4">
+    <h2 className="font-heading text-[22px] font-light text-ink leading-[1.2] tracking-[-0.01em] mb-5">
       {children}
     </h2>
   );
@@ -85,18 +82,18 @@ export function Kpi({
   muted?: boolean;
 }) {
   return (
-    <div className="bg-white border border-cream-deep rounded-xl shadow-sm p-5">
-      <div className="text-[11px] font-semibold tracking-[1.4px] uppercase text-warm-grey">
+    <div className="bg-white ring-1 ring-ink/[0.07] rounded-[20px] p-6">
+      <div className="text-[14px] text-warm-grey">
         {label}
       </div>
       <div
-        className={`font-heading text-[26px] font-semibold mt-2 leading-none ${
+        className={`font-heading font-light text-[34px] tracking-[-0.02em] mt-3 leading-none tabular-nums ${
           muted ? "text-warm-grey text-[15px] leading-[1.4]" : "text-ink"
         }`}
       >
         {value}
       </div>
-      {note && <div className="text-[11.5px] text-warm-grey mt-2">{note}</div>}
+      {note && <div className="text-[13px] text-warm-grey mt-3">{note}</div>}
     </div>
   );
 }
@@ -119,13 +116,13 @@ export function EmptyPanel({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="border border-dashed border-cream-deep rounded-xl bg-cream/50 px-7 py-12 text-center">
-      <h3 className="font-heading text-[17px] font-semibold text-ink">{title}</h3>
-      <p className="text-[13px] text-warm-grey leading-[1.65] max-w-[400px] mx-auto mt-2">{desc}</p>
+    <div className="panel px-7 py-14 text-center">
+      <h3 className="display-sm text-ink">{title}</h3>
+      <p className="text-[16px] text-charcoal leading-relaxed max-w-[46ch] mx-auto mt-3">{desc}</p>
       {action && (
         <Link
           href={action.href}
-          className="inline-block mt-5 px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
+          className="btn btn-ink btn-sm mt-6"
         >
           {action.label}
         </Link>
@@ -135,10 +132,10 @@ export function EmptyPanel({
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  neutre: "bg-cream-deep text-charcoal",
-  attente: "bg-bronze/12 text-bronze-dark",
-  succes: "bg-emerald-50 text-emerald-700",
-  refus: "bg-red-50 text-red-700",
+  neutre: "text-charcoal before:bg-warm-grey",
+  attente: "text-ink before:bg-bronze",
+  succes: "text-emerald-700 before:bg-emerald-600",
+  refus: "text-red-700 before:bg-red-600",
 };
 
 export function Badge({
@@ -150,7 +147,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-block shrink-0 text-[10.5px] font-semibold tracking-[1.1px] uppercase px-2.5 py-1 rounded ${STATUS_STYLES[tone]}`}
+      className={`inline-flex items-center gap-1.5 shrink-0 text-[13px] font-medium before:size-1.5 before:rounded-full before:content-[''] ${STATUS_STYLES[tone]}`}
     >
       {children}
     </span>
@@ -179,7 +176,7 @@ export function Panel({
 }) {
   return (
     <div
-      className={`mx-auto px-5 sm:px-8 py-8 sm:py-10 ${narrow ? "max-w-[1080px]" : "max-w-[1500px]"}`}
+      className={`mx-auto px-5 sm:px-10 py-10 sm:py-14 ${narrow ? "max-w-[1080px]" : "max-w-[1440px]"}`}
     >
       {children}
     </div>
@@ -204,7 +201,7 @@ export function CardGrid({
 }) {
   return (
     <div
-      className={`grid gap-3.5 auto-rows-fr ${className}`}
+      className={`grid gap-4 auto-rows-fr ${className}`}
       style={{ gridTemplateColumns: `repeat(auto-fill, minmax(min(${min}, 100%), 1fr))` }}
     >
       {children}

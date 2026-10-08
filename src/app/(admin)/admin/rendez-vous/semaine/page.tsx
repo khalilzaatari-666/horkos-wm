@@ -313,7 +313,7 @@ export default async function AdminSemainePage({
 
   const semaineCourante = lundiCourant(aujourdhui)!;
   const flecheClasse =
-    "grid place-items-center w-8 h-8 rounded-lg border border-cream-deep bg-white text-charcoal hover:border-bronze/50 hover:text-bronze-dark transition-colors";
+    "grid place-items-center w-8 h-8 rounded-lg border border-ink/10 bg-white text-charcoal hover:border-ink/40 hover:text-ink/70 transition-colors";
 
   return (
     <AdminPanel>
@@ -330,13 +330,13 @@ export default async function AdminSemainePage({
           <Link href={lienSemaine(ajouterJours(lundi, 7))} className={flecheClasse} aria-label="Semaine suivante">
             <span aria-hidden="true">›</span>
           </Link>
-          <span className="font-heading text-[16px] font-semibold text-ink ml-1">
+          <span className="font-heading text-[16px] font-normal text-ink ml-1">
             Semaine du {formatDateLong(`${lundi}T12:00:00Z`)}
           </span>
           {lundi !== semaineCourante && (
             <Link
               href={lienSemaine(semaineCourante)}
-              className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors ml-1"
+              className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors ml-1"
             >
               Cette semaine
             </Link>

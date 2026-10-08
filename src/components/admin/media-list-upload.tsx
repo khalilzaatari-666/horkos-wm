@@ -116,14 +116,14 @@ export function MediaListUpload({
               width={64}
               height={44}
               unoptimized
-              className="w-16 h-11 object-cover rounded-lg border border-cream-deep shrink-0"
+              className="w-16 h-11 object-cover rounded-lg border border-ink/10 shrink-0"
             />
           ) : (
             <a
               href={it.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] font-semibold text-bronze-dark hover:text-bronze border border-cream-deep rounded px-1.5 py-1 shrink-0 w-[52px] text-center"
+              className="text-[11px] font-semibold text-ink hover:text-ink/70 border border-ink/10 rounded px-1.5 py-1 shrink-0 w-[52px] text-center"
             >
               {fileExtensionLabel(it.url)}
             </a>
@@ -132,7 +132,7 @@ export function MediaListUpload({
             value={it.label}
             onChange={(e) => update(i, e.target.value)}
             placeholder={labelPlaceholder}
-            className="flex-1 h-9 px-2.5 text-[13px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+            className="flex-1 h-9 px-2.5 text-[13px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors"
           />
           <button
             type="button"
@@ -153,7 +153,7 @@ export function MediaListUpload({
         onChange={onChange}
         disabled={busy}
         aria-label={addLabel}
-        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-cream-deep file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
+        className="block w-full text-[12.5px] text-charcoal file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-ink/10 file:bg-cream file:text-charcoal file:text-[12px] file:font-medium file:cursor-pointer hover:file:border-bronze disabled:opacity-60"
       />
 
       {busy && <p className="text-[11.5px] text-warm-grey">Envoi en cours…</p>}

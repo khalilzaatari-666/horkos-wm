@@ -92,10 +92,10 @@ function Calendar({
 
   const navBtn =
     "w-8 h-8 grid place-items-center rounded-md text-charcoal transition-colors " +
-    "enabled:hover:bg-cream enabled:cursor-pointer disabled:text-warm-grey/30";
+    "enabled:hover:bg-ink/[0.04] enabled:cursor-pointer disabled:text-warm-grey/30";
 
   return (
-    <div className="rounded-lg border border-cream-deep bg-white p-3">
+    <div className="rounded-lg border border-ink/10 bg-white p-3">
       <div className="flex items-center justify-between mb-2">
         <button type="button" onClick={onPrev} disabled={!canPrev} aria-label="Mois précédent" className={navBtn}>
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -135,15 +135,15 @@ function Calendar({
               aria-pressed={isSelected}
               aria-label={`${d} ${MONTHS_FR[m - 1]} ${y}${known && !hasRoom ? " - complet" : ""}`}
               onClick={() => onPick(key)}
-              className={`h-9 rounded-md text-[13px] tabular-nums transition-colors ${
+              className={`h-9 rounded-md text-[14px] tabular-nums transition-colors ${
                 isSelected
-                  ? "bg-bronze text-white font-medium"
+                  ? "bg-ink text-white font-medium"
                   : selectable
-                    ? "text-ink hover:bg-bronze/10 cursor-pointer"
+                    ? "text-ink hover:bg-ink/10 cursor-pointer"
                     : known
                       ? "text-warm-grey/70 line-through cursor-not-allowed"
                       : "text-warm-grey/30 cursor-not-allowed"
-              } ${isToday && !isSelected ? "ring-1 ring-bronze/40" : ""}`}
+              } ${isToday && !isSelected ? "ring-1 ring-ink/40" : ""}`}
             >
               {d}
             </button>
@@ -369,12 +369,12 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
                 disabled={full || pendingSlot !== null}
                 aria-pressed={isSelected}
                 onClick={() => choose(slot)}
-                className={`grow-0 shrink-0 basis-[calc((100%_-_1rem)/3)] sm:basis-[calc((100%_-_1.5rem)/4)] px-3 py-2.5 rounded-lg border text-[13.5px] tabular-nums transition-colors ${
+                className={`grow-0 shrink-0 basis-[calc((100%_-_1rem)/3)] sm:basis-[calc((100%_-_1.5rem)/4)] px-3 py-2.5 rounded-[6px] border text-[15px] tabular-nums transition-colors ${
                   isSelected
-                    ? "border-bronze bg-bronze text-white font-medium"
+                    ? "border-ink bg-ink text-white font-medium"
                     : full
-                      ? "border-cream-deep bg-cream/60 text-warm-grey/70 line-through cursor-not-allowed"
-                      : "border-cream-deep bg-white text-charcoal hover:border-bronze/60 cursor-pointer"
+                      ? "border-ink/10 bg-cream-deep/40 text-warm-grey/70 line-through cursor-not-allowed"
+                      : "border-ink/10 bg-white text-charcoal hover:border-ink/40 cursor-pointer"
                 } ${pendingSlot === slot.slot_start ? "opacity-60" : ""}`}
               >
                 {hourFmt.format(new Date(slot.slot_start))}
@@ -386,7 +386,7 @@ export function CreneauPicker({ onSelect, onEmptyChange }: CreneauPickerProps) {
 
       <div className="mt-3 min-h-[20px]" aria-live="polite">
         {selected ? (
-          <p className="text-[12.5px] text-bronze-dark">
+          <p className="text-[12.5px] text-ink">
             Créneau tenu pour vous pendant{" "}
             <span className="tabular-nums font-medium">
               {Math.floor(remainingSec / 60)}:{String(remainingSec % 60).padStart(2, "0")}

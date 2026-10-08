@@ -97,8 +97,8 @@ export default async function UtilisateursPage({
 
       {conseillers === 0 && (
         <AnimateIn variant="fade-up">
-          <div className="mb-5 p-5 rounded-xl border border-bronze/40 bg-bronze/[0.07]">
-            <h2 className="text-[14px] font-semibold text-ink">Aucun conseiller</h2>
+          <div className="mb-5 p-5 rounded-xl border border-ink bg-ink/[0.07]">
+            <h2 className="text-[14px] font-normal text-ink">Aucun conseiller</h2>
             <p className="text-[13px] text-charcoal leading-[1.65] mt-1.5">
               Attribuez le rôle « Conseiller » à au moins un compte : c&apos;est ce qui donne au
               calendrier public sa capacité. Sans cela, tous les créneaux s&apos;affichent complets.
@@ -158,7 +158,7 @@ export default async function UtilisateursPage({
           }
         >
           {rows.map((p) => (
-            <tr key={p.id} className="hover:bg-cream/40 transition-colors">
+            <tr key={p.id} className="hover:bg-ink/[0.04] transition-colors">
               <Td>
                 {/* Seul le conseiller est vu par ses clients : ailleurs, la
                     vignette reste un repère, non modifiable. */}
@@ -178,7 +178,7 @@ export default async function UtilisateursPage({
               <Td>
                 <a
                   href={`mailto:${p.email}`}
-                  className="block text-[12.5px] text-bronze-dark hover:text-bronze transition-colors"
+                  className="block text-[12.5px] text-ink hover:text-ink/70 transition-colors"
                 >
                   {p.email ?? "-"}
                 </a>
@@ -194,11 +194,11 @@ export default async function UtilisateursPage({
                       maxLength={40}
                       placeholder="+212 6 …"
                       aria-label="Téléphone du conseiller"
-                      className="w-[150px] h-8 px-2 text-[12px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+                      className="w-[150px] h-8 px-2 text-[12px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors"
                     />
                     <button
                       type="submit"
-                      className="text-[11.5px] text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+                      className="text-[11.5px] text-ink hover:text-ink/70 transition-colors cursor-pointer"
                     >
                       OK
                     </button>

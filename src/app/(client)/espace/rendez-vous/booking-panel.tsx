@@ -35,10 +35,10 @@ export function BookingPanel() {
     return (
       <Card className="p-7">
         <div className="flex items-center gap-2.5 mb-2.5">
-          <span className="w-9 h-9 rounded-full bg-bronze/15 text-bronze-dark flex items-center justify-center shrink-0">
+          <span className="w-9 h-9 rounded-full bg-ink/15 text-ink flex items-center justify-center shrink-0">
             <Check className="w-4.5 h-4.5" />
           </span>
-          <h2 className="font-heading text-[19px] font-semibold text-ink leading-tight">
+          <h2 className="font-heading text-[19px] font-normal text-ink leading-tight">
             Votre rendez-vous est confirmé
           </h2>
         </div>
@@ -47,13 +47,13 @@ export function BookingPanel() {
         </p>
         <p className="text-[13px] text-warm-grey leading-[1.65] mt-2">
           {state.bookedMode === "visio"
-            ? "En visioconférence - le lien Google Meet et l'invitation calendrier vous arrivent par email."
-            : "Au cabinet - l'adresse et l'invitation calendrier vous arrivent par email."}{" "}
+            ? "En visioconférence - le lien Google Meet et l’invitation calendrier vous arrivent par email."
+            : "Au cabinet - l’adresse et l’invitation calendrier vous arrivent par email."}{" "}
           Un empêchement ? Prévenez votre conseiller, il vous proposera une autre heure.
         </p>
         <Link
           href="/espace/accompagnement"
-          className="inline-block mt-5 px-5 py-2.5 text-[13px] font-medium bg-ink text-cream rounded-lg hover:bg-navy transition-colors"
+          className="inline-block mt-5 px-5 py-2.5 text-[13px] font-medium bg-ink text-cream rounded-[6px] hover:bg-navy transition-colors"
         >
           Voir mon accompagnement
         </Link>
@@ -75,12 +75,12 @@ export function BookingPanel() {
       />
 
       {noSlots ? (
-        <p className="text-[13px] text-warm-grey leading-[1.65] mt-4 pt-4 border-t border-cream-deep">
-          Aucun créneau n&apos;est ouvert pour l&apos;instant. Contactez votre conseiller, il
+        <p className="text-[13px] text-warm-grey leading-[1.65] mt-4 pt-4 border-t border-ink/10">
+          Aucun créneau n’est ouvert pour l’instant. Contactez votre conseiller, il
           vous proposera une heure directement.
         </p>
       ) : (
-        <form action={formAction} className="mt-5 pt-5 border-t border-cream-deep">
+        <form action={formAction} className="mt-5 pt-5 border-t border-ink/10">
           {slotStart && holdToken && mode && (
             <>
               <input type="hidden" name="slotStart" value={slotStart} />
@@ -96,7 +96,7 @@ export function BookingPanel() {
           <button
             type="submit"
             disabled={!slotStart || !mode || pending}
-            className="w-full sm:w-auto px-7 py-3 text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-7 py-3 text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {pending ? "Confirmation…" : "Confirmer ce rendez-vous"}
           </button>

@@ -156,7 +156,7 @@ export default async function ClientPatrimoinePage({
       <section className="mb-9">
         <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h2 className="font-heading text-[17.5px] font-semibold text-ink">Audit patrimonial</h2>
+            <h2 className="font-heading text-[17.5px] font-normal text-ink">Audit patrimonial</h2>
             <p className="text-[13px] text-warm-grey leading-[1.6] max-w-[560px] mt-1">
               Le statut et le rapport sont visibles par le client sur sa page patrimoine ; le PDF
               reste privé (lien signé).
@@ -211,12 +211,12 @@ export default async function ClientPatrimoinePage({
               "",
             ]}
             isEmpty={lignesAudit.length === 0}
-            empty="Aucun audit. Ouvrez-en un — le client verra son statut sur sa page patrimoine."
+            empty="Aucun audit. Ouvrez-en un - le client verra son statut sur sa page patrimoine."
           >
             {lignesAudit.map((a) => {
               const hasReport = Boolean(a.pdf_url);
               return (
-                <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
+                <tr key={a.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                   <Td>
                     <AdminBadge tone={a.status === "termine" ? "succes" : "attente"}>
                       {a.status === "termine" ? "Terminé" : "En cours"}
@@ -227,7 +227,7 @@ export default async function ClientPatrimoinePage({
                   <Td className="whitespace-nowrap">
                     <Link
                       href={`/admin/clients/${id}/audits/${a.id}`}
-                      className="text-[13px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                      className="text-[13px] font-medium text-ink hover:text-ink/70 transition-colors"
                     >
                       Ouvrir
                     </Link>
@@ -262,8 +262,8 @@ export default async function ClientPatrimoinePage({
       <section>
         <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-2">Patrimoine</h2>
-            <div className="font-heading text-[24px] font-semibold text-ink leading-none">
+            <h2 className="font-heading text-[17.5px] font-normal text-ink mb-2">Patrimoine</h2>
+            <div className="font-heading text-[24px] font-normal text-ink leading-none">
               {total > 0 ? formatMAD(total) : "-"}
             </div>
             <div className="text-[12.5px] text-warm-grey mt-1.5">
@@ -346,12 +346,12 @@ export default async function ClientPatrimoinePage({
             empty={
               type
                 ? "Aucun actif de ce type."
-                : "Aucun actif. La fiche d'audit établit le patrimoine — ouvrez ou remplissez un audit pour le faire apparaître ici."
+                : "Aucun actif. La fiche d'audit établit le patrimoine - ouvrez ou remplissez un audit pour le faire apparaître ici."
             }
           >
             {actifs.map((a) => (
-              <tr key={a.id} className="hover:bg-cream/40 transition-colors align-top">
-                <Td className="whitespace-nowrap text-bronze-dark font-medium">
+              <tr key={a.id} className="hover:bg-ink/[0.04] transition-colors align-top">
+                <Td className="whitespace-nowrap text-ink font-medium">
                   {assetTypeLabel(a.type)}
                 </Td>
                 <Td className="text-ink">{a.label}</Td>

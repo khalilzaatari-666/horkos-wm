@@ -24,12 +24,12 @@ const LARGEUR = DocumentPdf.largeurUtile;
 const montantFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 function mad(valeur: number | null | undefined): string {
-  if (!valeur || valeur === 0) return "—";
+  if (!valeur || valeur === 0) return "-";
   return `${montantFmt.format(Math.round(valeur))} MAD`;
 }
 
 function pourcent(valeur: number | null | undefined): string {
-  if (valeur === null || valeur === undefined) return "—";
+  if (valeur === null || valeur === undefined) return "-";
   return `${(valeur * 100).toFixed(1).replace(".", ",")} %`;
 }
 
@@ -49,7 +49,7 @@ function paires(doc: DocumentPdf, entrees: [string, string | number | null | und
   let ecrites = 0;
   for (const [libelle, valeur] of entrees) {
     const texte = typeof valeur === "number" ? String(valeur) : (valeur ?? "").trim();
-    if (!texte || texte === "—" || texte === "0") continue;
+    if (!texte || texte === "-" || texte === "0") continue;
     doc.paire(libelle, texte);
     ecrites += 1;
   }
@@ -255,10 +255,10 @@ function financier(doc: DocumentPdf, fiche: FicheAudit, c: Calculs) {
     colonnes([1.5, 2.4, 1.3, 1, 1], [{}, { fort: true }, {}, {}, { gris: true }]),
     ["Type", "Libellé", "Valeur", "Rendement", "Souscrit le"],
     fiche.financier.map((l) => [
-      l.type ? assetTypeLabel(l.type) : "—",
+      l.type ? assetTypeLabel(l.type) : "-",
       l.libelle.trim() || (l.type ? assetTypeLabel(l.type) : "Ligne"),
       mad(l.valeur),
-      l.rendement > 0 ? pourcent(l.rendement) : "—",
+      l.rendement > 0 ? pourcent(l.rendement) : "-",
       jour(l.dateSouscription),
     ]),
     [`${fiche.financier.length} ligne(s)`, "", mad(c.totalFinancier), "", ""]
@@ -342,5 +342,5 @@ export async function pdfAudit(fiche: FicheAudit, date = new Date()): Promise<Ui
   objectifs(doc, fiche);
   simulation(doc, fiche, c);
 
-  return doc.terminer(`${SITE_NAME} — Document confidentiel`);
+  return doc.terminer(`${SITE_NAME} - Document confidentiel`);
 }

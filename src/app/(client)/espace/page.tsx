@@ -3,16 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { AnimateIn } from "@/components/ui/animate-in";
-import {
-  Panel,
-  PanelHead,
-  Card,
-  CardTitle,
-  CardGrid,
-  Kpi,
-  EmptyPanel,
-  Badge,
-} from "@/components/client/ui";
+import { Panel, Card, CardGrid, EmptyPanel, Badge } from "@/components/client/ui";
 import { RepartitionBar } from "@/components/client/repartition-bar";
 import { formatDateShort, formatDateLong } from "@/lib/dates";
 import {
@@ -113,7 +104,7 @@ export default async function EspacePage() {
   // s'affiche simplement pas.
   const { data: moi } = await supabase
     .from("profiles")
-    .select("advisor_id")
+    .select("advisor_id, first_name")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -132,119 +123,180 @@ export default async function EspacePage() {
   const appointments = allAppointments ?? [];
   const cessions = dossiers ?? [];
 
+  // L'étape en cours du parcours, pour l'annoncer en tête de page.
+  const etats = PARCOURS.map((e) => etatEtape(e.type, appointments));
+  const enCours =
+    PARCOURS.find((_, i) => etats[i] === "encours") ?? PARCOURS.find((_, i) => etats[i] === "avenir");
+
   return (
     <Panel>
-      <PanelHead eyebrow="Vue d'ensemble" title="Tableau de bord" />
-
-      <AnimateIn variant="fade-up" delay={100}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <Kpi
-            label="Patrimoine suivi"
-            value={assetRows.length ? formatMAD(total) : "-"}
-            note={assetRows.length ? undefined : "Aucun actif enregistré"}
-          />
-          <Kpi
-            label="Performance 12 mois"
-            value={
-              perf.percent === null
-                ? "Pas encore d'historique"
-                : formatPercent(perf.percent)
-            }
-            muted={perf.percent === null}
-            note={
-              perf.since ? `Depuis le ${formatDateLong(perf.since)}` : undefined
-            }
-          />
-          <Kpi label="Actifs suivis" value={String(assetRows.length)} />
-          <Kpi
-            label="Prochain rendez-vous"
-            value={
-              nextAppointment ? formatDateShort(nextAppointment.date) : "-"
-            }
-            note={
-              nextAppointment
-                ? libelleType(nextAppointment.type)
-                : "Aucun rendez-vous planifié"
-            }
-          />
+      <AnimateIn variant="fade-up">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-[15px] text-warm-grey">Tableau de bord</p>
+            <h1 className="display-lg mt-2 text-ink">Bonjour{moi?.first_name ? ` ${moi.first_name}` : ""}.</h1>
+          </div>
+          <Link href="/espace/rendez-vous" className="btn btn-ink btn-sm">
+            Prendre rendez-vous
+          </Link>
         </div>
       </AnimateIn>
 
-      {/* Moitié / moitié : la répartition s'aligne sur deux cartes du dessus,
-          le conseiller, le parcours et les recommandations prennent l'autre
-          moitié. */}
-      <div className="grid lg:grid-cols-2 gap-3.5 mt-3.5">
-        <AnimateIn variant="fade-up" delay={160} className="h-full">
-          <Card center className="p-6 h-full">
-            <CardTitle>Répartition de mon patrimoine</CardTitle>
-            {classes.length > 0 ? (
-              <>
-                <RepartitionBar classes={classes} />
-                {dominante && (
-                  // Un constat, pas une alerte : c'est au conseiller de
-                  // qualifier si cette concentration pose problème.
-                  <p className="text-[12.5px] text-charcoal leading-[1.6] mt-5 pt-4 border-t border-cream-deep">
-                    <strong className="font-medium text-ink">
-                      {dominante.share.toFixed(0)} %
-                    </strong>{" "}
-                    de votre patrimoine repose sur une seule classe
-                    d&apos;actifs, {dominante.label.toLowerCase()}. Un point à
-                    aborder avec votre conseiller.
+      {/* Le parcours en tête : c'est la première chose qu'un client vient vérifier. */}
+      <AnimateIn variant="fade-up" delay={80}>
+        <Link
+          href="/espace/accompagnement"
+          className="group mt-10 block rounded-[24px] bg-ink p-6 text-cream transition-colors hover:bg-navy sm:p-8"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <p className="text-[15px] text-cream-muted">
+              Votre accompagnement
+              {enCours && (
+                <>
+                  {" · "}
+                  <span className="text-cream">
+                    {enCours.type} {enCours.title}
+                  </span>
+                </>
+              )}
+            </p>
+            <span className="text-[14px] text-cream-muted transition-colors group-hover:text-cream">Voir le détail →</span>
+          </div>
+          <ol className="mt-8 grid grid-cols-3 gap-3 sm:gap-6">
+            {PARCOURS.map((etape, i) => {
+              const state = etats[i];
+              return (
+                <li key={etape.type} className="min-w-0">
+                  {/* Le trait porte l'avancement ; le texte dessous le nomme.
+                      Franchie ou à venir doit se distinguer sans lire. */}
+                  <div
+                    className={`h-1 rounded-full ${
+                      state === "fait" ? "bg-cream" : state === "encours" ? "bg-cream/55" : "bg-cream/15"
+                    }`}
+                  />
+                  <p
+                    className={`mt-4 font-heading text-[clamp(1.6rem,3vw,2.6rem)] font-light leading-none ${
+                      state === "avenir" ? "text-cream/40" : "text-cream"
+                    }`}
+                  >
+                    {etape.type}
                   </p>
-                )}
-              </>
-            ) : (
-              <p className="text-[13px] text-warm-grey leading-[1.65]">
-                Votre conseiller n&apos;a pas encore enregistré vos actifs. La
-                répartition apparaîtra ici dès le premier audit patrimonial.
-              </p>
-            )}
+                  <p className={`mt-2 truncate text-[14px] ${state === "avenir" ? "text-cream/40" : "text-cream-muted"}`}>
+                    {etape.title}
+                    {state === "encours" && <span className="text-cream"> · en cours</span>}
+                  </p>
+                  <span className="sr-only">
+                    {state === "fait" ? "étape franchie" : state === "encours" ? "étape en cours" : "étape à venir"}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </Link>
+      </AnimateIn>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <AnimateIn variant="fade-up" delay={140} className="h-full">
+          <Card className="h-full p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div>
+                <p className="text-[14px] text-warm-grey">Patrimoine suivi</p>
+                <p className="mt-2 font-heading text-[clamp(2.2rem,4vw,3.25rem)] font-light leading-none tracking-[-0.02em] text-ink tabular-nums">
+                  {assetRows.length ? formatMAD(total) : "-"}
+                </p>
+              </div>
+              <div className="sm:text-right">
+                <p className="text-[14px] text-warm-grey">Performance 12 mois</p>
+                <p className={`mt-2 tabular-nums ${perf.percent === null ? "text-[15px] text-warm-grey" : "text-[20px] text-ink"}`}>
+                  {perf.percent === null ? "Pas encore d’historique" : formatPercent(perf.percent)}
+                </p>
+                {perf.since && <p className="mt-1 text-[13px] text-warm-grey">Depuis le {formatDateLong(perf.since)}</p>}
+              </div>
+            </div>
+            <div className="mt-8 border-t border-ink/[0.07] pt-6">
+              {classes.length > 0 ? (
+                <>
+                  <RepartitionBar classes={classes} />
+                  {dominante && (
+                    // Un constat, pas une alerte : c'est au conseiller de
+                    // qualifier si cette concentration pose problème.
+                    <p className="mt-5 text-[14px] leading-relaxed text-charcoal">
+                      <strong className="font-medium text-ink">{dominante.share.toFixed(0)} %</strong> de votre
+                      patrimoine repose sur une seule classe d’actifs, {dominante.label.toLowerCase()}. Un point à
+                      aborder avec votre conseiller.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-[15px] leading-relaxed text-warm-grey">
+                  Votre conseiller n’a pas encore enregistré vos actifs. La répartition apparaîtra ici dès le
+                  premier audit patrimonial.
+                </p>
+              )}
+            </div>
+            <Link href="/espace/patrimoine" className="link-arrow mt-6 text-[14px]">
+              Mon patrimoine en détail →
+            </Link>
           </Card>
         </AnimateIn>
 
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-4">
+          <AnimateIn variant="fade-up" delay={180}>
+            <Card className="p-6 sm:p-7">
+              <p className="text-[14px] text-warm-grey">Prochain rendez-vous</p>
+              {nextAppointment ? (
+                <>
+                  <p className="mt-2 font-heading text-[30px] font-light leading-tight text-ink">
+                    {formatDateShort(nextAppointment.date)}
+                  </p>
+                  <p className="mt-1 text-[15px] text-charcoal">{libelleType(nextAppointment.type)}</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-[16px] text-charcoal">Aucun rendez-vous planifié.</p>
+                  <Link href="/espace/rendez-vous" className="link-arrow mt-3 text-[14px]">
+                    Choisir un créneau →
+                  </Link>
+                </>
+              )}
+            </Card>
+          </AnimateIn>
+
           {conseiller && (
-            <AnimateIn variant="fade-up" delay={160}>
-              <Card className="p-5">
-                <CardTitle>Votre conseiller</CardTitle>
-                <div className="flex items-center gap-3.5">
+            <AnimateIn variant="fade-up" delay={210} className="flex-1">
+              <Card className="h-full p-6 sm:p-7">
+                <p className="text-[14px] text-warm-grey">Votre conseiller</p>
+                <div className="mt-4 flex items-center gap-4">
                   {conseiller.avatar_url ? (
                     // `unoptimized` : la photo vient du bucket public, dont le
                     // domaine n'est pas déclaré à l'optimiseur de Next.
                     <Image
                       src={conseiller.avatar_url}
                       alt=""
-                      width={56}
-                      height={56}
+                      width={64}
+                      height={64}
                       unoptimized
-                      className="w-14 h-14 rounded-full object-cover border border-cream-deep shrink-0"
+                      className="size-16 shrink-0 rounded-full object-cover"
                     />
                   ) : (
                     <span
                       aria-hidden="true"
-                      className="grid place-items-center w-14 h-14 rounded-full bg-ink text-cream font-heading text-[18px] font-semibold shrink-0"
+                      className="grid size-16 shrink-0 place-items-center rounded-full bg-ink font-heading text-[20px] text-cream"
                     >
                       {initials(conseiller.first_name, conseiller.last_name, conseiller.email)}
                     </span>
                   )}
                   <div className="min-w-0">
-                    <div className="text-[14px] font-medium text-ink truncate">
-                      {[conseiller.first_name, conseiller.last_name].filter(Boolean).join(" ") ||
-                        "Votre conseiller"}
-                    </div>
+                    <p className="truncate text-[17px] font-medium text-ink">
+                      {[conseiller.first_name, conseiller.last_name].filter(Boolean).join(" ") || "Votre conseiller"}
+                    </p>
                     {conseiller.email && (
-                      <a
-                        href={`mailto:${conseiller.email}`}
-                        className="block text-[12.5px] text-bronze-dark hover:text-bronze transition-colors truncate"
-                      >
+                      <a href={`mailto:${conseiller.email}`} className="block truncate text-[14px] text-charcoal hover:text-ink">
                         {conseiller.email}
                       </a>
                     )}
                     {conseiller.phone && (
-                      <a
-                        href={`tel:${conseiller.phone}`}
-                        className="block text-[12.5px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
-                      >
+                      <a href={`tel:${conseiller.phone}`} className="block text-[14px] text-warm-grey tabular-nums hover:text-ink">
                         {conseiller.phone}
                       </a>
                     )}
@@ -253,167 +305,78 @@ export default async function EspacePage() {
               </Card>
             </AnimateIn>
           )}
-
-          {appointments.length > 0 && (
-            <AnimateIn variant="fade-up" delay={190}>
-              <Link href="/espace/accompagnement" className="block">
-                <Card className="p-5 transition-all duration-300 hover:shadow-md hover:border-bronze/40">
-                  <div className="flex items-center justify-between gap-3 mb-3.5">
-                    <h2 className="font-heading text-[16px] font-semibold text-ink leading-[1.3]">
-                      Mon accompagnement
-                    </h2>
-                    <span className="text-[12.5px] text-bronze-dark shrink-0">
-                      Détail →
-                    </span>
-                  </div>
-                  <div className="flex items-stretch gap-2">
-                    {PARCOURS.map((etape) => {
-                      const state = etatEtape(etape.type, appointments);
-                      return (
-                        <div key={etape.type} className="flex-1 min-w-0">
-                          {/* Le trait porte l'avancement ; le texte dessous le
-                              nomme. Franchie ou à venir doit se distinguer sans
-                              lire, d'un seul coup d'œil. */}
-                          <div
-                            className={`h-1.5 rounded-full ${
-                              state === "fait"
-                                ? "bg-ink"
-                                : state === "encours"
-                                  ? "bg-bronze"
-                                  : "bg-cream-deep"
-                            }`}
-                          />
-                          <div className="flex items-baseline gap-1.5 mt-2">
-                            <span
-                              className={`text-[12px] font-semibold ${
-                                state === "avenir"
-                                  ? "text-warm-grey"
-                                  : "text-ink"
-                              }`}
-                            >
-                              {etape.type}
-                            </span>
-                            {state === "encours" && (
-                              <span className="text-[10.5px] text-bronze-dark font-medium">
-                                en cours
-                              </span>
-                            )}
-                            {state === "fait" && (
-                              <span
-                                className="text-[10.5px] text-warm-grey"
-                                aria-hidden="true"
-                              >
-                                ✓
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11.5px] text-warm-grey truncate mt-0.5">
-                            {etape.title}
-                          </div>
-                          <span className="sr-only">
-                            {state === "fait"
-                              ? "étape franchie"
-                              : state === "encours"
-                                ? "étape en cours"
-                                : "étape à venir"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-              </Link>
-            </AnimateIn>
-          )}
-
-          {/* `flex-1` : c'est cette carte qui absorbe la hauteur restante, pour
-              que la colonne s'arrête au même niveau que la répartition. */}
-          <AnimateIn variant="fade-up" delay={220} className="flex-1">
-            <Card center className="p-6 h-full">
-              <CardTitle>À suivre</CardTitle>
-              {recos && recos.length > 0 ? (
-                <CardGrid min="220px">
-                  {recos.map((r) => {
-                    const reco = Array.isArray(r.recommendations)
-                      ? r.recommendations[0]
-                      : r.recommendations;
-                    if (!reco) return null;
-                    return (
-                      <Link
-                        key={r.id}
-                        href={`/espace/recommandations/${reco.id}`}
-                        className="flex flex-col h-full p-4 rounded-lg border border-cream-deep hover:border-bronze/40 hover:bg-cream/40 transition-colors"
-                      >
-                        <span className="text-[11px] font-semibold tracking-[1.2px] uppercase text-bronze-dark">
-                          {reco.category}
-                        </span>
-                        <span className="text-[13.5px] font-medium text-ink leading-[1.4] mt-1.5 flex-1">
-                          {reco.title}
-                        </span>
-                        <span className="mt-3">
-                          <Badge tone="attente">À étudier</Badge>
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </CardGrid>
-              ) : (
-                <p className="text-[13px] text-warm-grey leading-[1.65]">
-                  Rien ne requiert votre attention pour l&apos;instant. Les
-                  recommandations de votre conseiller apparaîtront ici.
-                </p>
-              )}
-            </Card>
-          </AnimateIn>
         </div>
       </div>
 
+      <section className="mt-12">
+        <div className="mb-5 flex items-end justify-between gap-3">
+          <h2 className="display-sm text-ink">À étudier</h2>
+          <Link href="/espace/recommandations" className="link-arrow text-[14px]">
+            Toutes mes recommandations →
+          </Link>
+        </div>
+        {recos && recos.length > 0 ? (
+          <CardGrid min="260px">
+            {recos.map((r) => {
+              const reco = Array.isArray(r.recommendations) ? r.recommendations[0] : r.recommendations;
+              if (!reco) return null;
+              return (
+                <Link
+                  key={r.id}
+                  href={`/espace/recommandations/${reco.id}`}
+                  className="group flex h-full flex-col rounded-[20px] bg-white p-6 ring-1 ring-ink/[0.07] transition-shadow hover:ring-ink/20"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[13px] text-warm-grey">{reco.category}</span>
+                    <Badge tone="attente">À étudier</Badge>
+                  </div>
+                  <span className="mt-5 flex-1 font-heading text-[21px] font-light leading-snug text-ink">{reco.title}</span>
+                  <span className="mt-5 text-[14px] text-charcoal group-hover:text-ink">Lire et comprendre →</span>
+                </Link>
+              );
+            })}
+          </CardGrid>
+        ) : (
+          <p className="rounded-[20px] bg-white p-6 text-[15px] text-warm-grey ring-1 ring-ink/[0.07]">
+            Rien ne requiert votre attention pour l’instant. Les recommandations de votre conseiller apparaîtront
+            ici.
+          </p>
+        )}
+      </section>
+
       {cessions.length > 0 && (
-        <section className="mt-9">
-          <AnimateIn variant="fade-up" delay={280}>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase">
-                Dossiers de cession en cours
-              </h2>
-              <Link
-                href="/espace/ceder"
-                className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
-              >
-                Tous mes dossiers →
-              </Link>
-            </div>
-            <CardGrid min="240px">
-              {cessions.map((c) => (
-                <Card key={c.id} className="p-5 h-full flex flex-col">
-                  <div className="flex items-start gap-2.5 mb-2">
-                    <span className="text-[13.5px] font-medium text-ink flex-1 min-w-0">
-                      {c.asset_type}
-                    </span>
-                    <Badge tone="attente">
-                      {c.status === "en_revue" ? "En revue" : "Soumis"}
-                    </Badge>
+        <section className="mt-12">
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <h2 className="display-sm text-ink">Dossiers de cession en cours</h2>
+            <Link href="/espace/ceder" className="link-arrow text-[14px]">
+              Tous mes dossiers →
+            </Link>
+          </div>
+          <CardGrid min="240px">
+            {cessions.map((c) => (
+              <Card key={c.id} className="flex h-full flex-col p-6">
+                <div className="mb-2 flex items-start gap-2.5">
+                  <span className="min-w-0 flex-1 text-[16px] font-medium text-ink">{c.asset_type}</span>
+                  <Badge tone="attente">{c.status === "en_revue" ? "En revue" : "Soumis"}</Badge>
+                </div>
+                <div className="flex-1 text-[13px] text-warm-grey">Déposé le {formatDateLong(c.created_at)}</div>
+                {c.estimated_value ? (
+                  <div className="mt-4 font-heading text-[24px] font-light text-ink tabular-nums">
+                    {formatMAD(Number(c.estimated_value))}
                   </div>
-                  <div className="text-[11.5px] text-warm-grey flex-1">
-                    Déposé le {formatDateLong(c.created_at)}
-                  </div>
-                  {c.estimated_value ? (
-                    <div className="font-heading text-[17px] font-semibold text-ink tabular-nums mt-3">
-                      {formatMAD(Number(c.estimated_value))}
-                    </div>
-                  ) : null}
-                </Card>
-              ))}
-            </CardGrid>
-          </AnimateIn>
+                ) : null}
+              </Card>
+            ))}
+          </CardGrid>
         </section>
       )}
 
       {assetRows.length === 0 && !nextAppointment && (
         <AnimateIn variant="fade-up" delay={280}>
-          <div className="mt-3.5">
+          <div className="mt-12">
             <EmptyPanel
               title="Votre espace se remplira après le premier rendez-vous"
-              desc="L'audit patrimonial permet à votre conseiller d'enregistrer vos actifs, de déposer vos documents et de formuler ses premières recommandations."
+              desc="L’audit patrimonial permet à votre conseiller d’enregistrer vos actifs, de déposer vos documents et de formuler ses premières recommandations."
               action={{ href: "/espace/rendez-vous", label: "Prendre rendez-vous" }}
             />
           </div>

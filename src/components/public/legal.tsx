@@ -1,6 +1,5 @@
 import { Fragment, type ReactNode } from "react";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { SplitHeading } from "@/components/ui/split-heading";
 
 /**
  * Gabarit commun aux pages légales (mentions légales, confidentialité).
@@ -22,27 +21,14 @@ export function LegalPage({
   children: ReactNode;
 }) {
   return (
-    <div className="py-12 sm:py-16">
-      <div className="max-w-[760px] mx-auto px-7">
-        <div className="mb-9">
-          <AnimateIn variant="blur-in" duration={0.5}>
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              {eyebrow}
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text={title}
-            as="h1"
-            className="text-[clamp(1.7rem,4vw,2.1rem)] font-semibold text-ink mt-2.5 leading-[1.25]"
-            delay={150}
-          />
-          <AnimateIn variant="fade-up" delay={350}>
-            <p className="text-warm-grey text-[12.5px] mt-3">Dernière mise à jour : {updatedAt}</p>
-          </AnimateIn>
-        </div>
+    <div className="shell pt-8 pb-20 lg:pt-12 lg:pb-28">
+      <p className="text-[14px] text-warm-grey">{eyebrow}</p>
+      <AnimateIn variant="fade-up" duration={1}>
+        <h1 className="display-lg mt-10 max-w-[20ch] text-ink lg:mt-16">{title}</h1>
+      </AnimateIn>
+      <p className="mt-6 border-t border-ink/10 pt-6 text-[14px] text-warm-grey">Dernière mise à jour : {updatedAt}</p>
 
-        <div className="space-y-9">{children}</div>
-      </div>
+      <div className="mt-14 max-w-[760px] space-y-14 lg:ml-[calc(100%-760px)]">{children}</div>
     </div>
   );
 }
@@ -51,8 +37,8 @@ export function LegalPage({
 export function LegalSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h2 className="font-heading text-[20px] font-semibold text-ink mb-3.5">{title}</h2>
-      <div className="space-y-3.5 text-[14px] leading-[1.75] text-charcoal">{children}</div>
+      <h2 className="display-sm text-ink mb-5">{title}</h2>
+      <div className="space-y-4 text-[16px] leading-[1.75] text-charcoal">{children}</div>
     </section>
   );
 }
@@ -60,7 +46,7 @@ export function LegalSection({ title, children }: { title: string; children: Rea
 /** Liste à puces alignée sur la même typographie que les paragraphes. */
 export function LegalList({ items }: { items: ReactNode[] }) {
   return (
-    <ul className="list-disc pl-5 space-y-1.5 marker:text-bronze">
+    <ul className="list-disc pl-5 space-y-1.5 marker:text-warm-grey">
       {items.map((item, i) => (
         <li key={i}>{item}</li>
       ))}
@@ -74,8 +60,8 @@ export function LegalFacts({ items }: { items: [string, ReactNode][] }) {
     <dl className="grid sm:grid-cols-[190px_1fr] gap-x-6 gap-y-2.5">
       {items.map(([key, value], i) => (
         <Fragment key={i}>
-          <dt className="text-[13px] font-medium text-warm-grey">{key}</dt>
-          <dd className="text-[14px] text-charcoal">{value}</dd>
+          <dt className="text-[14px] text-warm-grey">{key}</dt>
+          <dd className="text-[16px] text-ink">{value}</dd>
         </Fragment>
       ))}
     </dl>
@@ -89,7 +75,7 @@ export function LegalFacts({ items }: { items: [string, ReactNode][] }) {
  */
 export function Placeholder({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-block rounded border border-bronze/30 bg-bronze/10 px-1.5 py-0.5 text-[12.5px] font-medium text-bronze-dark">
+    <span className="inline-block rounded border border-ink bg-ink/10 px-1.5 py-0.5 text-[12.5px] font-medium text-ink">
       À compléter : {children}
     </span>
   );

@@ -21,7 +21,7 @@ export function RepartitionBar({ classes }: { classes: AssetClass[] }) {
   return (
     <div>
       <div
-        className="flex h-3 rounded-full overflow-hidden bg-cream-deep"
+        className="flex h-3 rounded-[6px] overflow-hidden bg-cream-deep"
         role="img"
         aria-label={`Répartition : ${classes.map((c) => `${c.label} ${c.share} %`).join(", ")}`}
       >

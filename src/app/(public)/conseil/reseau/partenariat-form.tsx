@@ -161,7 +161,7 @@ function CategoryFields({ cat }: { cat: PartnerCategory }) {
               <Input id="montantRecherche" name="montantRecherche" type="number" placeholder="Ex: 10000000" className="h-11 rounded-lg" required min={0} step={1} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ticketMinimum">Ticket d&apos;entrée minimum (MAD)</Label>
+              <Label htmlFor="ticketMinimum">Ticket d’entrée minimum (MAD)</Label>
               <Input id="ticketMinimum" name="ticketMinimum" type="number" placeholder="Ex: 500000" className="h-11 rounded-lg" required min={0} step={1} />
             </div>
           </div>
@@ -207,17 +207,17 @@ export function PartenariatForm() {
   if (state.status === "success") {
     return (
       <AnimateIn variant="reveal-up">
-        <div className="bg-white rounded-lg p-7 shadow-sm max-w-[760px] mx-auto">
+        <div className="bg-white rounded-lg p-7 max-w-[760px] mx-auto">
           <div className="flex items-center gap-2.5 mb-2.5">
-            <span className="w-9 h-9 rounded-full bg-bronze/15 text-bronze-dark flex items-center justify-center shrink-0">
+            <span className="w-9 h-9 rounded-full bg-ink/15 text-ink flex items-center justify-center shrink-0">
               <Check className="w-4.5 h-4.5" />
             </span>
-            <h4 className="font-heading text-[21px] font-semibold text-ink leading-tight">
+            <h4 className="font-heading text-[21px] font-normal text-ink leading-tight">
               Proposition bien reçue
             </h4>
           </div>
           <p className="text-[13.5px] text-warm-grey leading-[1.65]">
-            Merci. Notre équipe étudie chaque proposition et revient vers vous à l&apos;adresse
+            Merci. Notre équipe étudie chaque proposition et revient vers vous à l’adresse
             indiquée si elle correspond aux besoins de nos clients.
           </p>
         </div>
@@ -226,7 +226,7 @@ export function PartenariatForm() {
   }
 
   return (
-    <div className="bg-white rounded-lg p-7 shadow-sm max-w-[760px] mx-auto">
+    <div className="bg-white rounded-lg p-7 max-w-[760px] mx-auto">
       <h4 className="text-[17.5px] font-semibold mb-5">Questionnaire de partenariat</h4>
 
       {/* Category selector */}
@@ -241,8 +241,8 @@ export function PartenariatForm() {
               key === "club" ? "sm:col-span-2" : ""
             } ${
               activeCat === key
-                ? "border-bronze bg-bronze/10 text-bronze"
-                : "border-ink/[0.1] bg-white text-charcoal hover:border-bronze/30"
+                ? "border-ink bg-ink/10 text-ink"
+                : "border-ink/[0.1] bg-white text-charcoal hover:border-ink/40"
             }`}
           >
             {partnerCategoryLabels[key]}
@@ -318,7 +318,7 @@ export function PartenariatForm() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full bg-bronze text-white h-11 font-medium text-[13.5px] tracking-[0.2px] hover:bg-bronze-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors rounded-lg cursor-pointer"
+          className="w-full bg-ink text-white h-11 font-medium text-[15px] hover:bg-navy disabled:opacity-60 disabled:cursor-not-allowed transition-colors rounded-[6px] cursor-pointer"
         >
           {pending ? "Envoi en cours…" : "Soumettre ma proposition"}
         </button>

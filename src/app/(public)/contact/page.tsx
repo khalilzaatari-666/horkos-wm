@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Mail, Phone } from "lucide-react";
+import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
-import { SplitHeading } from "@/components/ui/split-heading";
-import { CABINET_EMAIL, CABINET_PHONE, CABINET_PHONE_HREF } from "@/lib/site";
+import { ConciergeAside } from "@/components/public/concierge-aside";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
@@ -13,49 +12,31 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="py-12 sm:py-16">
-      <div className="max-w-[680px] mx-auto px-7">
-        <div className="text-center mb-8">
-          <AnimateIn variant="blur-in" duration={0.5}>
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Nous contacter
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text="Contactez-nous"
-            as="h1"
-            className="text-[clamp(1.8rem,4.2vw,2.2rem)] font-semibold text-ink mt-2.5 leading-[1.25]"
-            delay={150}
-          />
-          <AnimateIn variant="fade-up" delay={350}>
-            <p className="text-warm-grey text-[14px] mt-2.5 leading-[1.6]">
-              Une question, une idée ou un projet ? N&apos;hésitez pas à nous écrire.
+    <div className="shell pt-8 pb-20 lg:pt-12 lg:pb-28">
+      <nav aria-label="Fil d’Ariane" className="text-[14px] text-warm-grey">
+        <Link href="/" className="hover:text-ink transition-colors">Accueil</Link>
+        <span aria-hidden="true" className="mx-2">/</span>
+        <span className="text-ink">Contact</span>
+      </nav>
+
+      <div className="mt-10 grid gap-12 lg:mt-16 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:gap-16">
+        <div>
+          <AnimateIn variant="fade-up" duration={1}>
+            <h1 className="display-lg text-ink">Écrivez-nous.</h1>
+            <p className="lead mt-5 max-w-[48ch]">
+              Une question, une idée ou un projet ? Nous vous répondons dans les meilleurs délais.
             </p>
           </AnimateIn>
+
+          {/* Le formulaire n'est pas enveloppé dans une animation d'entrée : c'est le
+              contenu essentiel, il doit toujours être visible, et un transform de
+              wrapper casserait le positionnement absolu du sélecteur de pays. */}
+          <div className="mt-10 surface p-6 sm:p-10">
+            <ContactForm />
+          </div>
         </div>
 
-        {/* Le formulaire n'est pas enveloppé dans une animation d'entrée : c'est le
-            contenu essentiel, il doit toujours être visible, et un transform de
-            wrapper casserait le positionnement absolu du sélecteur de pays. */}
-        <ContactForm />
-
-        {/* Coordonnées directes, pour qui préfère écrire ou appeler. */}
-        <div className="mt-8 pt-8 border-t border-cream-deep flex flex-col sm:flex-row gap-4 sm:gap-10 justify-center text-center sm:text-left">
-          <a
-            href={`mailto:${CABINET_EMAIL}`}
-            className="inline-flex items-center justify-center sm:justify-start gap-2.5 text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-          >
-            <Mail className="w-4 h-4 text-bronze shrink-0" aria-hidden="true" />
-            {CABINET_EMAIL}
-          </a>
-          <a
-            href={CABINET_PHONE_HREF}
-            className="inline-flex items-center justify-center sm:justify-start gap-2.5 text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-          >
-            <Phone className="w-4 h-4 text-bronze shrink-0" aria-hidden="true" />
-            {CABINET_PHONE}
-          </a>
-        </div>
+        <ConciergeAside />
       </div>
     </div>
   );

@@ -141,7 +141,7 @@ export function FiltresSemaine({
             for (const k of actifs) next.delete(k);
             naviguer(next);
           }}
-          className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+          className="text-[12.5px] text-ink hover:text-ink/70 transition-colors cursor-pointer"
         >
           Réinitialiser
         </button>

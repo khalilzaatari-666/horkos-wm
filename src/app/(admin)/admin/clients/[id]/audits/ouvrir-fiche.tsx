@@ -36,7 +36,7 @@ export function OuvrirFicheButton({
       <button
         type="submit"
         disabled={pending}
-        className="h-9 px-3.5 inline-flex items-center text-[12.5px] font-medium border border-bronze/40 text-bronze-dark rounded-lg hover:bg-cream disabled:opacity-40 transition-colors cursor-pointer"
+        className="h-9 px-3.5 inline-flex items-center text-[12.5px] font-medium border border-ink text-ink rounded-lg hover:bg-ink/[0.04] disabled:opacity-40 transition-colors cursor-pointer"
       >
         {pending ? "Ouverture…" : libelle}
       </button>

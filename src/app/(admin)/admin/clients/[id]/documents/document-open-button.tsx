@@ -26,7 +26,7 @@ export function DocumentOpenButton({ id }: { id: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors cursor-pointer disabled:opacity-60"
+        className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors cursor-pointer disabled:opacity-60"
       >
         {pending ? "Ouverture…" : "Ouvrir"}
       </button>

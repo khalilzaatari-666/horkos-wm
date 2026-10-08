@@ -119,7 +119,7 @@ export default async function ClientOverviewPage({
         <AnimateIn variant="fade-up" delay={60}>
           <AdminCard className="p-6 mt-3.5">
             <div className="flex items-baseline justify-between gap-3 flex-wrap mb-4">
-              <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+              <h2 className="font-heading text-[17.5px] font-normal text-ink">
                 Questionnaire d&apos;entrée
               </h2>
               <span className="text-[12px] text-warm-grey">
@@ -129,14 +129,14 @@ export default async function ClientOverviewPage({
 
             {intake.besoins?.length > 0 && (
               <div className="mb-4">
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-2">
+                <div className="text-[13px] font-medium text-warm-grey mb-2">
                   Besoins
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {intake.besoins.map((b: string) => (
                     <span
                       key={b}
-                      className="inline-block text-[12.5px] text-charcoal bg-cream border border-cream-deep px-2.5 py-1 rounded-md"
+                      className="inline-block text-[12.5px] text-charcoal bg-cream-deep/40 border border-ink/10 px-2.5 py-1 rounded-md"
                     >
                       {b}
                     </span>
@@ -152,25 +152,25 @@ export default async function ClientOverviewPage({
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                <div className="text-[13px] font-medium text-warm-grey mb-1">
                   Patrimoine déclaré
                 </div>
                 <div className="text-[13.5px] text-ink">{intake.patrimoine ?? "-"}</div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                <div className="text-[13px] font-medium text-warm-grey mb-1">
                   À investir
                 </div>
                 <div className="text-[13.5px] text-ink">{intake.investissement ?? "-"}</div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                <div className="text-[13px] font-medium text-warm-grey mb-1">
                   Ville
                 </div>
                 <div className="text-[13.5px] text-ink">{intake.ville ?? "-"}</div>
               </div>
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                <div className="text-[13px] font-medium text-warm-grey mb-1">
                   Nous a connus par
                 </div>
                 <div className="text-[13.5px] text-ink">{intake.source ?? "-"}</div>
@@ -179,7 +179,7 @@ export default async function ClientOverviewPage({
 
             {intake.message && (
               <div className="mt-4">
-                <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+                <div className="text-[13px] font-medium text-warm-grey mb-1">
                   Message
                 </div>
                 <p className="text-[13px] text-charcoal leading-[1.65] whitespace-pre-line">
@@ -194,19 +194,19 @@ export default async function ClientOverviewPage({
       <AnimateIn variant="fade-up" delay={80}>
         <AdminCard className="p-6 mt-3.5">
           <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="font-heading text-[17.5px] font-semibold text-ink">
+            <h2 className="font-heading text-[17.5px] font-normal text-ink">
               Répartition du patrimoine
             </h2>
             <Link
               href={`${base}/patrimoine`}
-              className="text-[12.5px] text-bronze-dark hover:text-bronze transition-colors shrink-0"
+              className="text-[12.5px] text-ink hover:text-ink/70 transition-colors shrink-0"
             >
               Gérer le patrimoine →
             </Link>
           </div>
           {classes.length > 0 ? (
             <>
-              <div className="font-heading text-[22px] font-semibold text-ink mb-4 leading-none">
+              <div className="font-heading text-[22px] font-normal text-ink mb-4 leading-none">
                 {formatMAD(total)}
               </div>
               <RepartitionBar classes={classes} />

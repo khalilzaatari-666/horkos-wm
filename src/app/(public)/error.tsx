@@ -10,5 +10,5 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <ErrorView error={error} reset={reset} fallback={{ href: "/", label: "Retour à l'accueil" }} />;
+  return <ErrorView error={error} reset={reset} fallback={{ href: "/", label: "Retour à l’accueil" }} />;
 }

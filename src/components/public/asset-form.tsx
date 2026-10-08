@@ -22,15 +22,15 @@ import { submitAsset, type AssetState } from "@/app/(public)/cabinet/produits/ac
 const initialState: AssetState = { status: "idle" };
 
 const fieldClass =
-  "w-full h-11 px-3.5 text-[14px] bg-white border rounded-lg outline-none transition-colors";
-const okBorder = "border-cream-deep focus:border-bronze";
+  "w-full h-12 px-4 text-[16px] bg-white border rounded-lg outline-none transition-colors";
+const okBorder = "border-ink/15 focus:border-bronze focus:ring-4 focus:ring-bronze/15";
 const errBorder = "border-red-500 focus:border-red-500";
 
 function Label({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
   return (
     <label htmlFor={htmlFor} className="block text-[12.5px] font-medium text-ink mb-1.5">
       {children}
-      <span className="text-bronze ml-0.5" aria-hidden="true">
+      <span className="text-ink ml-0.5" aria-hidden="true">
         *
       </span>
     </label>
@@ -57,7 +57,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
  */
 function Shell({ bare, children }: { bare: boolean; children: React.ReactNode }) {
   if (bare) return <>{children}</>;
-  return <div className="bg-white rounded-lg p-7 shadow-sm">{children}</div>;
+  return <div className="bg-white rounded-lg p-7 ">{children}</div>;
 }
 
 export interface AssetFormDefaults {
@@ -90,7 +90,7 @@ export function AssetForm({
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
-    assetType: assetType ? null : "Sélectionnez un type d'actif.",
+    assetType: assetType ? null : "Sélectionnez un type d’actif.",
     reason: reason ? null : "Sélectionnez un motif.",
     contactName:
       contactName.trim().length >= 2 ? null : "Indiquez votre nom ou celui de la société.",
@@ -109,16 +109,16 @@ export function AssetForm({
     return (
       <Shell bare={bare}>
         <div className="flex items-center gap-2.5 mb-2.5">
-          <span className="w-9 h-9 rounded-full bg-bronze/15 text-bronze-dark flex items-center justify-center shrink-0">
+          <span className="w-9 h-9 rounded-full bg-ink/15 text-ink flex items-center justify-center shrink-0">
             <Check className="w-4.5 h-4.5" />
           </span>
-          <h4 className="font-heading text-[19px] font-semibold text-ink leading-tight">
+          <h4 className="font-heading text-[19px] font-normal text-ink leading-tight">
             Dossier bien reçu
           </h4>
         </div>
         <p className="text-[13.5px] text-warm-grey leading-[1.65]">
           Notre équipe étudie votre actif et revient vers vous sous 48 heures ouvrées. Rien
-          n&apos;est présenté à un client sans votre accord préalable.
+          n’est présenté à un client sans votre accord préalable.
         </p>
       </Shell>
     );
@@ -128,7 +128,7 @@ export function AssetForm({
     <Shell bare={bare}>
       {!bare && <h4 className="text-[16px] font-semibold mb-1.5">Formulaire de cession</h4>}
       <p className="text-[12.5px] text-warm-grey mb-5">
-        Les champs suivis de <span className="text-bronze font-semibold">*</span> sont
+        Les champs suivis de <span className="text-ink font-semibold">*</span> sont
         obligatoires.
       </p>
 
@@ -136,7 +136,7 @@ export function AssetForm({
         <input type="hidden" name="contactPhone" value={composePhone(getCountry(phoneIso).dial, phone)} />
 
         <div>
-          <Label htmlFor="assetType">Type d&apos;actif à céder</Label>
+          <Label htmlFor="assetType">Type d’actif à céder</Label>
           <select
             id="assetType"
             name="assetType"
@@ -279,7 +279,7 @@ export function AssetForm({
 
         <div>
           <label htmlFor="description" className="block text-[12.5px] font-medium text-ink mb-1.5">
-            Description de l&apos;actif
+            Description de l’actif
             <span className="text-warm-grey font-normal"> (facultatif)</span>
           </label>
           <textarea
@@ -287,8 +287,8 @@ export function AssetForm({
             name="description"
             rows={3}
             maxLength={DESCRIPTION_MAX}
-            placeholder="Décrivez l'actif que vous souhaitez céder..."
-            className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
+            placeholder="Décrivez l’actif que vous souhaitez céder..."
+            className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-y"
           />
         </div>
 
@@ -299,7 +299,7 @@ export function AssetForm({
         <button
           type="submit"
           disabled={pending || !valid}
-          className="w-full bg-bronze text-white h-11 font-medium text-[13.5px] tracking-[0.2px] hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg cursor-pointer"
+          className="w-full bg-ink text-white h-11 font-medium text-[15px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-[6px] cursor-pointer"
         >
           {pending ? "Envoi..." : "Soumettre mon dossier"}
         </button>
@@ -311,7 +311,7 @@ export function AssetForm({
         )}
 
         <p className="text-[11.5px] text-warm-grey leading-[1.5]">
-          Vos informations restent confidentielles. Aucun actif n&apos;est présenté à un client
+          Vos informations restent confidentielles. Aucun actif n’est présenté à un client
           sans votre accord préalable.
         </p>
       </form>

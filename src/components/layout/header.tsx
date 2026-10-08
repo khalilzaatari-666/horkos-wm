@@ -2,410 +2,278 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useRef, useCallback, useEffect } from "react";
-import gsap from "gsap";
-import { Observer } from "gsap/Observer";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
+import { NAV, LEGAL_LINKS } from "./nav";
+import { CABINET_EMAIL, CABINET_PHONE, CABINET_PHONE_HREF } from "@/lib/site";
 
-gsap.registerPlugin(Observer);
-
-const navItems = [
-  {
-    label: "Le cabinet",
-    children: [
-      { label: "Notre approche", href: "/cabinet/approche" },
-      { label: "Notre modèle", href: "/cabinet/modele" },
-      { label: "Nos produits", href: "/cabinet/produits" },
-    ],
-  },
-  {
-    label: "Le conseil",
-    children: [
-      { label: "Notre structuration patrimoniale", href: "/conseil/structuration" },
-      { label: "Notre réseau de professionnels", href: "/conseil/reseau" },
-      { label: "Nos cas d'usage", href: "/conseil/cas-usage" },
-    ],
-  },
-  {
-    label: "Les ressources",
-    children: [
-      { label: "Nos articles", href: "/ressources/articles" },
-      { label: "Nos guides", href: "/ressources/guides" },
-      { label: "Nos événements", href: "/ressources/evenements" },
-    ],
-  },
-];
-
+/**
+ * En-tête du site public.
+ *
+ * En haut de page, une barre blanche pleine largeur. Dès qu'on défile, elle se
+ * détache des bords et devient une pilule flottante, floutée, qui reste à
+ * portée sans masquer le contenu. Chaque rubrique ouvre un méga-menu : les
+ * liens avec leur raison d'être, et une carte image qui met une entrée en
+ * avant.
+ */
 export function Header() {
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
-
-  const headerRef = useRef<HTMLElement>(null);
-  const navBarRef = useRef<HTMLElement>(null);
-  const mobileNavRef = useRef<HTMLDivElement>(null);
-  const mobileItemsRef = useRef<HTMLDivElement>(null);
-  const tlRef = useRef<gsap.core.Timeline | null>(null);
-  const isHiddenRef = useRef(false);
-
-  /** Fills the viewport below the bar. `innerHeight` tracks mobile browser chrome. */
-  const panelHeight = () =>
-    window.innerHeight - (navBarRef.current?.getBoundingClientRect().height ?? 0);
+  const [mobileGroup, setMobileGroup] = useState<string | null>(null);
+  const closeTimer = useRef<number | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-    const observer = Observer.create({
-      type: "scroll",
-      onUp: () => {
-        if (isHiddenRef.current) {
-          isHiddenRef.current = false;
-          gsap.to(header, {
-            y: 0,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        }
-      },
-      onDown: () => {
-        if (!isHiddenRef.current && window.scrollY > 80 && !mobileOpen) {
-          isHiddenRef.current = true;
-          gsap.to(header, {
-            y: "-100%",
-            duration: 0.3,
-            ease: "power2.in",
-          });
-        }
-      },
-      tolerance: 10,
-    });
+  // Une navigation referme tout : le menu ne doit pas survivre au changement
+  // de page. Réinitialisé pendant le rendu, comme le recommande React.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setOpen(null);
+    setMobileOpen(false);
+    setMobileGroup(null);
+  }
 
-    return () => observer.kill();
-  }, [mobileOpen]);
-
+  // Échap referme le méga-menu ou la feuille mobile ; la page ne défile pas
+  // derrière la feuille ouverte.
   useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-
-    const handleScroll = () => {
-      if (window.scrollY > 80) {
-        header.classList.add("header-scrolled");
-      } else {
-        header.classList.remove("header-scrolled");
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const openMenu = useCallback(() => {
-    setMobileOpen(true);
-
-    requestAnimationFrame(() => {
-      const nav = mobileNavRef.current;
-      const items = mobileItemsRef.current;
-      if (!nav || !items) return;
-
-      if (tlRef.current) tlRef.current.kill();
-
-      const parentButtons = items.querySelectorAll("[data-mobile-parent]");
-      const ctaBlock = items.querySelector("[data-mobile-ctas]");
-      const footerBlock = items.querySelector("[data-mobile-footer]");
-
-      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-      tl.fromTo(nav, { height: 0, opacity: 0 }, { height: panelHeight(), opacity: 1, duration: 0.35 });
-
-      tl.fromTo(
-        parentButtons,
-        { opacity: 0, x: 24 },
-        { opacity: 1, x: 0, duration: 0.3, stagger: 0.08 },
-        "-=0.15"
-      );
-
-      if (ctaBlock) {
-        tl.fromTo(
-          ctaBlock,
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.3 },
-          "-=0.1"
-        );
-      }
-
-      if (footerBlock) {
-        tl.fromTo(
-          footerBlock,
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.3 },
-          "-=0.18"
-        );
-      }
-
-      tlRef.current = tl;
-    });
-  }, []);
-
-  const closeMenu = useCallback(() => {
-    const nav = mobileNavRef.current;
-    if (!nav) {
-      setMobileOpen(false);
-      setMobileDropdown(null);
-      return;
-    }
-
-    if (tlRef.current) tlRef.current.kill();
-
-    gsap.to(nav, {
-      height: 0,
-      opacity: 0,
-      duration: 0.2,
-      ease: "power2.in",
-      onComplete: () => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(null);
         setMobileOpen(false);
-        setMobileDropdown(null);
-      },
-    });
-  }, []);
-
-  const toggleMobileDropdown = useCallback((label: string) => {
-    setMobileDropdown((prev) => {
-      const next = prev === label ? null : label;
-
-      requestAnimationFrame(() => {
-        const container = document.querySelector(`[data-mobile-children="${label}"]`);
-        if (!container) return;
-
-        if (next === label) {
-          const links = container.querySelectorAll("a");
-          gsap.fromTo(
-            links,
-            { opacity: 0, x: -16 },
-            { opacity: 1, x: 0, duration: 0.25, stagger: 0.05, ease: "power2.out" }
-          );
-        }
-      });
-
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (tlRef.current) tlRef.current.kill();
+      }
     };
-  }, []);
-
-  // Keep the open panel full-height across rotation / browser-chrome collapse.
-  useEffect(() => {
-    if (!mobileOpen) return;
-
-    const resize = () => {
-      const nav = mobileNavRef.current;
-      // Skip while the open timeline is still running so we don't fight it.
-      if (nav && !tlRef.current?.isActive()) gsap.set(nav, { height: panelHeight() });
-    };
-
-    window.addEventListener("resize", resize);
-    window.addEventListener("orientationchange", resize);
+    window.addEventListener("keydown", onKey);
+    document.documentElement.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("orientationchange", resize);
+      window.removeEventListener("keydown", onKey);
+      document.documentElement.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  const show = (label: string) => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setOpen(label);
+  };
+  // Un court délai avant de refermer : le pointeur qui descend de l'intitulé
+  // vers le panneau ne doit pas le faire disparaître en chemin.
+  const hide = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpen(null), 140);
+  };
+
+  const group = NAV.find((g) => g.label === open);
+  const floating = scrolled && !mobileOpen;
 
   return (
-    <header
-      ref={headerRef}
-      className="sticky top-0 z-50 bg-white border-b border-cream-deep transition-[background-color,backdrop-filter,border-color] duration-300 lg:[&.header-scrolled]:bg-white/55 lg:[&.header-scrolled]:backdrop-blur-[16px] lg:[&.header-scrolled]:border-cream-deep/40"
-    >
-      <nav
-        ref={navBarRef}
-        className="relative flex items-center justify-center lg:justify-between px-7 py-4 max-w-[1200px] mx-auto"
+    <header className="sticky top-0 z-50 h-[72px] lg:h-[84px]">
+      <div
+        ref={navRef}
+        onMouseLeave={hide}
+        className={`relative mx-auto transition-[max-width,margin,border-radius,background-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          floating
+            ? "mt-2.5 lg:mt-3 max-w-[calc(100%-20px)] lg:max-w-[1180px] rounded-[6px] bg-white/92 backdrop-blur-xl backdrop-saturate-150 shadow-[0_10px_30px_-12px_rgba(11,26,46,0.25)] ring-1 ring-ink/[0.06] px-2 lg:px-3"
+            : "mt-0 max-w-full rounded-none bg-white px-0"
+        }`}
       >
-        <Link href="/">
-          <Image
-            src="/images/logo.png"
-            alt="Horkos Wealth Management"
-            width={168}
-            height={56}
-            className="h-10 w-auto"
-            priority
-          />
-        </Link>
-
-        {/* Desktop nav */}
-        <ul className="hidden lg:flex items-center gap-1 list-none">
-          {navItems.map((item) => (
-            <li
-              key={item.label}
-              className="relative"
-              onMouseEnter={() => setOpenDropdown(item.label)}
-              onMouseLeave={() => setOpenDropdown(null)}
-            >
-              <span className="flex items-center gap-[5px] px-3.5 py-2.5 text-[13.5px] font-medium text-charcoal cursor-pointer rounded-[3px] hover:bg-cream hover:text-ink transition-colors">
-                {item.label} <span className="text-[11px]">▾</span>
-              </span>
-              <div className={`absolute top-full left-0 bg-white border border-cream-deep min-w-[260px] shadow-[0_12px_28px_rgba(11,26,46,0.08)] p-2 z-60 rounded-lg transition-all duration-200 ease-out origin-top ${openDropdown === item.label ? "opacity-100 scale-y-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-y-95 -translate-y-1 pointer-events-none"}`}>
-                {item.children.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className="block px-3 py-[11px] text-[13px] rounded-md text-charcoal hover:bg-cream transition-colors"
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {/* CTA group */}
-        <div className="hidden lg:flex items-center gap-2.5">
-          {/* Vers /espace, pas /connexion : le proxy laisse passer une session
-              active et renvoie sinon vers la connexion avec le retour prévu.
-              Un lien codé sur /connexion ramenait au login des clients déjà
-              connectés. */}
-          <Link
-            href="/espace"
-            className="inline-block px-[26px] py-[13px] text-[13.5px] font-medium tracking-[0.2px] text-ink border border-ink bg-transparent hover:bg-ink hover:text-cream transition-colors"
-          >
-            Espace client
-          </Link>
-          <Link
-            href="/rendez-vous"
-            className="inline-block px-[26px] py-[13px] text-[13.5px] font-medium tracking-[0.2px] bg-ink text-cream hover:bg-ink/90 transition-colors"
-          >
-            Prendre rendez‑vous
-          </Link>
-        </div>
-
-        {/* Mobile toggle */}
-        <button
-          className="lg:hidden text-ink absolute right-7 top-1/2 -translate-y-1/2"
-          onClick={() => (mobileOpen ? closeMenu() : openMenu())}
-          aria-label="Menu"
+        <nav
+          aria-label="Navigation principale"
+          className={`flex items-center justify-between gap-6 transition-[height] duration-500 ${
+            floating ? "h-[52px] lg:h-[60px] pl-3 lg:pl-4" : "shell h-[72px] lg:h-[84px]"
+          }`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {mobileOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
-      </nav>
+          <Link href="/" className="shrink-0" aria-label="Horkos Wealth Management, accueil">
+            <Image
+              src="/images/logo.png"
+              alt="Horkos Wealth Management"
+              width={746}
+              height={248}
+              priority
+              className={`w-auto transition-[height] duration-500 ${floating ? "h-8" : "h-9 lg:h-11"}`}
+            />
+          </Link>
 
-      {/* Mobile nav */}
-      {mobileOpen && (
-        <div
-          ref={mobileNavRef}
-          className="lg:hidden overflow-y-auto overscroll-contain border-t border-cream-deep bg-white"
-          style={{ height: 0, opacity: 0 }}
-        >
-          <div ref={mobileItemsRef} className="flex flex-col min-h-full px-7 py-4">
-            {navItems.map((item) => (
-              <div key={item.label} data-mobile-parent>
-                <button
-                  type="button"
-                  onClick={() => toggleMobileDropdown(item.label)}
-                  className="w-full flex items-center justify-between py-3 text-left"
-                >
-                  <span className="text-[14px] font-semibold text-ink">{item.label}</span>
-                  <span
-                    className={`text-bronze text-[14px] transition-transform duration-300 ${
-                      mobileDropdown === item.label ? "rotate-180" : ""
+          <ul className="hidden lg:flex items-center gap-1">
+            {NAV.map((g) => {
+              const active = g.links.some((l) => pathname.startsWith(l.href));
+              return (
+                <li key={g.label} onMouseEnter={() => show(g.label)}>
+                  <button
+                    type="button"
+                    aria-expanded={open === g.label}
+                    aria-controls="mega-menu"
+                    onClick={() => (open === g.label ? setOpen(null) : show(g.label))}
+                    onFocus={() => show(g.label)}
+                    className={`flex items-center gap-1.5 h-10 px-4 rounded-[6px] text-[15px] transition-colors ${
+                      open === g.label
+                        ? "bg-ink/[0.05] text-ink"
+                        : active
+                          ? "text-ink"
+                          : "text-charcoal hover:text-ink"
                     }`}
                   >
-                    ▾
-                  </span>
-                </button>
-                <div
-                  className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                  style={{ gridTemplateRows: mobileDropdown === item.label ? "1fr" : "0fr" }}
-                >
-                  <div className="overflow-hidden">
-                    <div
-                      className="pb-2 pl-3 space-y-0.5"
-                      data-mobile-children={item.label}
-                    >
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="block py-2 text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-                          onClick={closeMenu}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div
-              className="flex flex-col gap-3 pt-4 mt-1 border-t border-cream-deep"
-              data-mobile-ctas
+                    {g.label}
+                    <ChevronDown
+                      aria-hidden="true"
+                      className={`size-3.5 opacity-60 transition-transform duration-300 ${open === g.label ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden lg:flex items-center gap-2">
+            {/* Vers /espace, pas /connexion : le proxy laisse passer une session
+                active et renvoie sinon vers la connexion avec le retour prévu. */}
+            <Link
+              href="/espace"
+              className="h-10 px-4 inline-flex items-center rounded-[6px] text-[15px] text-charcoal hover:text-ink transition-colors"
             >
+              Espace client
+            </Link>
+            <Link href="/rendez-vous" className="btn btn-bronze btn-sm">
+              Prendre rendez-vous
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
+            aria-controls="menu-mobile"
+            className="lg:hidden inline-flex items-center gap-2 h-10 px-4 rounded-[6px] bg-ink text-white text-[14px] font-medium"
+          >
+            {mobileOpen ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
+            {mobileOpen ? "Fermer" : "Menu"}
+          </button>
+        </nav>
+
+        {/* Méga-menu */}
+        <div
+          id="mega-menu"
+          onMouseEnter={() => group && show(group.label)}
+          className={`hidden lg:block absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[min(720px,calc(100vw-40px))] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            group ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+          }`}
+        >
+          {group && (
+            <div className="grid grid-cols-[1fr_220px] gap-2 p-2 rounded-[16px] bg-white lift ring-1 ring-ink/[0.06]">
+              <ul className="grid grid-cols-1 p-1.5">
+                {group.links.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="group flex items-start justify-between gap-4 rounded-[10px] px-3.5 py-3 hover:bg-cream-deep/50 transition-colors"
+                    >
+                      <span>
+                        <span className="block text-[15px] font-medium leading-snug text-ink">{l.label}</span>
+                        <span className="block text-[13px] leading-snug text-warm-grey mt-0.5">{l.desc}</span>
+                      </span>
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="size-4 mt-1 shrink-0 text-ink opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
               <Link
-                href="/espace"
-                className="text-center px-[26px] py-[13px] text-[13.5px] font-medium text-ink border border-ink rounded-lg"
-                onClick={closeMenu}
+                href={group.feature.href}
+                className="group relative overflow-hidden rounded-[12px] min-h-[200px] bg-cream-deep"
               >
-                Espace client
-              </Link>
-              <Link
-                href="/rendez-vous"
-                className="text-center px-[26px] py-[13px] text-[13.5px] font-medium bg-ink text-cream rounded-lg"
-                onClick={closeMenu}
-              >
-                Prendre rendez‑vous
+                <Image
+                  src={group.feature.image}
+                  alt=""
+                  fill
+                  sizes="220px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+                <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent" />
+                <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
+                  <span className="font-heading text-[16px] leading-snug">{group.feature.title}</span>
+                  <span className="grid place-items-center size-7 shrink-0 rounded-full bg-white text-ink">
+                    <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                  </span>
+                </span>
               </Link>
             </div>
+          )}
+        </div>
+      </div>
 
-            {/* Footer lives here on mobile - the page footer is hidden below lg.
-                `mt-auto` pins it to the bottom of the full-height panel. */}
-            <div
-              className="mt-auto pt-8 pb-2 text-center flex flex-col items-center gap-3"
-              data-mobile-footer
-            >
-              <Link
-                href="/contact"
-                className="text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-                onClick={closeMenu}
-              >
-                Nous contacter
-              </Link>
-              <Link
-                href="#"
-                className="text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-                onClick={closeMenu}
-              >
-                Mentions légales
-              </Link>
-              <Link
-                href="#"
-                className="text-[13.5px] text-charcoal hover:text-bronze transition-colors"
-                onClick={closeMenu}
-              >
-                Politique de confidentialité
-              </Link>
+      {/* Feuille mobile */}
+      <div
+        id="menu-mobile"
+        hidden={!mobileOpen}
+        className="lg:hidden fixed inset-x-0 top-[72px] bottom-0 bg-white overflow-y-auto overscroll-contain"
+      >
+        <div className="shell flex flex-col min-h-full pt-4 pb-8">
+          {NAV.map((g) => {
+            const expanded = mobileGroup === g.label;
+            return (
+              <div key={g.label} className="border-b border-ink/[0.08]">
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() => setMobileGroup(expanded ? null : g.label)}
+                  className="w-full flex items-center justify-between py-5 text-left"
+                >
+                  <span className="font-heading text-[30px] leading-none text-ink">{g.label}</span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`size-5 text-ink transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <div
+                  className="grid transition-[grid-template-rows] duration-300 ease-out"
+                  style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
+                >
+                  <ul className="overflow-hidden">
+                    {g.links.map((l) => (
+                      <li key={l.href}>
+                        <Link href={l.href} className="block pb-4">
+                          <span className="block text-[17px] font-medium text-ink">{l.label}</span>
+                          <span className="block text-[14px] text-warm-grey">{l.desc}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })}
 
-              <p className="mt-4 text-[13px] text-warm-grey leading-relaxed max-w-[300px]">
-                Cabinet de gestion de patrimoine au Maroc. Accompagnement personnalisé en
-                structuration, investissement et transmission.
-              </p>
+          <div className="grid gap-3 mt-8">
+            <Link href="/rendez-vous" className="btn btn-bronze w-full">
+              Prendre rendez-vous
+            </Link>
+            <Link href="/espace" className="btn btn-outline w-full">
+              Espace client
+            </Link>
+          </div>
 
-              <p className="mt-2 text-[11.5px] text-warm-grey">
-                &copy; {new Date().getFullYear()} Horkos Wealth Management. Tous droits réservés.
-              </p>
+          <div className="mt-auto pt-10 text-[14px] text-warm-grey space-y-1.5">
+            <a href={CABINET_PHONE_HREF} className="block text-ink tabular-nums">{CABINET_PHONE}</a>
+            <a href={`mailto:${CABINET_EMAIL}`} className="block text-ink">{CABINET_EMAIL}</a>
+            <div className="flex flex-wrap gap-x-4 pt-4">
+              <Link href="/contact">Nous contacter</Link>
+              {LEGAL_LINKS.map((l) => (
+                <Link key={l.href} href={l.href}>{l.label}</Link>
+              ))}
             </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

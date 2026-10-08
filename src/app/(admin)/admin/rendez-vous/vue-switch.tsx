@@ -37,7 +37,7 @@ export function VueSwitch({
     <div
       role="group"
       aria-label="Affichage des rendez-vous"
-      className="inline-flex items-center p-0.5 bg-white border border-cream-deep rounded-lg"
+      className="inline-flex items-center p-0.5 bg-white border border-ink/10 rounded-lg"
     >
       {vues.map((v) => (
         <Link
@@ -47,7 +47,7 @@ export function VueSwitch({
           className={`px-3 py-1.5 text-[12.5px] font-medium rounded-md transition-colors ${
             active === v.cle
               ? "bg-ink text-cream"
-              : "text-warm-grey hover:text-ink hover:bg-cream/60"
+              : "text-warm-grey hover:text-ink hover:bg-ink/[0.04]"
           }`}
         >
           {v.label}

@@ -5,6 +5,7 @@ import { AnimateIn } from "@/components/ui/animate-in";
 import { getGuides, getCategories, filtrerParCategorie } from "@/lib/content";
 import { FiltreCategories } from "@/components/public/filtre-categories";
 import { GuideCard } from "./guide-card";
+import { CtaBand } from "@/components/public/cta-band";
 
 export const metadata: Metadata = {
   title: "Nos guides | Horkos Wealth Management",
@@ -33,19 +34,20 @@ export default async function GuidesPage({
   return (
     <>
       <PageHero
-        tag="Nos guides"
+        tag="Guides"
+        image="/images/pages/guides-hero.jpg"
         title="Des guides complets, coécrits avec des institutions reconnues."
         subtitle={
           "Chaque guide est réalisé en partenariat avec un acteur reconnu de la place.\nLaissez votre email pour le recevoir directement."
         }
       />
 
-      <section className="py-14">
-        <div className="max-w-[1200px] mx-auto px-7">
+      <section className="pb-12 lg:pb-16">
+        <div className="shell">
           {guides.length === 0 ? (
             <EmptyState
               title="Nos premiers guides arrivent"
-              desc="Ils sont en cours de rédaction avec nos partenaires : experts-comptables, notaires et fonds d'investissement."
+              desc="Ils sont en cours de rédaction avec nos partenaires : experts-comptables, notaires et fonds d’investissement."
             />
           ) : (
             <>
@@ -54,7 +56,7 @@ export default async function GuidesPage({
                 categories={categories}
                 active={active}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[22px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
                 {visibles.map((guide, i) => (
                   <AnimateIn
                     key={guide.id}
@@ -70,6 +72,8 @@ export default async function GuidesPage({
           )}
         </div>
       </section>
+
+      <CtaBand title="Un guide ne remplace pas un échange." label="Prendre rendez-vous" />
     </>
   );
 }

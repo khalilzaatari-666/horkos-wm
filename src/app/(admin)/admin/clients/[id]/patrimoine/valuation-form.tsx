@@ -7,7 +7,7 @@ import type { ActionState } from "@/lib/staff";
 const initialState: ActionState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export function ValuationForm({
   clientId,
@@ -76,7 +76,7 @@ export function ValuationForm({
         <button
           type="submit"
           disabled={pending}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Enregistrement…" : "Enregistrer le relevé"}
         </button>

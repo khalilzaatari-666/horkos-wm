@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 const MIN_LENGTH = 10;
 
 const inputClass =
-  "w-full h-11 px-3.5 pr-11 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-12 px-4 pr-11 text-[16px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 /**
  * Définition du mot de passe à la première connexion d'un membre de l'équipe.
@@ -39,7 +39,7 @@ export function SetPasswordForm() {
 
     if (updateError) {
       setError(
-        "Le mot de passe n'a pas pu être enregistré. Le lien d'invitation a peut-être expiré - demandez-en un nouveau."
+        "Le mot de passe n’a pas pu être enregistré. Le lien d’invitation a peut-être expiré - demandez-en un nouveau."
       );
       setLoading(false);
       return;
@@ -105,7 +105,7 @@ export function SetPasswordForm() {
       <button
         type="submit"
         disabled={!valid || loading}
-        className="w-full px-6 py-3 text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        className="w-full px-6 py-3 text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
       >
         {loading ? "Enregistrement…" : "Définir mon mot de passe"}
       </button>

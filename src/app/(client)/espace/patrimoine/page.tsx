@@ -86,7 +86,7 @@ export default async function PatrimoinePage({
         <AnimateIn variant="fade-up" delay={80}>
           <EmptyPanel
             title="Aucun actif enregistré"
-            desc="Vos actifs sont saisis par votre conseiller lors de l'audit patrimonial. Ils apparaîtront ici avec leur répartition dès que l'audit sera lancé."
+            desc="Vos actifs sont saisis par votre conseiller lors de l’audit patrimonial. Ils apparaîtront ici avec leur répartition dès que l’audit sera lancé."
             action={{ href: "/rendez-vous", label: "Demander un audit" }}
           />
         </AnimateIn>
@@ -95,17 +95,17 @@ export default async function PatrimoinePage({
           <div className="grid lg:grid-cols-2 gap-3.5">
             <AnimateIn variant="fade-up" delay={80} className="h-full">
               <Card center className="p-6 h-full">
-                <CardTitle>Répartition par classe d&apos;actifs</CardTitle>
+                <CardTitle>Répartition par classe d’actifs</CardTitle>
                 {classes.length > 0 ? (
                   <>
-                    <div className="font-heading text-[24px] font-semibold text-ink mb-5 leading-none">
+                    <div className="font-heading text-[24px] font-normal text-ink mb-5 leading-none">
                       {formatMAD(total)}
                     </div>
                     <RepartitionBar classes={classes} />
                   </>
                 ) : (
                   <p className="text-[13px] text-warm-grey leading-[1.65]">
-                    Aucun actif valorisé pour l&apos;instant.
+                    Aucun actif valorisé pour l’instant.
                   </p>
                 )}
               </Card>
@@ -126,8 +126,8 @@ export default async function PatrimoinePage({
                     </div>
                     <p className="text-[13px] text-warm-grey leading-[1.65]">
                       {audit.status === "termine"
-                        ? "Votre audit est disponible. Il détaille votre situation, les points d'attention relevés et la structuration proposée."
-                        : "Votre conseiller travaille sur votre audit. Vous serez prévenu dès qu'il sera disponible."}
+                        ? "Votre audit est disponible. Il détaille votre situation, les points d’attention relevés et la structuration proposée."
+                        : "Votre conseiller travaille sur votre audit. Vous serez prévenu dès qu’il sera disponible."}
                     </p>
                     {/* Deux documents distincts : la fiche, générée depuis la
                         saisie du conseiller, et le rapport, un PDF qu'il a
@@ -136,9 +136,9 @@ export default async function PatrimoinePage({
                       {audit.status === "termine" && (
                         <a
                           href={`/espace/patrimoine/audit/${audit.id}/pdf`}
-                          className="inline-block px-5 py-2.5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors"
+                          className="inline-block px-5 py-2.5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors"
                         >
-                          Télécharger ma fiche d&apos;audit
+                          Télécharger ma fiche d’audit
                         </a>
                       )}
                       {audit.pdf_url && <AuditReportButton auditId={audit.id} />}
@@ -146,7 +146,7 @@ export default async function PatrimoinePage({
                   </>
                 ) : (
                   <p className="text-[13px] text-warm-grey leading-[1.65]">
-                    Aucun audit n&apos;a encore été ouvert. Il est réalisé lors du premier
+                    Aucun audit n’a encore été ouvert. Il est réalisé lors du premier
                     rendez-vous, à partir des éléments que vous transmettez.
                   </p>
                 )}
@@ -157,14 +157,14 @@ export default async function PatrimoinePage({
           {assetRows.length > 0 && (
             <section className="mt-9">
               <AnimateIn variant="fade-up" delay={200}>
-                <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+                <h2 className="text-ink text-[12px] font-normal mb-3">
                   Détail par actif
                 </h2>
                 <FiltresListe
                   champs={[
                     {
                       cle: "type",
-                      aria: "Type d'actif",
+                      aria: "Type d’actif",
                       toutes: "Tous les types",
                       options: typesPresents.map((t) => ({ value: t, label: assetTypeLabel(t) })),
                     },
@@ -176,7 +176,7 @@ export default async function PatrimoinePage({
                 <CardGrid min="260px">
                   {detail.map((a) => (
                     <Card key={a.id} className="p-5 h-full flex flex-col">
-                      <div className="text-[11px] font-semibold tracking-[1.3px] uppercase text-bronze-dark">
+                      <div className="text-[13px] font-medium text-warm-grey">
                         {assetTypeLabel(a.type)}
                       </div>
                       {/* `flex-1` aligne les montants au bas de chaque carte,
@@ -184,7 +184,7 @@ export default async function PatrimoinePage({
                       <div className="text-[13.5px] font-medium text-ink leading-[1.4] mt-2 flex-1">
                         {a.label}
                       </div>
-                      <div className="font-heading text-[19px] font-semibold text-ink tabular-nums mt-3">
+                      <div className="font-heading text-[19px] font-normal text-ink tabular-nums mt-3">
                         {formatMAD(a.value)}
                       </div>
                     </Card>

@@ -22,7 +22,7 @@ export function ContenuTabs() {
 
   return (
     <nav
-      className="flex flex-wrap gap-1 border-b border-cream-deep mb-6"
+      className="flex flex-wrap gap-1 border-b border-ink/10 mb-6"
       aria-label="Sections du contenu"
     >
       {ONGLETS.map((t) => {
@@ -34,7 +34,7 @@ export function ContenuTabs() {
             aria-current={active ? "page" : undefined}
             className={`px-3.5 py-2.5 text-[13px] font-medium -mb-px border-b-2 transition-colors ${
               active
-                ? "border-bronze text-ink"
+                ? "border-ink text-ink"
                 : "border-transparent text-warm-grey hover:text-ink"
             }`}
           >

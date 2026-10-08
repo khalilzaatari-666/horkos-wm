@@ -24,7 +24,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
     <>
       <tr
         className={`align-top transition-colors ${
-          hasQ ? "cursor-pointer hover:bg-cream/60" : "hover:bg-cream/40"
+          hasQ ? "cursor-pointer hover:bg-ink/[0.04]" : "hover:bg-ink/[0.04]"
         }`}
         onClick={hasQ ? () => setOpen(true) : undefined}
       >
@@ -32,7 +32,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
         <Td className="whitespace-nowrap">
           <div className="font-medium text-ink">{data.heure}</div>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="inline-block text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded">
+            <span className="inline-block text-[11px] font-semibold text-charcoal bg-cream-deep/40 border border-ink/10 px-1.5 py-0.5 rounded">
               {data.type}
             </span>
             {data.mode === "visio" ? (
@@ -42,7 +42,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-[12px] text-bronze-dark hover:text-bronze transition-colors"
+                  className="text-[12px] text-ink hover:text-ink/70 transition-colors"
                 >
                   Visio - rejoindre
                 </a>
@@ -62,7 +62,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
               <div className="flex items-center gap-2">
                 <span className="text-ink font-medium">{data.nom}</span>
                 {data.sansCompte && (
-                  <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.6px] text-bronze-dark bg-bronze/12 px-1.5 py-0.5 rounded">
+                  <span className="inline-block text-[13px] font-medium text-warm-grey bg-ink/12 px-1.5 py-0.5 rounded">
                     Visiteur
                   </span>
                 )}
@@ -71,7 +71,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
                 <a
                   href={`mailto:${data.email}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="block text-[12px] text-bronze-dark hover:text-bronze transition-colors truncate max-w-[220px]"
+                  className="block text-[12px] text-ink hover:text-ink/70 transition-colors truncate max-w-[220px]"
                 >
                   {data.email}
                 </a>
@@ -80,7 +80,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
                 <a
                   href={`tel:${data.phone}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="block text-[12px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                  className="block text-[12px] text-warm-grey hover:text-ink/70 transition-colors tabular-nums"
                 >
                   {data.phone}
                 </a>
@@ -100,7 +100,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
                 e.stopPropagation();
                 setOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink hover:text-ink/70 transition-colors cursor-pointer"
             >
               Voir les réponses
               <span aria-hidden="true">→</span>
@@ -116,7 +116,7 @@ export function RdvRow({ data }: { data: RdvRowData }) {
 
         <Td>
           <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold whitespace-nowrap ${style.pill}`}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] border text-[11px] font-semibold whitespace-nowrap ${style.pill}`}
           >
             <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
             {style.label}

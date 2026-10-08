@@ -60,13 +60,13 @@ export const MODE_LABEL: Record<string, string> = {
 
 const ETAT_PASTILLE: Record<EtapeState, string> = {
   fait: "bg-emerald-500",
-  encours: "bg-bronze",
+  encours: "bg-ink",
   avenir: "bg-cream-deep",
 };
 
 const ETAT_TEXTE: Record<EtapeState, string> = {
   fait: "text-ink",
-  encours: "text-bronze-dark font-medium",
+  encours: "text-ink font-medium",
   avenir: "text-warm-grey",
 };
 
@@ -75,7 +75,7 @@ function Champ({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
   return (
     <div>
-      <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1">
+      <div className="text-[13px] font-medium text-warm-grey mb-1">
         {label}
       </div>
       <div className="text-[13.5px] text-charcoal leading-[1.6]">{value}</div>
@@ -127,17 +127,17 @@ export function RdvDetailModal({
         aria-modal="true"
         aria-label={`Rendez-vous de ${data.nom || "visiteur"}`}
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] overflow-y-auto bg-cream sm:rounded-2xl rounded-t-2xl border border-cream-deep shadow-xl"
+        className="w-full sm:max-w-lg max-h-[88vh] overflow-y-auto bg-cream-deep/40 sm:rounded-2xl rounded-t-2xl border border-ink/10 shadow-xl"
       >
         {/* En-tête : qui, et le récapitulatif du rendez-vous. */}
-        <div className="sticky top-0 bg-cream border-b border-cream-deep px-6 py-4 flex items-start justify-between gap-3">
+        <div className="sticky top-0 bg-cream-deep/40 border-b border-ink/10 px-6 py-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="font-heading text-[18px] font-semibold text-ink truncate">
+              <h2 className="font-heading text-[18px] font-normal text-ink truncate">
                 {data.nom || "Visiteur sans compte"}
               </h2>
               {data.sansCompte && (
-                <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.6px] text-bronze-dark bg-bronze/12 px-1.5 py-0.5 rounded shrink-0">
+                <span className="inline-block text-[13px] font-medium text-warm-grey bg-ink/12 px-1.5 py-0.5 rounded shrink-0">
                   Visiteur
                 </span>
               )}
@@ -160,7 +160,7 @@ export function RdvDetailModal({
                 </>
               )}
               <span
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10.5px] font-semibold ${style.pill}`}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[6px] border text-[10.5px] font-semibold ${style.pill}`}
               >
                 <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                 {style.label}
@@ -194,7 +194,7 @@ export function RdvDetailModal({
               href={data.meetingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink hover:text-ink/70 transition-colors"
             >
               Rejoindre la visio
               <span aria-hidden="true">→</span>
@@ -204,7 +204,7 @@ export function RdvDetailModal({
           {/* Contexte plateforme : où en est le dossier, et par où y entrer. */}
           {ctx && (
             <div>
-              <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-2">
+              <div className="text-[13px] font-medium text-warm-grey mb-2">
                 Parcours
               </div>
               <ol className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -225,14 +225,14 @@ export function RdvDetailModal({
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3">
                   <Link
                     href={`/admin/clients/${ctx.clientId}/suivi`}
-                    className="text-[13px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                    className="text-[13px] font-medium text-ink hover:text-ink/70 transition-colors"
                   >
                     Ouvrir le dossier →
                   </Link>
                   {ctx.ficheAuditId && (
                     <Link
                       href={`/admin/clients/${ctx.clientId}/audits/${ctx.ficheAuditId}`}
-                      className="text-[13px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                      className="text-[13px] font-medium text-ink hover:text-ink/70 transition-colors"
                     >
                       Fiche d&apos;audit →
                     </Link>
@@ -249,14 +249,14 @@ export function RdvDetailModal({
           {/* Coordonnées du compte, quand le rendez-vous en a un. */}
           {!data.sansCompte && (data.email || data.phone) && (
             <div>
-              <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1.5">
+              <div className="text-[13px] font-medium text-warm-grey mb-1.5">
                 Contact
               </div>
               <div className="flex flex-col gap-1">
                 {data.email && (
                   <a
                     href={`mailto:${data.email}`}
-                    className="text-[13px] text-bronze-dark hover:text-bronze transition-colors"
+                    className="text-[13px] text-ink hover:text-ink/70 transition-colors"
                   >
                     {data.email}
                   </a>
@@ -264,7 +264,7 @@ export function RdvDetailModal({
                 {data.phone && (
                   <a
                     href={`tel:${data.phone}`}
-                    className="text-[13px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                    className="text-[13px] text-warm-grey hover:text-ink/70 transition-colors tabular-nums"
                   >
                     {data.phone}
                   </a>
@@ -278,14 +278,14 @@ export function RdvDetailModal({
             <>
               {demande.besoins.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-2">
+                  <div className="text-[13px] font-medium text-warm-grey mb-2">
                     Besoins
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {demande.besoins.map((b) => (
                       <span
                         key={b}
-                        className="inline-block text-[12.5px] text-charcoal bg-white border border-cream-deep px-2.5 py-1 rounded-md"
+                        className="inline-block text-[12.5px] text-charcoal bg-white border border-ink/10 px-2.5 py-1 rounded-md"
                       >
                         {b}
                       </span>
@@ -314,14 +314,14 @@ export function RdvDetailModal({
 
               {(demande.email || demande.phone) && (
                 <div>
-                  <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1.5">
+                  <div className="text-[13px] font-medium text-warm-grey mb-1.5">
                     Contact du questionnaire
                   </div>
                   <div className="flex flex-col gap-1">
                     {demande.email && (
                       <a
                         href={`mailto:${demande.email}`}
-                        className="text-[13px] text-bronze-dark hover:text-bronze transition-colors"
+                        className="text-[13px] text-ink hover:text-ink/70 transition-colors"
                       >
                         {demande.email}
                       </a>
@@ -329,7 +329,7 @@ export function RdvDetailModal({
                     {demande.phone && (
                       <a
                         href={`tel:${demande.phone}`}
-                        className="text-[13px] text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                        className="text-[13px] text-warm-grey hover:text-ink/70 transition-colors tabular-nums"
                       >
                         {demande.phone}
                       </a>

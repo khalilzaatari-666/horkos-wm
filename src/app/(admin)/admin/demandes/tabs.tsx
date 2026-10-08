@@ -22,7 +22,7 @@ export function DemandesTabs({ onglets }: { onglets: OngletDemandes[] }) {
 
   return (
     <nav
-      className="flex flex-wrap gap-1 border-b border-cream-deep mb-6"
+      className="flex flex-wrap gap-1 border-b border-ink/10 mb-6"
       aria-label="Sections des demandes"
     >
       {onglets.map((t) => {
@@ -34,7 +34,7 @@ export function DemandesTabs({ onglets }: { onglets: OngletDemandes[] }) {
             aria-current={active ? "page" : undefined}
             className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-medium -mb-px border-b-2 transition-colors ${
               active
-                ? "border-bronze text-ink"
+                ? "border-ink text-ink"
                 : "border-transparent text-warm-grey hover:text-ink"
             }`}
           >
@@ -44,7 +44,7 @@ export function DemandesTabs({ onglets }: { onglets: OngletDemandes[] }) {
                 // Le nombre est lu par les lecteurs d'écran ; la pastille seule
                 // ne dirait rien à qui ne la voit pas.
                 aria-label={`${t.nonLues} non lue${t.nonLues > 1 ? "s" : ""}`}
-                className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[10.5px] font-semibold text-white bg-red-500 rounded-full tabular-nums"
+                className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[10.5px] font-semibold text-white bg-red-500 rounded-[6px] tabular-nums"
               >
                 {t.nonLues}
               </span>

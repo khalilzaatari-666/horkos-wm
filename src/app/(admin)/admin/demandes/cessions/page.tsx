@@ -143,7 +143,7 @@ export default async function SoumissionsPage({
         >
           {rows.map((s) => {
             return (
-              <tr key={s.id} className="hover:bg-cream/40 transition-colors">
+              <tr key={s.id} className="hover:bg-ink/[0.04] transition-colors">
                 <Td className="max-w-[280px]">
                   <div className="font-medium text-ink">{s.asset_type}</div>
                   {s.description && (
@@ -160,7 +160,7 @@ export default async function SoumissionsPage({
                   {s.contact_email && (
                     <a
                       href={`mailto:${s.contact_email}`}
-                      className="block text-[12px] text-bronze-dark hover:text-bronze transition-colors"
+                      className="block text-[12px] text-ink hover:text-ink/70 transition-colors"
                     >
                       {s.contact_email}
                     </a>

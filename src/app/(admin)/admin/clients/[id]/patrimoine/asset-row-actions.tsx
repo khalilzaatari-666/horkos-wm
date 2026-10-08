@@ -28,7 +28,7 @@ export function AssetRowActions({
       <button
         type="button"
         onClick={() => setMode("valorise")}
-        className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors cursor-pointer"
+        className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors cursor-pointer"
       >
         Valoriser
       </button>

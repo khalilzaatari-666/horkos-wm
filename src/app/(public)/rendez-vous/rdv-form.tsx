@@ -49,8 +49,8 @@ function Option({
       aria-pressed={selected}
       className={`text-left px-4 py-3 rounded-lg border text-[13.5px] leading-[1.4] transition-all duration-200 cursor-pointer ${
         selected
-          ? "border-bronze bg-bronze/10 text-ink font-medium"
-          : "border-cream-deep bg-white text-charcoal hover:border-bronze/50"
+          ? "border-ink bg-ink/10 text-ink font-medium"
+          : "border-ink/10 bg-white text-charcoal hover:border-ink/40"
       } ${className}`}
     >
       {label}
@@ -97,10 +97,10 @@ function OptionGrid({
 function StepHeading({ index, question }: { index: number; question: string }) {
   return (
     <>
-      <div className="text-bronze-dark text-[11px] font-semibold tracking-[1.6px] uppercase">
+      <div className="text-warm-grey text-[13px] font-medium">
         Question {index}
       </div>
-      <h2 className="font-heading text-[21px] font-semibold text-ink mt-1.5 mb-5 leading-[1.3]">
+      <h2 className="font-heading text-[21px] font-normal text-ink mt-1.5 mb-5 leading-[1.3]">
         {question}
       </h2>
     </>
@@ -108,11 +108,11 @@ function StepHeading({ index, question }: { index: number; question: string }) {
 }
 
 const inputBase =
-  "w-full h-11 px-3.5 text-[14px] bg-white rounded-lg outline-none border transition-colors";
+  "w-full h-12 px-4 text-[16px] bg-white rounded-lg outline-none border transition-colors";
 
 function inputClass(hasError: boolean) {
   return `${inputBase} ${
-    hasError ? "border-red-500 focus:border-red-500" : "border-cream-deep focus:border-bronze"
+    hasError ? "border-red-500 focus:border-red-500" : "border-ink/15 focus:border-bronze focus:ring-4 focus:ring-bronze/15"
   }`;
 }
 
@@ -151,7 +151,7 @@ function TextField({
         {label}
         {required ? (
           // Decorative: `aria-required` already announces it to screen readers.
-          <span className="text-bronze ml-0.5" aria-hidden="true">
+          <span className="text-ink ml-0.5" aria-hidden="true">
             *
           </span>
         ) : (
@@ -275,7 +275,7 @@ export function RdvForm() {
     (step === 4 && slotStart !== null && mode !== null);
 
   return (
-    <form action={formAction} className="bg-cream border border-cream-deep rounded-lg p-6 sm:p-8">
+    <form action={formAction} className="surface p-6 sm:p-8 sm:p-8">
       {/* Answers from earlier steps travel with the submit. */}
       {besoins.map((b) => (
         <input key={b} type="hidden" name="besoins" value={b} />
@@ -298,7 +298,7 @@ export function RdvForm() {
           <span
             key={i}
             className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-              i <= step ? "bg-bronze" : "bg-cream-deep"
+              i <= step ? "bg-ink" : "bg-cream-deep"
             }`}
           />
         ))}
@@ -309,7 +309,7 @@ export function RdvForm() {
         <div>
           {step === 0 && (
             <>
-              <StepHeading index={1} question="De quoi avez-vous besoin aujourd'hui ?" />
+              <StepHeading index={1} question="De quoi avez-vous besoin aujourd’hui ?" />
               <p className="text-[12.5px] text-warm-grey -mt-3 mb-4">
                 Plusieurs réponses possibles.
               </p>
@@ -332,7 +332,7 @@ export function RdvForm() {
                       className="block text-[12.5px] font-medium text-ink mb-1.5"
                     >
                       Précisez votre besoin
-                      <span className="text-bronze ml-0.5" aria-hidden="true">
+                      <span className="text-ink ml-0.5" aria-hidden="true">
                         *
                       </span>
                     </label>
@@ -348,7 +348,7 @@ export function RdvForm() {
                       // tab order and out of the accessibility tree.
                       tabIndex={autreSelected ? 0 : -1}
                       aria-hidden={!autreSelected}
-                      className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
+                      className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-y"
                     />
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export function RdvForm() {
             <>
               <StepHeading
                 index={3}
-                question="Montant d'investissement envisagé à court terme ?"
+                question="Montant d’investissement envisagé à court terme ?"
               />
               <OptionGrid
                 options={investissementOptions}
@@ -412,7 +412,7 @@ export function RdvForm() {
               <StepHeading index={6} question="Vos coordonnées" />
               <p className="text-[12.5px] text-warm-grey -mt-3 mb-4">
                 Les champs suivis de{" "}
-                <span className="text-bronze font-semibold">*</span> sont obligatoires.
+                <span className="text-ink font-semibold">*</span> sont obligatoires.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <TextField
@@ -456,7 +456,7 @@ export function RdvForm() {
                 <div>
                   <label htmlFor="phone" className="block text-[12.5px] font-medium text-ink mb-1.5">
                     Téléphone
-                    <span className="text-bronze ml-0.5" aria-hidden="true">
+                    <span className="text-ink ml-0.5" aria-hidden="true">
                       *
                     </span>
                   </label>
@@ -496,7 +496,7 @@ export function RdvForm() {
                     name="message"
                     rows={3}
                     maxLength={MESSAGE_MAX}
-                    className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors resize-y"
+                    className="w-full px-3.5 py-2.5 text-[14px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors resize-y"
                   />
                 </div>
                 <label
@@ -513,17 +513,17 @@ export function RdvForm() {
                     className="mt-0.5 h-4 w-4 shrink-0 accent-bronze cursor-pointer"
                   />
                   <span>
-                    J&apos;accepte que les informations renseignées soient utilisées par Horkos
+                    J’accepte que les informations renseignées soient utilisées par Horkos
                     pour traiter ma demande de contact, conformément à sa{" "}
                     <a
                       href="/politique-de-confidentialite"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-bronze-dark underline underline-offset-2 hover:text-bronze transition-colors"
+                      className="text-ink underline underline-offset-2 hover:text-ink/70 transition-colors"
                     >
                       politique de confidentialité
                     </a>
-                    .<span className="text-bronze ml-0.5" aria-hidden="true">*</span>
+                    .<span className="text-ink ml-0.5" aria-hidden="true">*</span>
                   </span>
                 </label>
               </div>
@@ -541,7 +541,7 @@ export function RdvForm() {
           <button
             type="button"
             onClick={() => setStep((s) => s - 1)}
-            className="px-5 py-3 text-[13.5px] font-medium text-charcoal border border-cream-deep bg-white rounded-lg hover:border-bronze/50 transition-colors cursor-pointer"
+            className="btn btn-outline"
           >
             Retour
           </button>
@@ -552,7 +552,7 @@ export function RdvForm() {
             type="button"
             disabled={!canContinue}
             onClick={() => setStep((s) => s + 1)}
-            className="flex-1 px-6 py-3 text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="flex-1 px-6 py-3 text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             Continuer →
           </button>
@@ -560,7 +560,7 @@ export function RdvForm() {
           <button
             type="submit"
             disabled={pending || !coordonneesValid}
-            className="flex-1 px-6 py-3 text-[13.5px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="flex-1 px-6 py-3 text-[15px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {pending ? "Envoi..." : "Envoyer ma demande"}
           </button>
@@ -575,7 +575,7 @@ export function RdvForm() {
       )}
 
       <p className="text-[11.5px] text-warm-grey mt-4 leading-[1.5]">
-        Vos réponses ne servent qu&apos;à préparer notre échange. Aucun engagement, et le
+        Vos réponses ne servent qu’à préparer notre échange. Aucun engagement, et le
         premier rendez-vous est gratuit.
       </p>
     </form>

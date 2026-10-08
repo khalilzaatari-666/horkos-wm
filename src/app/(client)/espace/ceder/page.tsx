@@ -46,7 +46,7 @@ export default async function CederPage() {
       <PanelHead
         eyebrow="Une opération à préparer"
         title="Céder un actif"
-        desc="Bien immobilier, entreprise, participation, œuvre d'art : décrivez l'actif que vous souhaitez céder. Rien n'est présenté à un client sans votre accord préalable."
+        desc="Bien immobilier, entreprise, participation, œuvre d’art : décrivez l’actif que vous souhaitez céder. Rien n’est présenté à un client sans votre accord préalable."
       />
 
       {/* Deux colonnes égales. `items-start` : chacune garde sa hauteur propre,
@@ -55,7 +55,7 @@ export default async function CederPage() {
       <div className="grid lg:grid-cols-2 gap-3.5 items-start">
         <AnimateIn variant="fade-up" delay={80}>
           <section>
-            <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+            <h2 className="text-ink text-[12px] font-normal mb-3">
               Formulaire de soumission
             </h2>
             {/* Le même composant que sur /cabinet/produits, en mode nu pour que
@@ -76,7 +76,7 @@ export default async function CederPage() {
 
         <AnimateIn variant="fade-up" delay={160}>
           <section>
-            <h2 className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase mb-3">
+            <h2 className="text-ink text-[12px] font-normal mb-3">
               Mes dossiers
             </h2>
 
@@ -94,7 +94,7 @@ export default async function CederPage() {
                       </div>
 
                       {s.estimated_value ? (
-                        <div className="font-heading text-[20px] font-semibold text-ink tabular-nums mt-2 leading-none">
+                        <div className="font-heading text-[20px] font-normal text-ink tabular-nums mt-2 leading-none">
                           {formatMAD(Number(s.estimated_value))}
                         </div>
                       ) : null}
@@ -108,7 +108,7 @@ export default async function CederPage() {
                       </dl>
 
                       {s.description && (
-                        <p className="text-[12.5px] text-warm-grey leading-[1.6] mt-3 pt-3 border-t border-cream-deep line-clamp-3">
+                        <p className="text-[12.5px] text-warm-grey leading-[1.6] mt-3 pt-3 border-t border-ink/10 line-clamp-3">
                           {s.description}
                         </p>
                       )}
@@ -119,7 +119,7 @@ export default async function CederPage() {
             ) : (
               <Card className="p-6">
                 <p className="text-[13px] text-warm-grey leading-[1.65]">
-                  Vous n&apos;avez soumis aucun actif. Les dossiers déposés apparaîtront ici, du
+                  Vous n’avez soumis aucun actif. Les dossiers déposés apparaîtront ici, du
                   plus récent au plus ancien, avec leur avancement.
                 </p>
               </Card>

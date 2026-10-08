@@ -91,7 +91,7 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
       <GuideForm action={updateGuide} initial={initial} categories={categories} />
 
       <section className="mt-10">
-        <h2 className="font-heading text-[17.5px] font-semibold text-ink">Demandes reçues</h2>
+        <h2 className="font-heading text-[17.5px] font-normal text-ink">Demandes reçues</h2>
         <p className="text-[13px] text-warm-grey leading-[1.6] max-w-[620px] mt-1 mb-4 tabular-nums">
           {total > 0
             ? `${total} demande${total > 1 ? "s" : ""} depuis la page Ressources, ${adresses} adresse${
@@ -135,11 +135,11 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
             empty="Aucune demande pour ce guide."
           >
             {lignes.map((d) => (
-              <tr key={d.id} className="hover:bg-cream/40 transition-colors">
+              <tr key={d.id} className="hover:bg-ink/[0.04] transition-colors">
                 <Td>
                   <a
                     href={`mailto:${d.email}`}
-                    className="text-bronze-dark hover:text-bronze transition-colors"
+                    className="text-ink hover:text-ink/70 transition-colors"
                   >
                     {d.email}
                   </a>

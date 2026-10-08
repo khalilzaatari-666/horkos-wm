@@ -33,8 +33,8 @@ Un document "Politique de Sécurité des Systèmes d'Information" doit être ré
 
 - **Stack** : Next.js 15 (App Router) + Supabase + Tailwind v4 + shadcn/ui
 - **Langue UI** : Français avec accents (é, è, ê, à, ù, etc.) — ne jamais écrire sans accents
-- **Fonts** : Cormorant Garamond (headings via font-heading) + Inter (body via font-sans)
-- **Couleurs** : ink #0B1A2E, bronze #A9784F, cream #F8F4EC, cream-deep #EFE7D8, charcoal #3B3A36, warm-grey #7A7468
+- **Fonts** : Zodiak (headings via font-heading) + Switzer (body via font-sans), Fontshare / ITF Free Font License (usage commercial gratuit), auto-hébergées dans `src/fonts/`, déclarées dans `src/app/fonts.ts`
+- **Couleurs** : ink #0B1A2E, bronze #A9784F, cream #F8F4EC, cream-deep #EFE7D8, charcoal #3B3A36, warm-grey #7A7468 — rôles et composants dans `DESIGN.md` (blanc dominant, bronze réservé à « Prendre rendez-vous »)
 - **Route groups** : (public) pour le site, (client) pour l'espace client, (admin) pour le back-office
 - **Ne pas push** sans confirmation explicite de l'utilisateur
 

@@ -19,75 +19,52 @@ export default async function EvenementsPage() {
   return (
     <>
       <PageHero
-        tag="Nos événements"
+        tag="Événements"
+        image="/images/pages/evenements-hero.jpg"
         title="Nous rencontrer, en petit comité."
         subtitle="Ateliers et rencontres organisés avec notre réseau de professionnels."
       />
 
-      <section className="py-14">
-        <div className="max-w-[1200px] mx-auto px-7">
+      <section className="pb-12 lg:pb-16">
+        <div className="shell">
           {events.length === 0 ? (
             <EmptyState
               title="Aucun événement programmé"
               desc="Nos prochains ateliers et rencontres seront annoncés ici. Prenez rendez-vous pour être informé en priorité."
             />
           ) : (
-            <div>
+            <ul className="grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
               {events.map((event, i) => {
                 const { day, month } = formatEventDay(event.date);
                 const upcoming = isUpcoming(event.date);
 
                 return (
-                  <AnimateIn key={event.id} variant="fade-up" mobileVariant="fade-left" delay={i * 80}>
-                    <div
-                      className={`flex items-start gap-5 py-6 border-t border-cream-deep last:border-b ${
-                        upcoming ? "" : "opacity-65"
-                      }`}
-                    >
-                      <div className="shrink-0 w-[66px] text-center bg-cream-deep rounded-lg py-2.5">
-                        <div className="font-heading text-[24px] font-medium text-ink leading-none">
-                          {day}
-                        </div>
-                        <div className="text-[11px] text-warm-grey uppercase tracking-[1px] mt-1">
-                          {month}
-                        </div>
-                      </div>
-
-                      {event.cover_url && (
+                  <li key={event.id} className={upcoming ? "" : "opacity-60"}>
+                    <AnimateIn variant="fade-up" delay={(i % 3) * 80}>
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-cream-deep">
                         <Image
-                          src={event.cover_url}
+                          src={event.cover_url ?? "/images/pages/evenement-defaut.jpg"}
                           alt=""
-                          width={160}
-                          height={100}
-                          className="hidden sm:block shrink-0 w-[160px] h-[100px] object-cover rounded-lg"
+                          fill
+                          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+                          className="object-cover"
                         />
-                      )}
-
-                      <div className="flex-1 min-w-0">
-                        <h2 className="font-heading text-[19px] font-semibold text-ink leading-[1.35]">
-                          {event.title}
-                        </h2>
-                        {(event.description || event.location) && (
-                          <p className="text-[13px] text-warm-grey leading-[1.6] mt-1">
-                            {[event.location, event.description].filter(Boolean).join(" - ")}
-                          </p>
-                        )}
+                        <div className="absolute left-4 top-4 rounded-2xl bg-white px-4 py-3 text-center">
+                          <div className="font-heading text-[28px] leading-none text-ink">{day}</div>
+                          <div className="mt-1 text-[13px] text-warm-grey">{month}</div>
+                        </div>
                       </div>
-
-                      <span
-                        className={`shrink-0 text-[10.5px] font-semibold tracking-[1.2px] uppercase px-2.5 py-1 rounded ${
-                          upcoming
-                            ? "bg-bronze/15 text-bronze-dark"
-                            : "bg-ink/[0.06] text-warm-grey"
-                        }`}
-                      >
-                        {upcoming ? "À venir" : "Passé"}
-                      </span>
-                    </div>
-                  </AnimateIn>
+                      <p className="mt-5 text-[14px] text-warm-grey">{upcoming ? "À venir" : "Passé"}</p>
+                      <h2 className="mt-1 font-heading text-[24px] leading-[1.15] text-ink">{event.title}</h2>
+                      {event.location && <p className="mt-2 text-[15px] text-ink">{event.location}</p>}
+                      {event.description && (
+                        <p className="mt-1 text-[15px] leading-relaxed text-warm-grey">{event.description}</p>
+                      )}
+                    </AnimateIn>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
         </div>
       </section>

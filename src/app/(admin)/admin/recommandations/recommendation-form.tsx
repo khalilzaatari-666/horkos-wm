@@ -8,11 +8,11 @@ import { MediaListUpload, type MediaItem } from "@/components/admin/media-list-u
 const initialState: ActionState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 const area =
-  "w-full px-3 py-2.5 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y";
+  "w-full px-3 py-2.5 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y";
 const small =
-  "flex-1 h-9 px-2.5 text-[13px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "flex-1 h-9 px-2.5 text-[13px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export interface RecommendationInitial {
   id?: string;
@@ -35,7 +35,7 @@ type Fonc = { titre: string; texte: string };
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[11px] font-semibold tracking-[0.8px] uppercase text-warm-grey mb-1.5 mt-1">
+    <div className="text-[13px] font-medium text-warm-grey mb-1.5 mt-1">
       {children}
     </div>
   );
@@ -132,9 +132,9 @@ export function RecommendationForm({
         <textarea id="description" name="description" rows={2} maxLength={1000} defaultValue={initial.description} className={area} />
       </div>
 
-      <div className="border-t border-cream-deep pt-3">
+      <div className="border-t border-ink/10 pt-3">
         <p className="text-[12px] text-warm-grey mb-2">
-          Contenu détaillé de la fiche (facultatif) — chaque section vide est simplement ignorée.
+          Contenu détaillé de la fiche (facultatif) - chaque section vide est simplement ignorée.
         </p>
 
         <SectionLabel>Résumé</SectionLabel>
@@ -167,7 +167,7 @@ export function RecommendationForm({
               </button>
             </div>
           ))}
-          <button type="button" onClick={() => setFonc([...fonc, { titre: "", texte: "" }])} className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium cursor-pointer">
+          <button type="button" onClick={() => setFonc([...fonc, { titre: "", texte: "" }])} className="text-[12.5px] text-ink hover:text-ink/70 font-medium cursor-pointer">
             + Ajouter une étape
           </button>
         </div>
@@ -201,7 +201,7 @@ export function RecommendationForm({
         />
       </div>
 
-      <label className="flex items-center gap-2.5 cursor-pointer border-t border-cream-deep pt-4">
+      <label className="flex items-center gap-2.5 cursor-pointer border-t border-ink/10 pt-4">
         <input type="checkbox" name="is_active" defaultChecked={initial.is_active} className="w-4 h-4 accent-bronze cursor-pointer" />
         <span className="text-[13px] text-ink">Active (proposable aux clients)</span>
       </label>
@@ -211,7 +211,7 @@ export function RecommendationForm({
       )}
 
       <div className="flex items-center gap-3 pt-1">
-        <button type="submit" disabled={pending} className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+        <button type="submit" disabled={pending} className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
           {pending ? "Enregistrement…" : "Enregistrer"}
         </button>
         <button type="button" onClick={onCancel} className="h-10 px-4 inline-flex items-center text-[13px] text-warm-grey hover:text-ink transition-colors cursor-pointer">
@@ -250,7 +250,7 @@ function ListEditor({
           </button>
         </div>
       ))}
-      <button type="button" onClick={() => setItems([...items, ""])} className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium cursor-pointer">
+      <button type="button" onClick={() => setItems([...items, ""])} className="text-[12.5px] text-ink hover:text-ink/70 font-medium cursor-pointer">
         + {addLabel}
       </button>
     </div>

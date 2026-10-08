@@ -22,7 +22,7 @@ export function AssignmentRowActions({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-[12.5px] text-bronze-dark hover:text-bronze font-medium transition-colors cursor-pointer"
+        className="text-[12.5px] text-ink hover:text-ink/70 font-medium transition-colors cursor-pointer"
       >
         Modifier
       </button>

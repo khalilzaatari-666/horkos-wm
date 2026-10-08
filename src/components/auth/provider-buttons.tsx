@@ -83,7 +83,7 @@ export function ProviderButtons({ redirectTo = "/espace" }: { redirectTo?: strin
           type="button"
           onClick={() => signIn(id)}
           disabled={busy !== null}
-          className="w-full h-11 flex items-center justify-center gap-2.5 px-4 text-[13.5px] font-medium text-ink bg-white border border-cream-deep rounded-lg hover:border-bronze/50 hover:bg-cream/60 disabled:opacity-60 transition-colors cursor-pointer"
+          className="w-full h-12 flex items-center justify-center gap-2.5 px-5 text-[15px] font-medium text-ink bg-white border border-ink/15 rounded-[6px] hover:border-ink disabled:opacity-60 transition-colors cursor-pointer"
         >
           {mark}
           {busy === id ? "Redirection..." : label}

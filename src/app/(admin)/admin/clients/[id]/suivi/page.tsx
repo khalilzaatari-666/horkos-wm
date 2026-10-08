@@ -240,7 +240,7 @@ export default async function ClientSuiviPage({
       {/* Succession du parcours */}
       <AnimateIn variant="fade-up" delay={60}>
         <AdminCard className="p-5 sm:p-6 mb-5">
-          <h2 className="font-heading text-[17.5px] font-semibold text-ink mb-4">Parcours</h2>
+          <h2 className="font-heading text-[17.5px] font-normal text-ink mb-4">Parcours</h2>
           <ol className="grid gap-3 sm:grid-cols-3">
             {PARCOURS.map((etape, i) => {
               const state = etatEtape(etape.type, rdvs);
@@ -252,11 +252,11 @@ export default async function ClientSuiviPage({
                 <li
                   key={etape.type}
                   className={`rounded-lg border p-4 ${
-                    state === "avenir" ? "border-cream-deep bg-cream/40" : "border-bronze/30 bg-white"
+                    state === "avenir" ? "border-ink/10 bg-cream-deep/40" : "border-ink bg-white"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-heading text-[15px] font-semibold text-ink">
+                    <span className="font-heading text-[15px] font-normal text-ink">
                       {i + 1}. {etape.type}
                     </span>
                     <AdminBadge tone={badge.tone}>{badge.label}</AdminBadge>
@@ -287,7 +287,7 @@ export default async function ClientSuiviPage({
                           return (
                             <Link
                               href={`/admin/clients/${id}/audits/${fiche.id}`}
-                              className="text-[12.5px] font-medium text-bronze-dark hover:text-bronze transition-colors"
+                              className="text-[12.5px] font-medium text-ink hover:text-ink/70 transition-colors"
                             >
                               {fiche.status === "termine"
                                 ? "Fiche d'audit clôturée →"
@@ -324,7 +324,7 @@ export default async function ClientSuiviPage({
                     if (rappel) return <RappelEnAttente clientId={id} rappel={rappel} />;
                     if (!r0ARelancer(rdvs, maintenant)) return null;
                     return (
-                      <div className="pt-3 mt-3 border-t border-cream-deep">
+                      <div className="pt-3 mt-3 border-t border-ink/10">
                         <RappelForm clientId={id} etape="R0" />
                       </div>
                     );
@@ -340,7 +340,7 @@ export default async function ClientSuiviPage({
                     // Dire ce qui manque plutôt que de taire le formulaire.
                     if (ficheParRdv.get(r0Tenu.id)?.status !== "termine") {
                       return (
-                        <p className="pt-3 mt-3 border-t border-cream-deep text-[12px] text-warm-grey leading-[1.55]">
+                        <p className="pt-3 mt-3 border-t border-ink/10 text-[12px] text-warm-grey leading-[1.55]">
                           {ficheParRdv.has(r0Tenu.id)
                             ? "Clôturez la fiche d'audit du R0 pour programmer la relance R1."
                             : "Ouvrez puis clôturez la fiche d'audit du R0 pour programmer la relance R1."}
@@ -348,7 +348,7 @@ export default async function ClientSuiviPage({
                       );
                     }
                     return (
-                      <div className="pt-3 mt-3 border-t border-cream-deep">
+                      <div className="pt-3 mt-3 border-t border-ink/10">
                         <RappelForm clientId={id} etape="R1" appointmentId={r0Tenu.id} />
                       </div>
                     );
@@ -417,7 +417,7 @@ export default async function ClientSuiviPage({
           {lignes.map((r) => {
             const style = RDV_STATUT_STYLES[r.status as RdvStatut] ?? RDV_STATUT_STYLES.planifie;
             return (
-              <tr key={r.id} className="hover:bg-cream/40 transition-colors align-top">
+              <tr key={r.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                 <Td className="whitespace-nowrap min-w-[260px]">
                   <div className="font-medium text-ink">{formatDateTime(r.date)}</div>
                   {r.notes && (
@@ -428,7 +428,7 @@ export default async function ClientSuiviPage({
                 </Td>
                 <Td className="whitespace-nowrap min-w-[300px]">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold text-charcoal bg-cream border border-cream-deep px-1.5 py-0.5 rounded">
+                    <span className="text-[11px] font-semibold text-charcoal bg-cream-deep/40 border border-ink/10 px-1.5 py-0.5 rounded">
                       {r.type}
                     </span>
                     <span className="text-ink">{libelleType(r.type)}</span>
@@ -440,7 +440,7 @@ export default async function ClientSuiviPage({
                       href={r.meeting_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-bronze-dark hover:text-bronze transition-colors"
+                      className="text-ink hover:text-ink/70 transition-colors"
                     >
                       Visio - rejoindre
                     </a>
@@ -495,7 +495,7 @@ function RappelEnAttente({
   };
 }) {
   return (
-    <div className="mt-3 pt-3 border-t border-cream-deep">
+    <div className="mt-3 pt-3 border-t border-ink/10">
       <div className="text-[12.5px] text-ink">
         Relance prévue le {rappelFmt.format(new Date(rappel.due_at))}
       </div>
@@ -520,7 +520,7 @@ function RappelEnAttente({
             <input type="hidden" name="clientId" value={clientId} />
             <button
               type="submit"
-              className="text-[12px] font-medium text-bronze-dark hover:text-bronze transition-colors cursor-pointer"
+              className="text-[12px] font-medium text-ink hover:text-ink/70 transition-colors cursor-pointer"
             >
               Réessayer l&apos;envoi
             </button>

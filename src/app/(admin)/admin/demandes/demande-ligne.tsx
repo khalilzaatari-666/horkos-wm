@@ -79,13 +79,13 @@ export function DemandeLigne({
   const regionId = `demande-${data.id}`;
 
   return (
-    <li className="border-b border-cream-deep last:border-b-0">
+    <li className="border-b border-ink/10 last:border-b-0">
       <button
         type="button"
         onClick={basculer}
         aria-expanded={ouvert}
         aria-controls={regionId}
-        className="w-full text-left px-4 py-3.5 flex items-start gap-3 hover:bg-cream/50 transition-colors cursor-pointer"
+        className="w-full text-left px-4 py-3.5 flex items-start gap-3 hover:bg-ink/[0.04] transition-colors cursor-pointer"
       >
         {/* La colonne de pastille garde sa largeur même vide : sans ça, les
             lignes se décalent horizontalement au fur et à mesure des lectures. */}
@@ -137,14 +137,14 @@ export function DemandeLigne({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] mb-3">
             <a
               href={`mailto:${data.email}?subject=${encodeURIComponent(data.sujetReponse)}`}
-              className="text-bronze-dark hover:text-bronze font-medium transition-colors"
+              className="text-ink hover:text-ink/70 font-medium transition-colors"
             >
               Répondre à {data.email}
             </a>
             {data.telephone && (
               <a
                 href={`tel:${data.telephone}`}
-                className="text-warm-grey hover:text-bronze transition-colors tabular-nums"
+                className="text-warm-grey hover:text-ink/70 transition-colors tabular-nums"
               >
                 {data.telephone}
               </a>
@@ -167,7 +167,7 @@ export function DemandeLigne({
                 <input type="hidden" name="status" value={t.vers} />
                 <button
                   type="submit"
-                  className="h-8 px-3 text-[12.5px] font-medium text-charcoal bg-white border border-cream-deep rounded-lg hover:border-bronze hover:text-bronze-dark transition-colors cursor-pointer"
+                  className="h-8 px-3 text-[12.5px] font-medium text-charcoal bg-white border border-ink/10 rounded-lg hover:border-ink/40 hover:text-ink/70 transition-colors cursor-pointer"
                 >
                   {t.label}
                 </button>

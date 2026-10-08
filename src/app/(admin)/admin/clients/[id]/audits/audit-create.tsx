@@ -31,7 +31,7 @@ export function AuditCreate({
               ? `Prochain audit possible le ${prochainAuditLe} (cadence annuelle)`
               : undefined
           }
-          className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg opacity-40 cursor-not-allowed"
+          className="h-10 px-5 inline-flex items-center text-[14px] font-medium bg-ink text-white rounded-[6px] opacity-40 cursor-not-allowed"
         >
           Ouvrir un audit
         </button>
@@ -49,7 +49,7 @@ export function AuditCreate({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="h-10 px-5 inline-flex items-center text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark transition-colors cursor-pointer"
+        className="h-10 px-5 inline-flex items-center text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy transition-colors cursor-pointer"
       >
         Ouvrir un audit
       </button>

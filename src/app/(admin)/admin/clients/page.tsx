@@ -185,11 +185,11 @@ export default async function ClientsPage({
           {lignes.map((c) => {
             const nom = [c.first_name, c.last_name].filter(Boolean).join(" ") || "Sans nom";
             return (
-              <tr key={c.id} className="hover:bg-cream/40 transition-colors align-top">
+              <tr key={c.id} className="hover:bg-ink/[0.04] transition-colors align-top">
                 <Td>
                   <Link
                     href={`/admin/clients/${c.id}`}
-                    className="font-medium text-ink hover:text-bronze-dark transition-colors"
+                    className="font-medium text-ink hover:text-ink/70 transition-colors"
                   >
                     {nom}
                   </Link>
@@ -198,7 +198,7 @@ export default async function ClientsPage({
                   {c.email && (
                     <a
                       href={`mailto:${c.email}`}
-                      className="block text-[12.5px] text-bronze-dark hover:text-bronze transition-colors truncate max-w-[220px]"
+                      className="block text-[12.5px] text-ink hover:text-ink/70 transition-colors truncate max-w-[220px]"
                     >
                       {c.email}
                     </a>

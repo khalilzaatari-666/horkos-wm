@@ -81,25 +81,25 @@ export default async function CompleterProfilPage() {
   );
 
   return (
-    <div className="flex justify-center px-4 py-14">
+    <div className="shell flex justify-center py-14 lg:py-20">
       <div className="w-full max-w-xl">
         <AnimateIn variant="blur-in" duration={0.5}>
           <div className="text-center mb-8">
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
+            <span className="text-warm-grey text-[13px] font-medium">
               Première connexion
             </span>
-            <h1 className="font-heading text-[clamp(1.5rem,4vw,1.9rem)] font-semibold text-ink mt-2.5 leading-[1.3]">
+            <h1 className="font-heading text-[clamp(1.5rem,4vw,1.9rem)] font-normal text-ink mt-2.5 leading-[1.3]">
               Quelques questions avant de commencer
             </h1>
             <p className="text-[13.5px] text-warm-grey leading-[1.65] mt-3 max-w-[440px] mx-auto">
               Elles servent à préparer votre premier rendez-vous et à vous joindre. Vous ne les
-              remplirez qu&apos;une fois.
+              remplirez qu’une fois.
             </p>
           </div>
         </AnimateIn>
 
         <AnimateIn variant="fade-up" delay={120}>
-          <div className="bg-cream border border-cream-deep rounded-xl p-6 sm:p-8">
+          <div className="bg-cream-deep/40 border border-ink/10 rounded-xl p-6 sm:p-8">
             <IntakeForm defaultFirstName={prenom} defaultLastName={nom} />
           </div>
         </AnimateIn>
@@ -120,7 +120,7 @@ export default async function CompleterProfilPage() {
             <form action={signOut}>
               <button
                 type="submit"
-                className="text-bronze-dark hover:text-bronze font-medium transition-colors cursor-pointer"
+                className="text-ink hover:text-ink/70 font-medium transition-colors cursor-pointer"
               >
                 Se déconnecter
               </button>

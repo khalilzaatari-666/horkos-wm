@@ -15,8 +15,8 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cream">
-      <ErrorView error={error} reset={reset} fallback={{ href: "/", label: "Retour à l'accueil" }} />
+    <div className="min-h-screen flex items-center justify-center bg-cream-deep/40">
+      <ErrorView error={error} reset={reset} fallback={{ href: "/", label: "Retour à l’accueil" }} />
     </div>
   );
 }

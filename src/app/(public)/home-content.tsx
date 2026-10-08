@@ -2,35 +2,35 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
-import { AnimateIn } from "@/components/ui/animate-in";
-import { SplitHeading } from "@/components/ui/split-heading";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { DrawLine } from "@/components/ui/draw-line";
-import { StackCards } from "@/components/ui/stack-cards";
-import { MarqueeRow } from "@/components/ui/marquee-row";
-import { BesoinIcon } from "@/components/icons/besoin-icons";
-import { besoinsParticuliers, besoinsEntreprises, type Besoin } from "@/lib/besoins";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ArrowUpRight, CalendarDays, FileText, Lock, MessageSquareText } from "lucide-react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const steps = [
-  { n: "1", title: "Comprendre votre situation", desc: "Un premier échange, puis un audit patrimonial qui sert de socle." },
-  { n: "2", title: "Construire votre stratégie d'investissement", desc: "Recommandations sur-mesure." },
-  { n: "3", title: "Suivre dans la durée", desc: "Gouvernance, reporting et ajustement continu." },
-];
-
-const trustCards = [
-  { title: "Aucune recommandation d'investissement sans compréhension", desc: "Chaque recommandation est expliquée dans le détail, jusqu'à ce que vous puissiez la reformuler avec vos propres mots." },
-  { title: "Confidentialité", desc: "Vos informations patrimoniales ne sont jamais partagées sans votre consentement." },
-  { title: "Rigueur réglementaire", desc: "Horkos Wealth Management structure son activité en conformité avec les cadres AMMC et ACAPS." },
-];
+import { AnimateIn } from "@/components/ui/animate-in";
+import { TextReveal } from "@/components/public/text-reveal";
+import { ImageAccordion } from "@/components/public/image-accordion";
+import { PinnedSteps } from "@/components/public/pinned-steps";
+import { UiStack } from "@/components/public/ui-stack";
+import { NetworkOrbit } from "@/components/public/network-orbit";
+import { StackFeatures } from "@/components/public/stack-features";
+import { Rail } from "@/components/public/rail";
+import { FaqSplit } from "@/components/public/faq-split";
+import { CtaBand } from "@/components/public/cta-band";
+import { RevealImage } from "@/components/public/reveal-image";
+import { FragQuestionnaire, FragReco, FragRevue } from "@/components/public/ui-fragments";
+import { besoinsParticuliers, besoinsEntreprises } from "@/lib/besoins";
 
 export interface FaqPublique {
   q: string;
   a: string;
+}
+
+export interface Publication {
+  kind: "Article" | "Guide";
+  title: string;
+  desc: string | null;
+  href: string;
+  cover: string | null;
+  category: string | null;
 }
 
 /**
@@ -42,640 +42,511 @@ export interface FaqPublique {
  * questions depuis le back-office.
  */
 const FAQS_DE_SECOURS: FaqPublique[] = [
-  { q: "Horkos, c'est quoi ?", a: "Un cabinet de conseil en gestion de patrimoine qui centralise vos besoins et s'appuie sur un réseau de professionnels spécialisés." },
-  { q: "Est-ce que vous poussez des produits ?", a: "Non. Chaque recommandation part d'un besoin identifié avec vous." },
+  { q: "Horkos, c’est quoi ?", a: "Un cabinet de conseil en gestion de patrimoine qui centralise vos besoins et s’appuie sur un réseau de professionnels spécialisés." },
+  { q: "Est-ce que vous poussez des produits ?", a: "Non. Chaque recommandation part d’un besoin identifié avec vous." },
   { q: "Horkos gère-t-il mon argent directement ?", a: "Non. Horkos formule des recommandations, vous restez seul décisionnaire." },
 ];
 
-function BesoinCard({ icon, title, desc, image, href }: Besoin) {
-  const shell =
-    "group h-full flex flex-col bg-white border border-cream-deep rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
+/** Le sélecteur du hero : la même promesse, dite pour chacun des trois publics. */
+const PUBLICS = [
+  {
+    label: "Particulier",
+    line: "Diversifier, préparer votre retraite, transmettre : nous partons de ce que vous cherchez à accomplir, jamais de nos produits.",
+    cta: { label: "Prendre rendez-vous", href: "/rendez-vous" },
+  },
+  {
+    label: "Dirigeant",
+    line: "Patrimoine professionnel et personnel, société patrimoniale, trésorerie d’entreprise : une seule lecture, des arbitrages cohérents.",
+    cta: { label: "Prendre rendez-vous", href: "/rendez-vous" },
+  },
+  {
+    label: "Résident à l’étranger",
+    line: "Un double regard Maroc et France pour investir au Maroc ou préparer votre retour, entièrement à distance si besoin.",
+    cta: { label: "Rendez-vous depuis l’étranger", href: "/rendez-vous" },
+  },
+];
 
-  const body = (
-    <>
-      <div className="relative aspect-[4/3] bg-cream-deep overflow-hidden">
-        {/* The plate is what the cut-out illustration sits on; without it a
-            transparent PNG/SVG would float on a flat swatch. */}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(120% 100% at 50% 35%, rgba(169,120,79,0.18) 0%, rgba(169,120,79,0.04) 55%, transparent 100%)",
-          }}
-        />
-        {image ? (
-          <Image
-            src={image}
-            alt=""
-            fill
-            // Cut-out artwork: contain, never cover, or the drawing gets cropped.
-            // SVGs gain nothing from the optimiser and it rejects them by default.
-            unoptimized
-            sizes="(max-width: 640px) 260px, 300px"
-            className="object-contain p-6 transition-transform duration-500 group-hover:scale-[1.05]"
-          />
-        ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-bronze-dark">
-            <BesoinIcon
-              name={icon}
-              variant="duotone"
-              className="w-[42%] h-auto transition-transform duration-500 group-hover:scale-[1.06]"
-            />
-          </span>
-        )}
-      </div>
+const ENGAGEMENTS = [
+  {
+    title: "Rien n’est recommandé avant d’être compris",
+    desc: "Chaque recommandation est expliquée dans le détail, jusqu’à ce que vous puissiez la reformuler avec vos propres mots.",
+  },
+  {
+    title: "Confidentialité",
+    desc: "Vos informations patrimoniales ne sont jamais partagées sans votre consentement.",
+  },
+  {
+    title: "Rigueur réglementaire",
+    desc: "Horkos Wealth Management structure son activité en conformité avec les cadres AMMC et ACAPS.",
+  },
+];
 
-      <div className="flex-1 p-5">
-        {/* Pas de hauteur minimale ici : elle réservait deux lignes pour tous les
-            titres et creusait un blanc sous ceux qui n'en prennent qu'une. Les
-            cartes gardent la même hauteur par l'étirement du flex. */}
-        <h4 className="text-[16px] font-semibold text-ink leading-[1.35]">{title}</h4>
-        <p className="text-[12.5px] text-warm-grey leading-[1.55] mt-1.5">{desc}</p>
-      </div>
-    </>
-  );
+const FONCTIONS = [
+  { icon: MessageSquareText, title: "Vos recommandations", desc: "Expliquées, à étudier à votre rythme." },
+  { icon: CalendarDays, title: "Vos rendez-vous", desc: "R0, R1, R2, puis les revues." },
+  { icon: Lock, title: "Votre coffre-fort", desc: "Les documents de votre dossier, chiffrés." },
+  { icon: FileText, title: "Votre patrimoine", desc: "Sa répartition, suivie avec vous." },
+];
 
-  // Une carte sans destination reste de la présentation : rien à survoler au
-  // curseur main, rien dans la tabulation.
-  if (!href) return <div className={shell}>{body}</div>;
+function Hero() {
+  const [who, setWho] = useState(0);
+  // Défilement automatique des publics, interrompu dès que la personne
+  // survole ou choisit ; aucun en mouvement réduit.
+  const [chose, setChose] = useState(false);
+  useEffect(() => {
+    if (chose || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => setWho((i) => (i + 1) % PUBLICS.length), 4200);
+    return () => window.clearInterval(id);
+  }, [chose]);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // La carte de rendez-vous entre une fois, puis reste immobile.
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.fromTo(card, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, delay: 0.7, ease: "expo.out" });
+    });
+    return () => mm.revert();
+  }, []);
+
+  const p = PUBLICS[who];
 
   return (
-    <Link
-      href={href}
-      // Vers une ancre, Next saute à la section dès l'arrivée ; `HashScroll` s'en
-      // charge à sa place, en descendant en douceur depuis le haut de la page.
-      scroll={!href.includes("#")}
-      className={`${shell} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze`}
-    >
-      {body}
+    <section className="shell pt-6 pb-14 lg:pt-8 lg:pb-20">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14 lg:h-[min(calc(100svh-110px),720px)] lg:min-h-[600px]">
+        <div className="flex flex-col justify-center gap-10 lg:py-6">
+          <p className="tag self-start">Conseiller en investissements financiers agréé AMMC</p>
+
+          <div>
+            {/* Mobile : le fondateur dès le premier écran, en cadrage serré. */}
+            <div className="lg:hidden relative mb-8 h-[34svh] min-h-[240px] overflow-hidden rounded-[20px] bg-cream-deep">
+              <Image
+                src="/images/fondateur.jpg"
+                alt="Othmane Benzakour, fondateur de Horkos Wealth Management"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-[50%_14%] mix-blend-multiply"
+              />
+              <p className="absolute left-4 bottom-3 text-[13px] text-ink/75">
+                Othmane Benzakour, fondateur
+              </p>
+            </div>
+            <AnimateIn variant="fade-up" duration={1.1}>
+              <h1 className="font-heading font-light text-[clamp(2.5rem,4.4vw,4.25rem)] leading-[1.02] tracking-[-0.03em] text-ink max-w-[13ch]">Le conseil qui structure votre patrimoine.</h1>
+            </AnimateIn>
+
+            <AnimateIn variant="fade-up" delay={200}>
+              {/* Les trois publics en liste verticale sur un filet : l'indicateur
+                  encre glisse vers le public actif. La liste défile d'elle-même
+                  jusqu'à ce que la personne choisisse. */}
+              <div className="mt-10 grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-10">
+                <div
+                  role="tablist"
+                  aria-label="Vous êtes"
+                  aria-orientation="vertical"
+                  onMouseEnter={() => setChose(true)}
+                  onFocus={() => setChose(true)}
+                  className="relative self-start border-l border-ink/15 pl-5"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="absolute -left-px top-0 h-9 w-[2px] bg-ink transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                    style={{ transform: `translateY(${who * 36}px)` }}
+                  />
+                  {PUBLICS.map((x, i) => (
+                    <button
+                      key={x.label}
+                      role="tab"
+                      type="button"
+                      aria-selected={who === i}
+                      aria-controls="hero-public"
+                      onClick={() => {
+                        setChose(true);
+                        setWho(i);
+                      }}
+                      className={`block h-9 text-left text-[16px] transition-colors duration-300 ${
+                        who === i ? "text-ink" : "text-warm-grey hover:text-ink"
+                      }`}
+                    >
+                      {x.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Les trois phrases occupent la même cellule : le bloc garde la
+                    hauteur de la plus longue, rien ne bouge quand on change de
+                    public. Seule l'active est visible et lue. */}
+                <div id="hero-public" role="tabpanel" className="grid max-w-[42ch]">
+                  {PUBLICS.map((x, i) => (
+                    <p
+                      key={x.label}
+                      aria-hidden={who !== i}
+                      className={`lead col-start-1 row-start-1 transition-opacity duration-700 ${
+                        who === i ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      {x.line}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </AnimateIn>
+
+            <AnimateIn variant="fade-up" delay={320}>
+              <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4">
+                <Link href={p.cta.href} className="btn btn-ink">
+                  {p.cta.label}
+                </Link>
+                <Link href="/cabinet/approche" className="link-arrow">
+                  Comprendre notre approche <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </AnimateIn>
+          </div>
+
+        </div>
+
+        <RevealImage
+          src="/images/fondateur.jpg"
+          alt="Othmane Benzakour, fondateur de Horkos Wealth Management"
+          priority
+          position="50% 16%"
+          sizes="(min-width: 1024px) 55vw, 100vw"
+          imageClassName="mix-blend-multiply scale-[1.12] origin-top"
+          className="hidden lg:block lg:h-full"
+        >
+          <div
+            ref={cardRef}
+            className="glass absolute left-4 right-4 bottom-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-[330px] rounded-2xl p-5"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-heading text-[22px] leading-snug text-ink">Audit patrimonial</p>
+              <span className="text-[13.5px] font-medium text-ink">Gratuit</span>
+            </div>
+            <p className="mt-1 text-[13.5px] text-charcoal">Premier échange (R0), sans engagement · en visio ou au cabinet</p>
+            <Link href="/rendez-vous" className="mt-4 inline-flex items-center gap-1.5 text-[14px] font-medium text-ink">
+              Choisir un créneau <ArrowUpRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <p className="absolute left-6 top-6 hidden sm:block text-[13px] text-ink/70">
+            Othmane Benzakour - Fondateur
+          </p>
+        </RevealImage>
+      </div>
+    </section>
+  );
+}
+
+function PublicationCard({ p }: { p: Publication }) {
+  return (
+    <Link href={p.href} className="group block">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-cream-deep">
+        {p.cover ? (
+          <Image
+            src={p.cover}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 30vw, 80vw"
+            className="object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+          />
+        ) : (
+          <Image
+            src="/images/editorial/lumiere.jpg"
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 30vw, 80vw"
+            className="object-cover opacity-90 transition-transform duration-[1.2s] group-hover:scale-[1.04]"
+          />
+        )}
+      </div>
+      <div className="mt-5 flex items-center gap-2 text-[13px] text-warm-grey">
+        <span className="text-ink">{p.kind}</span>
+        {p.category && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span>{p.category}</span>
+          </>
+        )}
+      </div>
+      <h3 className="mt-2 font-heading text-[24px] leading-[1.15] text-ink group-hover:underline decoration-1 underline-offset-4">
+        {p.title}
+      </h3>
+      {p.desc && <p className="mt-2 text-[15px] leading-relaxed text-warm-grey line-clamp-2">{p.desc}</p>}
     </Link>
   );
 }
 
-/** Intitulé de rangée centré entre deux filets, qui prennent le reste. */
-function RowLabel({
-  children,
-  className = "",
+export function HomeContent({
+  faqs = FAQS_DE_SECOURS,
+  publications = [],
 }: {
-  children: React.ReactNode;
-  className?: string;
+  faqs?: FaqPublique[];
+  publications?: Publication[];
 }) {
   return (
-    <div className={`flex items-center gap-3 mb-3 ${className}`}>
-      <span className="flex-1 h-px bg-cream-deep" />
-      <span className="text-ink text-[12px] font-semibold tracking-[1.4px] uppercase">
-        {children}
-      </span>
-      <span className="flex-1 h-px bg-cream-deep" />
-    </div>
-  );
-}
-
-function TrustCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="bg-white p-[26px] border border-cream-deep h-full rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-      <h4 className="font-heading text-[20px] font-semibold mb-2">{title}</h4>
-      <p className="text-[13px] text-warm-grey leading-[1.6]">{desc}</p>
-    </div>
-  );
-}
-
-export function HomeContent({ faqs = FAQS_DE_SECOURS }: { faqs?: FaqPublique[] }) {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const stepsRef = useRef<HTMLDivElement>(null);
-  const railRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mm = gsap.matchMedia();
-
-    mm.add(
-      {
-        isMobile: "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
-        isDesktop: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
-      },
-      (context) => {
-        const { isMobile } = context.conditions as { isMobile: boolean; isDesktop: boolean };
-
-        // Hero parallax - desktop only, it reads as jank on touch scrolling.
-        if (!isMobile && heroRef.current) {
-          gsap.to(heroRef.current, {
-            yPercent: 20,
-            ease: "none",
-            scrollTrigger: {
-              trigger: heroRef.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-        }
-
-        // Méthode: timeline rail draws down the left on mobile, cards land per waypoint.
-        if (stepsRef.current) {
-          const items = gsap.utils.toArray<HTMLElement>("[data-step-item]", stepsRef.current);
-
-          if (isMobile) {
-            if (railRef.current) {
-              gsap.fromTo(
-                railRef.current,
-                { scaleY: 0 },
-                {
-                  scaleY: 1,
-                  ease: "none",
-                  scrollTrigger: {
-                    trigger: stepsRef.current,
-                    start: "top 75%",
-                    end: "bottom 75%",
-                    scrub: true,
-                  },
-                }
-              );
-            }
-
-            items.forEach((item) => {
-              const dot = item.querySelector("[data-step-dot]");
-              gsap.fromTo(
-                item,
-                { opacity: 0, x: 28 },
-                {
-                  opacity: 1,
-                  x: 0,
-                  duration: 0.55,
-                  ease: "power3.out",
-                  scrollTrigger: { trigger: item, start: "top 88%", toggleActions: "play none none none" },
-                }
-              );
-              if (dot) {
-                gsap.fromTo(
-                  dot,
-                  { scale: 0 },
-                  {
-                    scale: 1,
-                    duration: 0.4,
-                    ease: "back.out(3)",
-                    scrollTrigger: { trigger: item, start: "top 88%", toggleActions: "play none none none" },
-                  }
-                );
-              }
-            });
-          } else {
-            gsap.fromTo(
-              items,
-              { opacity: 0, y: 60, scale: 0.95 },
-              {
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                duration: 0.8,
-                stagger: 0.15,
-                ease: "power3.out",
-                scrollTrigger: {
-                  trigger: stepsRef.current,
-                  start: "top 82%",
-                  toggleActions: "play none none none",
-                },
-              }
-            );
-          }
-        }
-      }
-    );
-
-    // Reduced motion: nothing animates, so make sure nothing stays hidden.
-    mm.add("(prefers-reduced-motion: reduce)", () => {
-      gsap.set("[data-step-item], [data-step-dot]", { opacity: 1, scale: 1 });
-    });
-
-    return () => mm.revert();
-  }, []);
-
-  return (
     <>
-      {/* Hero */}
-      <section className="bg-ink text-cream py-[90px] pb-[70px] overflow-hidden relative">
-        <div ref={heroRef} className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn variant="blur-in" duration={0.6}>
-            <span className="inline-block text-bronze-light text-xs font-semibold tracking-[2px] uppercase mb-[22px]">
-              Votre patrimoine, notre engagement
-            </span>
-          </AnimateIn>
-          <DrawLine className="w-[44px] h-px bg-bronze mb-6" delay={200} />
-          <SplitHeading
-            text="Le conseil qui structure votre patrimoine."
-            className="text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.22] font-medium text-cream max-w-[680px]"
-            delay={300}
+      <Hero />
+
+      {/* Manifeste */}
+      <section className="shell section-y">
+        <div>
+          <TextReveal
+            as="h2"
+            text="La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n’est recommandé avant d’être compris."
+            className="mx-auto max-w-[22ch] font-heading text-[clamp(2.2rem,4.6vw,4rem)] font-light leading-[1.06] tracking-[-0.025em] text-ink"
           />
-          <AnimateIn variant="fade-up" delay={500} duration={0.7}>
-            <p className="text-[17.5px] text-[#D8CDBC] max-w-[560px] mt-5 mb-[30px] leading-[1.75]">
-              Horkos centralise vos besoins patrimoniaux et s&apos;appuie sur un réseau de professionnels pour construire une stratégie d&apos;investissement cohérente.
-            </p>
-          </AnimateIn>
-          <AnimateIn variant="fade-up" delay={650}>
-            <div className="flex gap-4 flex-wrap">
-              <Link
-                href="/rendez-vous"
-                className="inline-block w-full sm:w-auto text-center px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-              >
-                Prendre rendez-vous
-              </Link>
-              <Link
-                href="/cabinet/approche"
-                className="inline-block w-full sm:w-auto text-center px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-transparent text-cream border border-cream/40 hover:bg-cream/10 transition-colors rounded-lg"
-              >
-                Comprendre notre approche
-              </Link>
-            </div>
-          </AnimateIn>
         </div>
       </section>
 
       {/* Besoins */}
-      <section className="py-16">
-        <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn variant="fade-right" mobileVariant="fade-up">
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Votre point de départ
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text="Nous partons de vos besoins, jamais de nos produits."
-            as="h2"
-            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
-            delay={100}
-          />
-          <AnimateIn variant="fade-up" delay={200}>
-            <p className="text-warm-grey text-[16px] max-w-[640px] mb-[34px] leading-[1.65]">
-              Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.
+      <section>
+        <div className="shell section-y">
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-end mb-10 lg:mb-12">
+          <h2 className="display-lg text-ink max-w-[14ch]">Nous partons de vos besoins.</h2>
+          <p className="lead max-w-[46ch] lg:justify-self-end">
+            Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.
+          </p>
+        </div>
+        <ImageAccordion
+          tabs={[
+            {
+              label: "Pour vous",
+              items: besoinsParticuliers.map((b) => ({
+                title: b.title,
+                desc: b.desc,
+                image: b.image,
+                href: "/rendez-vous",
+                linkLabel: "En parler lors d’un premier échange",
+              })),
+            },
+            {
+              label: "Pour votre entreprise",
+              items: besoinsEntreprises.map((b) => ({
+                title: b.title,
+                desc: b.desc,
+                image: b.image,
+                href: b.href,
+                linkLabel: "Voir les solutions entreprises",
+              })),
+            },
+          ]}
+        />
+        </div>
+      </section>
+
+      {/* Méthode */}
+      <PinnedSteps
+        intro={
+          <>
+            <h2 className="display-lg text-ink">Trois rendez-vous, un seul objectif.</h2>
+            <p className="lead mt-6 max-w-[38ch]">Que vous compreniez avant de décider. Chaque étape a son nom, son contenu et son livrable.</p>
+            <Link href="/cabinet/approche" className="link-arrow mt-8">
+              Notre approche en détail <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </>
+        }
+        steps={[
+          {
+            mark: "R0",
+            title: "Comprendre votre situation",
+            desc: "Un premier échange, puis un audit patrimonial qui sert de socle : actifs, structure, objectifs. Gratuit et sans engagement.",
+            fragment: <FragQuestionnaire />,
+          },
+          {
+            mark: "R1",
+            title: "Construire votre stratégie",
+            desc: "Des recommandations sur mesure, chacune expliquée jusqu’à ce que vous puissiez la reformuler, frais détaillés.",
+            fragment: <FragReco />,
+          },
+          {
+            mark: "R2",
+            title: "Suivre dans la durée",
+            desc: "Une fois la stratégie mise en œuvre, nous restons impliqués : gouvernance, reporting périodique et arbitrages.",
+            fragment: <FragRevue />,
+          },
+        ]}
+      />
+
+      {/* Espace client */}
+      <section>
+        <div className="shell section-y">
+        <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20 lg:items-center">
+          <div>
+            <h2 className="display-lg text-ink max-w-[13ch]">Votre dossier, lisible à tout moment.</h2>
+            <p className="lead mt-6 max-w-[44ch]">
+              Chaque client dispose d’un espace sécurisé : l’avancement de son accompagnement, ses
+              recommandations, ses documents et ses rendez-vous, au même endroit.
             </p>
-          </AnimateIn>
-          <AnimateIn variant="fade-up" delay={250}>
-            <RowLabel>Pour vous</RowLabel>
-          </AnimateIn>
-
-          {/* Dans le conteneur, pas en pleine largeur : au-delà, un grand écran
-              affiche les six besoins d'un coup et la rangée n'a plus rien à
-              faire défiler. Bornée à 1200px, quatre cartes sont visibles et les
-              deux autres restent à découvrir. */}
-          <MarqueeRow
-            className="-mx-7 sm:mx-0"
-            direction="left"
-            items={besoinsParticuliers.map((b) => (
-              <BesoinCard key={b.title} {...b} />
-            ))}
-          />
-          {/* Only two cards here, so a marquee would be more motion than content.
-              They sit centred instead. */}
-          <AnimateIn variant="fade-up" delay={100}>
-            <RowLabel className="mt-12">
-              Pour votre entreprise
-            </RowLabel>
-          </AnimateIn>
-          <div className="flex flex-wrap justify-center gap-3.5">
-            {besoinsEntreprises.map((b, i) => (
-              <AnimateIn
-                key={b.title}
-                variant="reveal-up"
-                delay={i * 130}
-                className="w-[260px] sm:w-[300px]"
-              >
-                <BesoinCard {...b} />
-              </AnimateIn>
-            ))}
-          </div>
-
-          <AnimateIn variant="fade-up" delay={400}>
-            <div className="mt-[34px] text-center">
-              <Link
-                href="/rendez-vous"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-              >
-                Identifier mon besoin →
-              </Link>
-            </div>
-          </AnimateIn>
-        </div>
-      </section>
-
-      {/* Comment ça marche */}
-      <section className="py-16 bg-cream-deep overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn variant="fade-right" mobileVariant="fade-up">
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Comment ça marche
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text={"Trois étapes, un seul objectif :\nque vous compreniez avant de décider"}
-            as="h2"
-            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
-            delay={100}
-          />
-
-          <div ref={stepsRef} className="relative mt-8">
-            {/* Mobile-only timeline rail */}
-            <div
-              ref={railRef}
-              className="md:hidden absolute left-[9px] top-3 bottom-3 w-px bg-bronze/40 origin-top"
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pl-8 md:pl-0">
-              {steps.map((s, i) => (
-                <div key={s.n} data-step-item className="relative" style={{ opacity: 0 }}>
-                  <span
-                    data-step-dot
-                    className="md:hidden absolute -left-[29px] top-3.5 w-[13px] h-[13px] rounded-full bg-bronze ring-4 ring-cream-deep"
-                  />
-                  <div className="bg-white border border-cream-deep p-[26px] rounded-lg h-full hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                    <AnimatedCounter
-                      value={s.n}
-                      className="font-heading text-[28px] text-bronze font-medium mb-3 block"
-                      delay={i * 150 + 300}
-                    />
-                    <h3 className="text-[17.5px] font-semibold mb-2">{s.title}</h3>
-                    <p className="text-[13.5px] text-warm-grey leading-[1.6]">{s.desc}</p>
-                  </div>
-                </div>
+            <ul className="mt-10 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+              {FONCTIONS.map((f) => (
+                <li key={f.title} className="border-t border-ink/10 pt-5">
+                  <f.icon className="size-5 text-ink" aria-hidden="true" strokeWidth={1.5} />
+                  <p className="mt-3 text-[16px] font-medium text-ink">{f.title}</p>
+                  <p className="mt-1 text-[15px] text-warm-grey">{f.desc}</p>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
+          <UiStack />
+        </div>
         </div>
       </section>
 
-      {/* Relation / Fondateur */}
-      <section className="py-16 bg-ink text-cream overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-[60px]">
-          <div>
-            <AnimateIn variant="fade-right" mobileVariant="fade-up">
-              <span className="text-bronze-light text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-                L&apos;équipe
-              </span>
-            </AnimateIn>
-            <SplitHeading
-              text="Vous ne créez pas un espace client, vous créez une relation de confiance."
-              as="h2"
-              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 text-cream max-w-[680px]"
-              delay={100}
-            />
-            <AnimateIn variant="fade-up" delay={300}>
-              <p className="text-[#D8CDBC] text-[16px] leading-[1.75] max-w-[480px]">
-                Ce qui fait la différence, ce n&apos;est pas un algorithme ni un catalogue de produits. C&apos;est la personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à vos côtés.
+      {/* Réseau */}
+      <section className="bg-ink text-cream">
+        <div className="shell section-y">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-end mb-14 lg:mb-20">
+            <h2 className="display-lg text-cream max-w-[12ch]">Le réseau est l’offre.</h2>
+            <div className="lg:justify-self-end max-w-[46ch]">
+              <p className="text-[18px] leading-relaxed text-cream-muted">
+                Horkos est votre point d’entrée unique. Nous coordonnons les professionnels utiles à votre
+                dossier, pour que vous n’ayez pas à les consulter un par un, sans vision d’ensemble.
               </p>
-            </AnimateIn>
-            <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={450}>
-              <div className="mt-6 max-w-[480px] bg-cream/[0.06] border-l-2 border-bronze-light px-[26px] py-[22px] font-heading italic text-[19px] text-cream leading-[1.5]">
-                La gestion de patrimoine ne manque pas de produits. Elle manque de conseil. Chez Horkos, rien n&apos;est recommandé avant d&apos;être compris.
-              </div>
-            </AnimateIn>
-          </div>
-          <AnimateIn variant="scale-in" mobileVariant="reveal-up" delay={200} className="h-full">
-            <div className="h-full bg-cream/[0.06] border border-cream/[0.14] p-8 rounded-lg">
-              <div className="flex items-center gap-3 mb-1">
-                <Image
-                  src="/images/fondateur.jpg"
-                  alt="Othmane Benzakour"
-                  width={52}
-                  height={52}
-                  className="w-[52px] h-[52px] rounded-full object-cover object-[center_15%]"
-                />
-                <a
-                  href="https://www.linkedin.com/in/othmane-benzakour-6a93a0112/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Profil LinkedIn d'Othmane Benzakour"
-                  className="w-8 h-8 rounded bg-cream/[0.12] flex items-center justify-center text-xs font-bold text-cream hover:bg-cream/[0.2] transition-colors"
-                >
-                  in
-                </a>
-              </div>
-              <h4 className="font-heading text-cream text-[19px] mt-2">Othmane Benzakour</h4>
-              <div className="text-bronze-light text-[11px] tracking-[1.5px] uppercase mt-1">
-                Fondateur &amp; CEO
-              </div>
-              <p className="text-[14px] text-[#D8CDBC] mt-3.5 leading-[1.65]">
-                Othmane a construit son expertise patrimoniale en France avant de fonder Horkos au Maroc – une double culture qu&apos;il met directement au service de ses clients, ici et à l&apos;étranger.
-              </p>
-              <p className="text-[14px] text-[#D8CDBC] mt-3.5 leading-[1.65]">
-                Sa conviction : aucune recommandation avant la compréhension. Chaque client structure son patrimoine et décide en toute clarté.
-              </p>
+              <Link href="/conseil/reseau" className="link-arrow mt-6 text-cream">
+                Découvrir notre réseau <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
             </div>
-          </AnimateIn>
+          </div>
+          <NetworkOrbit />
         </div>
       </section>
 
-      {/* MRE - Double regard */}
-      <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
-          <div>
-            <AnimateIn variant="fade-right" mobileVariant="fade-up">
-              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-                Marocains résidant à l&apos;étranger
-              </span>
-            </AnimateIn>
-            <SplitHeading
-              text="Un double regard, Maroc et France."
-              as="h2"
-              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
-              delay={100}
-            />
-            <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Gérer un patrimoine entre deux pays, ce n&apos;est pas gérer deux patrimoines séparés. C&apos;est comprendre comment la fiscalité marocaine et la fiscalité française ou européenne s&apos;articulent – et où elles créent des opportunités ou des risques que vous ne verriez pas seul.
-              </p>
-            </AnimateIn>
-            <AnimateIn variant="fade-up" delay={350}>
-              <Link
-                href="/rendez-vous"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-              >
-                Prendre rendez-vous depuis l&apos;étranger →
-              </Link>
-            </AnimateIn>
-          </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
-            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Pourquoi c&apos;est notre terrain</h4>
-              <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
-                Othmane, fondateur de Horkos, a construit son expérience patrimoniale en France avant de fonder Horkos. Cette expérience lui permet de comprendre concrètement votre situation si vous résidez en France ou ailleurs en Europe - impôt sur le revenu, prélèvements sociaux, conventions fiscales avec le Maroc – et d&apos;envisager, selon les cas, un accompagnement adapté à votre réalité à l&apos;étranger.
-              </p>
-            </div>
-          </AnimateIn>
-        </div>
-      </section>
-
-      {/* Nos solutions */}
-      <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
-          <div>
-            <AnimateIn variant="fade-right" mobileVariant="fade-up">
-              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-                Nos solutions
-              </span>
-            </AnimateIn>
-            <SplitHeading
-              text="Des produits, une seule logique : votre stratégie globale."
-              as="h2"
-              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
-              delay={100}
-            />
-            <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Une fois votre besoin identifié, nous mobilisons les solutions adaptées – placements financiers, immobilier, private equity, venture capital, art. Jamais l&apos;inverse.
-              </p>
-            </AnimateIn>
-            <AnimateIn variant="fade-up" delay={350}>
-              <Link
-                href="/cabinet/produits"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-              >
-                Découvrir nos produits →
-              </Link>
-            </AnimateIn>
-          </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
-            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Un réseau derrière chaque recommandation</h4>
-              <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
-                Sociétés de gestion, assureurs, agents immobiliers, fonds de Private Equity et de Venture Capital : nous mobilisons les bons partenaires pour chaque dossier.
-              </p>
-              <Link href="/conseil/reseau" className="inline-block mt-4 text-bronze-light text-[12.5px] font-medium hover:text-bronze transition-colors">
-                En savoir plus sur notre réseau →
-              </Link>
-            </div>
-          </AnimateIn>
-        </div>
-      </section>
-
-      {/* Structuration patrimoniale */}
-      <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-2 gap-[50px]">
-          <div>
-            <AnimateIn variant="fade-right" mobileVariant="fade-up">
-              <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-                Structuration patrimoniale
-              </span>
-            </AnimateIn>
-            <SplitHeading
-              text="Structurer, pas seulement placer."
-              as="h2"
-              className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-2.5 max-w-[680px]"
-              delay={100}
-            />
-            <AnimateIn variant="fade-up" delay={250}>
-              <p className="text-warm-grey text-[16px] max-w-[640px] mb-6 leading-[1.65]">
-                Création de sociétés patrimoniales, apport de biens immobiliers en nature, gestion comptable déléguée – un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.
-              </p>
-            </AnimateIn>
-            <AnimateIn variant="fade-up" delay={350}>
-              <Link
-                href="/conseil/structuration"
-                className="inline-block px-[26px] py-[13px] font-medium text-[13.5px] tracking-[0.2px] bg-bronze text-white hover:bg-bronze-dark transition-colors rounded-lg"
-              >
-                Découvrir la structuration →
-              </Link>
-            </AnimateIn>
-          </div>
-          <AnimateIn variant="fade-left" mobileVariant="reveal-up" delay={150} className="h-full">
-            <div className="h-full flex flex-col justify-center bg-navy text-cream p-[30px] rounded-lg">
-              <h4 className="font-heading text-cream text-[21px] font-semibold mb-2.5">Cas d&apos;usage fréquent</h4>
-              <p className="text-[13.5px] text-[#D8CDBC] leading-[1.6]">
-                Un bien immobilier détenu en nom propre, apporté au capital d&apos;une SARL immobilière, avec un expert-comptable dédié à sa gestion.
-              </p>
-              <Link href="/conseil/cas-usage" className="inline-block mt-4 text-bronze-light text-[12.5px] font-medium hover:text-bronze transition-colors">
-                Voir d&apos;autres cas d&apos;usage →
-              </Link>
-            </div>
-          </AnimateIn>
-        </div>
-      </section>
-
-      {/* Trust */}
-      <section className="py-16 bg-cream-deep">
-        <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn variant="fade-right" mobileVariant="fade-up">
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              Confiance &amp; confidentialité
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text="Un conseil indépendant, une pédagogie exigeante"
-            as="h2"
-            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
-            delay={100}
+      {/* Fondateur */}
+      <section className="section-y overflow-hidden">
+        <div className="shell grid gap-12 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-20 lg:items-center">
+          <RevealImage
+            src="/images/fondateur.jpg"
+            alt="Othmane Benzakour"
+            position="50% 8%"
+            sizes="(min-width: 1024px) 40vw, 100vw"
+            imageClassName="mix-blend-multiply"
+            className="aspect-[4/5] lg:aspect-auto lg:h-[min(560px,70vh)] lg:-ml-[max(40px,calc((100vw-1320px)/2+40px))] lg:rounded-l-none"
           />
-
-          {/* Desktop: grid */}
-          <div className="hidden md:grid grid-cols-3 gap-[22px]">
-            {trustCards.map((t, i) => (
-              <AnimateIn key={t.title} variant="rotate-in" delay={i * 120}>
-                <TrustCard title={t.title} desc={t.desc} />
-              </AnimateIn>
-            ))}
+          <div>
+            <blockquote className="font-heading font-light italic text-[clamp(1.5rem,2.4vw,2.1rem)] leading-[1.2] tracking-[-0.015em] text-ink">
+              « Ce qui fait la différence, ce n’est pas un algorithme ni un catalogue de produits. C’est la
+              personne qui prend le temps de comprendre votre besoin, de mobiliser les bons experts, et de rester à
+              vos côtés. »
+            </blockquote>
+            <div className="mt-10 flex items-center gap-4 border-t border-ink/10 pt-6">
+              <div>
+                <p className="text-[17px] font-medium text-ink">Othmane Benzakour</p>
+                <p className="text-[15px] text-warm-grey">Fondateur</p>
+              </div>
+              <a
+                href="https://www.linkedin.com/in/othmane-benzakour-6a93a0112/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-arrow ml-auto text-[15px]"
+              >
+                LinkedIn <ArrowUpRight className="size-4" aria-hidden="true" />
+              </a>
+            </div>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <p className="text-[16px] leading-relaxed text-charcoal">
+                Othmane a construit son expertise patrimoniale en France avant de fonder Horkos au Maroc : une double
+                culture qu’il met au service de ses clients, ici et à l’étranger.
+              </p>
+              <p className="text-[16px] leading-relaxed text-charcoal">
+                Sa conviction : aucune recommandation avant la compréhension. Chaque client structure son patrimoine et
+                décide en toute clarté.
+              </p>
+            </div>
           </div>
-
-          {/* Mobile: card deck that stacks as you scroll */}
-          <StackCards
-            className="md:hidden"
-            items={trustCards.map((t) => (
-              <TrustCard key={t.title} title={t.title} desc={t.desc} />
-            ))}
-          />
         </div>
       </section>
+
+      {/* Terrains : cartes photographiques empilées */}
+      <section className="shell pb-16 lg:pb-24">
+        <h2 className="display-lg mb-10 max-w-[16ch] text-ink lg:mb-12">Là où notre conseil fait la différence.</h2>
+        <StackFeatures
+          items={[
+            {
+              title: "Un double regard, Maroc et France",
+              desc: "Gérer un patrimoine entre deux pays, ce n’est pas gérer deux patrimoines séparés : c’est comprendre comment les fiscalités s’articulent, et où elles créent des opportunités ou des risques.",
+              href: "/rendez-vous",
+              linkLabel: "Prendre rendez-vous depuis l’étranger",
+              image: "/images/stack/double-regard.jpg",
+            },
+            {
+              title: "Structurer, pas seulement placer",
+              desc: "Sociétés patrimoniales, apports en nature, gestion comptable déléguée : un conseil de structuration avant toute mise en œuvre par un professionnel du réseau.",
+              href: "/conseil/structuration",
+              linkLabel: "Découvrir la structuration",
+              image: "/images/stack/structurer.jpg",
+            },
+            {
+              title: "Une rémunération annoncée avant",
+              desc: "Le premier diagnostic est gratuit. Ensuite, notre rémunération est annoncée avant toute mise en œuvre, jamais deux catégories de frais sur le même besoin.",
+              href: "/cabinet/modele",
+              linkLabel: "Notre modèle de rémunération",
+              image: "/images/stack/remuneration.jpg",
+              facts: [
+                ["Diagnostic", "Gratuit"],
+                ["Investissement", "Commissions"],
+                ["Conseil seul", "Honoraires"],
+              ],
+            },
+          ]}
+        />
+      </section>
+
+      {/* Engagements */}
+      <section className="shell">
+        <div className="section-y grid gap-12 border-t border-ink/10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
+          <div className="lg:sticky lg:top-32 lg:self-start">
+            <h2 className="display-lg max-w-[14ch] text-ink">Un conseil indépendant, une pédagogie exigeante.</h2>
+            <p className="lead mt-6 max-w-[40ch]">
+              Trois engagements tiennent chaque accompagnement, du premier échange au suivi dans la durée.
+            </p>
+            <Link href="/cabinet/approche" className="btn btn-ink btn-sm mt-8">
+              Notre approche
+            </Link>
+          </div>
+          <ul className="space-y-4">
+            {ENGAGEMENTS.map((e) => (
+              <li key={e.title} className="rounded-[12px] border border-ink/10 p-7 lg:p-9">
+                <h3 className="display-sm text-ink">{e.title}</h3>
+                <p className="mt-3 max-w-[52ch] text-[16px] leading-relaxed text-charcoal">{e.desc}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Ressources */}
+      {publications.length > 0 && (
+        <section>
+          <div className="shell section-y">
+          <Rail
+            label="Dernières publications"
+            header={
+              <div>
+                <h2 className="display-lg text-ink">À lire avant un rendez-vous.</h2>
+                <Link href="/ressources/articles" className="link-arrow mt-5">
+                  Toutes nos ressources <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </div>
+            }
+          >
+            {publications.map((p) => (
+              <PublicationCard key={p.href + p.title} p={p} />
+            ))}
+          </Rail>
+          </div>
+        </section>
+      )}
 
       {/* FAQ */}
-      <section className="py-16 overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-7">
-          <AnimateIn variant="fade-right" mobileVariant="fade-up">
-            <span className="text-bronze-dark text-[11.5px] font-semibold tracking-[1.8px] uppercase">
-              FAQ
-            </span>
-          </AnimateIn>
-          <SplitHeading
-            text="Vos questions, nos réponses"
-            as="h2"
-            className="text-[clamp(1.6rem,3.9vw,1.95rem)] font-semibold mt-2.5 mb-6 max-w-[680px]"
-            delay={100}
-          />
-          <div>
-            {faqs.map((faq, i) => (
-              <AnimateIn key={i} variant="fade-up" mobileVariant="fade-left" delay={i * 100}>
-                <div className="border-t border-cream-deep last:border-b">
-                  <button
-                    type="button"
-                    aria-expanded={openFaq === i}
-                    aria-controls={`faq-panel-${i}`}
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 py-[22px] text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze"
-                  >
-                    <span className="font-heading text-[20px] font-semibold text-ink">{faq.q}</span>
-                    <span
-                      aria-hidden="true"
-                      className={`text-bronze text-xl shrink-0 transition-transform duration-300 ${
-                        openFaq === i ? "rotate-45" : ""
-                      }`}
-                    >
-                      +
-                    </span>
-                  </button>
-                  <div
-                    id={`faq-panel-${i}`}
-                    className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                    style={{ gridTemplateRows: openFaq === i ? "1fr" : "0fr" }}
-                  >
-                    <div className="overflow-hidden">
-                      <p className="text-[13.5px] text-warm-grey leading-[1.6] max-w-[680px] pb-[22px]">
-                        {faq.a}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
+      <section className="shell">
+        <div className="section-y border-t border-ink/10">
+          <FaqSplit items={faqs} />
         </div>
       </section>
+
+      <CtaBand title="Commençons par un premier échange." label="Prendre rendez-vous" />
     </>
   );
 }

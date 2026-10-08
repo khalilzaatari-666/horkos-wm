@@ -13,48 +13,51 @@ export function GuideCard({ guide }: { guide: Guide }) {
   const done = state.status === "success";
 
   return (
-    <div className="flex flex-col h-full bg-white border border-cream-deep rounded-lg overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-      <div className="relative aspect-[4/3] bg-ink flex items-center justify-center px-6">
+    <div className="group flex flex-col h-full">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-ink flex items-end p-8">
         {guide.cover_url ? (
           <Image
             src={guide.cover_url}
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-[1.2s] group-hover:scale-[1.04]"
           />
         ) : (
-          <span className="font-heading text-cream text-[19px] leading-[1.35] text-center">
-            {guide.cover_label ?? guide.title}
-          </span>
+          <>
+            <span aria-hidden="true" className="absolute -right-6 -top-10 font-heading font-light text-[16rem] leading-none text-navy">H</span>
+            <span className="relative font-heading font-light text-cream text-[30px] leading-[1.1] tracking-[-0.02em]">
+              {guide.cover_label ?? guide.title}
+            </span>
+          </>
         )}
       </div>
 
-      <div className="flex flex-col flex-1 p-6">
+      <div className="flex flex-col flex-1 pt-6">
         {guide.partner && (
-          <div className="text-bronze-dark text-[11px] font-semibold tracking-[1.3px] uppercase mb-2">
-            {guide.partner}
-          </div>
+          <p className="text-[14px] text-warm-grey mb-2">
+            Avec {guide.partner}
+          </p>
         )}
-        <h2 className="font-heading text-[18.5px] font-semibold text-ink leading-[1.35]">
+        <h2 className="font-heading text-[24px] text-ink leading-[1.15]">
           {guide.title}
         </h2>
         {guide.description && (
-          <p className="text-[13px] text-warm-grey leading-[1.6] mt-2">{guide.description}</p>
+          <p className="text-[15px] text-warm-grey leading-relaxed mt-2">{guide.description}</p>
         )}
 
         <div className="mt-auto pt-5">
           {done ? (
-            <p className="text-[13px] text-green-700 font-medium">{state.message}</p>
+            <p className="text-[15px] text-ink">{state.message}</p>
           ) : (
             <>
               <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                className="text-bronze text-[13px] font-medium hover:text-bronze-dark transition-colors cursor-pointer"
+                className="btn btn-outline btn-sm"
               >
-                Recevoir le guide {open ? "↑" : "→"}
+                {open ? "Fermer" : "Recevoir le guide"}
               </button>
 
               <div
@@ -70,12 +73,12 @@ export function GuideCard({ guide }: { guide: Guide }) {
                       required
                       placeholder="Votre adresse email"
                       aria-label="Votre adresse email"
-                      className="flex-1 min-w-0 h-10 px-3 text-[13px] bg-cream border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors"
+                      className="field h-11 flex-1 min-w-0"
                     />
                     <button
                       type="submit"
                       disabled={pending}
-                      className="h-10 px-4 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-60 transition-colors cursor-pointer"
+                      className="btn btn-ink btn-sm h-11"
                     >
                       {pending ? "..." : "Envoyer"}
                     </button>
@@ -83,7 +86,7 @@ export function GuideCard({ guide }: { guide: Guide }) {
                   {state.status === "error" && (
                     <p className="text-[12.5px] text-red-600 pt-2">{state.message}</p>
                   )}
-                  <p className="text-[11.5px] text-warm-grey pt-2">
+                  <p className="text-[13px] text-warm-grey pt-2">
                     Envoyé par email, aucune inscription requise.
                   </p>
                 </div>

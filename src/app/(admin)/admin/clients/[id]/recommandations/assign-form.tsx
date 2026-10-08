@@ -7,7 +7,7 @@ import type { ActionState } from "@/lib/staff";
 const initialState: ActionState = { status: "idle" };
 
 const field =
-  "w-full h-10 px-3 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors";
+  "w-full h-10 px-3 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors";
 
 export function AssignForm({
   clientId,
@@ -38,7 +38,7 @@ export function AssignForm({
           <select id="recommendationId" name="recommendationId" required className={`${field} cursor-pointer`}>
             {options.map((o) => (
               <option key={o.id} value={o.id}>
-                {o.category} — {o.title}
+                {o.category} - {o.title}
               </option>
             ))}
           </select>
@@ -58,7 +58,7 @@ export function AssignForm({
           name="notes"
           rows={3}
           maxLength={2000}
-          className="w-full px-3 py-2.5 text-[13.5px] bg-white border border-cream-deep rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y"
+          className="w-full px-3 py-2.5 text-[13.5px] bg-white border border-ink/10 rounded-lg outline-none focus:border-bronze transition-colors leading-[1.6] resize-y"
         />
       </div>
 
@@ -70,7 +70,7 @@ export function AssignForm({
         <button
           type="submit"
           disabled={pending || options.length === 0}
-          className="h-10 px-5 text-[13px] font-medium bg-bronze text-white rounded-lg hover:bg-bronze-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-10 px-5 text-[14px] font-medium bg-ink text-white rounded-[6px] hover:bg-navy disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {pending ? "Enregistrement…" : "Proposer"}
         </button>
