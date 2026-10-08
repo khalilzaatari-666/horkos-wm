@@ -94,6 +94,7 @@ export default function CasUsagePage() {
         tag="Cas d’usage"
         title="Trois situations, trois stratégies sur mesure."
         subtitle="Chaque client a un objectif différent. Choisissez une situation pour voir comment nous l’avons accompagnée."
+        image="/images/editorial/arches.jpg"
       />
 
       <section className="shell pb-12 lg:pb-16">

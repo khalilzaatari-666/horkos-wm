@@ -27,7 +27,8 @@ export function InkRise({ className = "", ...props }: React.ComponentProps<"sect
           backgroundColor: "#0b1a2e",
           ease: "none",
           // Mesurée après les épinglages de la page, qui la décalent.
-          scrollTrigger: { trigger: el, start: "top bottom", end: "top 45%", scrub: true, refreshPriority: -1 },
+          // Montée étalée sur presque tout l'écran, `scrub` amorti pour lisser.
+          scrollTrigger: { trigger: el, start: "top bottom", end: "top 10%", scrub: 1.2, refreshPriority: -1 },
         },
       );
     });

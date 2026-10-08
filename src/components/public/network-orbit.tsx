@@ -16,7 +16,20 @@ function place(list: Metier[], radius: number, startDeg: number) {
     const a = ((startDeg + (360 / list.length) * i) * Math.PI) / 180;
     // Le nom se pose dans le prolongement du rayon, vers l'extérieur : il ne
     // recouvre jamais l'anneau.
-    return { ...m, x: 50 + radius * Math.cos(a), y: 50 + radius * Math.sin(a), ca: Math.cos(a), sa: Math.sin(a) };
+    // Arrondi à 4 décimales : le navigateur réécrit les styles avec cette
+    // précision, des flottants bruts feraient diverger SSR et hydratation.
+    const r = (v: number) => Math.round(v * 1e4) / 1e4;
+    const ca = Math.cos(a);
+    const sa = Math.sin(a);
+    return {
+      ...m,
+      x: r(50 + radius * ca),
+      y: r(50 + radius * sa),
+      dx: r(ca * 14),
+      dy: r(sa * 14),
+      tx: r(-50 + ca * 50),
+      ty: r(-50 + sa * 50),
+    };
   });
 }
 
@@ -165,9 +178,11 @@ export function NetworkOrbit() {
             <span
               className="absolute whitespace-nowrap"
               style={{
-                left: `calc(50% + ${n.ca * 14}px)`,
-                top: `calc(50% + ${n.sa * 14}px)`,
-                transform: `translate(${-50 + n.ca * 50}%, ${-50 + n.sa * 50}%)`,
+                left: "50%",
+                top: "50%",
+                marginLeft: `${n.dx}px`,
+                marginTop: `${n.dy}px`,
+                transform: `translate(${n.tx}%, ${n.ty}%)`,
               }}
             >
               {n.title}

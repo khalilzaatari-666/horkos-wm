@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, CalendarDays, FileText, Lock, MessageSquareText } from "lucide-react";
 import gsap from "gsap";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 import { TextReveal } from "@/components/public/text-reveal";
 import { ImageAccordion } from "@/components/public/image-accordion";
 import { PinnedSteps } from "@/components/public/pinned-steps";
@@ -134,9 +135,7 @@ function Hero() {
                 Othmane Benzakour, fondateur
               </p>
             </div>
-            <AnimateIn variant="fade-up" duration={1.1}>
-              <h1 className="font-heading font-light text-[clamp(2.5rem,4.4vw,4.25rem)] leading-[1.02] tracking-[-0.03em] text-ink max-w-[13ch]">Le conseil qui structure votre patrimoine.</h1>
-            </AnimateIn>
+            <LineReveal className="font-heading font-light text-[clamp(2.5rem,4.4vw,4.25rem)] leading-[1.02] tracking-[-0.03em] text-ink max-w-[13ch]">Le conseil qui structure votre patrimoine.</LineReveal>
 
             <AnimateIn variant="fade-up" delay={200}>
               {/* Les trois publics en liste verticale sur un filet : l'indicateur

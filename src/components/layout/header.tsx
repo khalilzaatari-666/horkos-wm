@@ -25,6 +25,22 @@ export function Header() {
   const [mobileGroup, setMobileGroup] = useState<string | null>(null);
   const closeTimer = useRef<number | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  // Pastille de survol commune aux rubriques : elle glisse de l'une à l'autre
+  // au lieu de s'éteindre et de se rallumer.
+  const [pill, setPill] = useState({ x: 0, w: 0 });
+  // Le panneau garde son dernier contenu pendant qu'il se referme, et le
+  // contenu suivant arrive du côté de la rubrique survolée.
+  const [prevOpen, setPrevOpen] = useState<string | null>(null);
+  const [shownLabel, setShownLabel] = useState<string | null>(null);
+  const [dir, setDir] = useState(0);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      const at = (label: string) => NAV.findIndex((g) => g.label === label);
+      setDir(prevOpen ? Math.sign(at(open) - at(prevOpen)) : 0);
+      setShownLabel(open);
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -60,8 +76,9 @@ export function Header() {
     };
   }, [mobileOpen]);
 
-  const show = (label: string) => {
+  const show = (label: string, trigger?: HTMLElement) => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    if (trigger) setPill({ x: trigger.offsetLeft, w: trigger.offsetWidth });
     setOpen(label);
   };
   // Un court délai avant de refermer : le pointeur qui descend de l'intitulé
@@ -72,6 +89,7 @@ export function Header() {
   };
 
   const group = NAV.find((g) => g.label === open);
+  const shown = NAV.find((g) => g.label === shownLabel);
   const floating = scrolled && !mobileOpen;
 
   return (
@@ -102,20 +120,27 @@ export function Header() {
             />
           </Link>
 
-          <ul className="hidden lg:flex items-center gap-1">
+          <ul className="relative hidden lg:flex items-center gap-1">
+            <span
+              aria-hidden="true"
+              className={`absolute left-0 top-1/2 h-10 -mt-5 rounded-[6px] bg-ink/[0.05] transition-[transform,width,opacity] duration-[450ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-opacity ${
+                group ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ width: pill.w, transform: `translateX(${pill.x}px)` }}
+            />
             {NAV.map((g) => {
               const active = g.links.some((l) => pathname.startsWith(l.href));
               return (
-                <li key={g.label} onMouseEnter={() => show(g.label)}>
+                <li key={g.label} onMouseEnter={(e) => show(g.label, e.currentTarget)}>
                   <button
                     type="button"
                     aria-expanded={open === g.label}
                     aria-controls="mega-menu"
-                    onClick={() => (open === g.label ? setOpen(null) : show(g.label))}
-                    onFocus={() => show(g.label)}
-                    className={`flex items-center gap-1.5 h-10 px-4 rounded-[6px] text-[15px] transition-colors ${
+                    onClick={(e) => (open === g.label ? setOpen(null) : show(g.label, e.currentTarget.parentElement!))}
+                    onFocus={(e) => show(g.label, e.currentTarget.parentElement!)}
+                    className={`relative flex items-center gap-1.5 h-10 px-4 rounded-[6px] text-[15px] transition-colors duration-300 ${
                       open === g.label
-                        ? "bg-ink/[0.05] text-ink"
+                        ? "text-ink"
                         : active
                           ? "text-ink"
                           : "text-charcoal hover:text-ink"
@@ -162,50 +187,59 @@ export function Header() {
         <div
           id="mega-menu"
           onMouseEnter={() => group && show(group.label)}
-          className={`hidden lg:block absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[min(720px,calc(100vw-40px))] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            group ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+          inert={!group}
+          className={`hidden lg:block absolute left-1/2 top-full pt-3 w-[min(720px,calc(100vw-40px))] origin-top transition-[opacity,translate,scale,filter] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-opacity ${
+            group
+              ? "opacity-100 -translate-x-1/2 translate-y-0 scale-100 blur-none duration-500"
+              : "opacity-0 -translate-x-1/2 -translate-y-1.5 scale-[0.985] blur-[2px] pointer-events-none duration-200"
           }`}
         >
-          {group && (
-            <div className="grid grid-cols-[1fr_220px] gap-2 p-2 rounded-[16px] bg-white lift ring-1 ring-ink/[0.06]">
-              <ul className="grid grid-cols-1 p-1.5">
-                {group.links.map((l) => (
-                  <li key={l.href}>
-                    <Link
-                      href={l.href}
-                      className="group flex items-start justify-between gap-4 rounded-[10px] px-3.5 py-3 hover:bg-cream-deep/50 transition-colors"
-                    >
-                      <span>
-                        <span className="block text-[15px] font-medium leading-snug text-ink">{l.label}</span>
-                        <span className="block text-[13px] leading-snug text-warm-grey mt-0.5">{l.desc}</span>
-                      </span>
-                      <ArrowRight
-                        aria-hidden="true"
-                        className="size-4 mt-1 shrink-0 text-ink opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={group.feature.href}
-                className="group relative overflow-hidden rounded-[12px] min-h-[200px] bg-cream-deep"
+          {shown && (
+            <div className="rounded-[16px] bg-white lift ring-1 ring-ink/[0.06] overflow-hidden">
+              <div
+                key={shown.label}
+                className="mega-swap grid grid-cols-[1fr_220px] gap-2 p-2"
+                style={{ "--mega-from": `${dir * 18}px` } as React.CSSProperties}
               >
-                <Image
-                  src={group.feature.image}
-                  alt=""
-                  fill
-                  sizes="220px"
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-                />
-                <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent" />
-                <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
-                  <span className="font-heading text-[16px] leading-snug">{group.feature.title}</span>
-                  <span className="grid place-items-center size-7 shrink-0 rounded-full bg-white text-ink">
-                    <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                <ul className="grid grid-cols-1 p-1.5">
+                  {shown.links.map((l) => (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        className="group flex items-start justify-between gap-4 rounded-[10px] px-3.5 py-3 hover:bg-cream-deep/50 transition-colors"
+                      >
+                        <span>
+                          <span className="block text-[15px] font-medium leading-snug text-ink">{l.label}</span>
+                          <span className="block text-[13px] leading-snug text-warm-grey mt-0.5">{l.desc}</span>
+                        </span>
+                        <ArrowRight
+                          aria-hidden="true"
+                          className="size-4 mt-1 shrink-0 text-ink opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={shown.feature.href}
+                  className="group relative overflow-hidden rounded-[12px] min-h-[200px] bg-cream-deep"
+                >
+                  <Image
+                    src={shown.feature.image}
+                    alt=""
+                    fill
+                    sizes="220px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                  />
+                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent" />
+                  <span className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 text-white">
+                    <span className="font-heading text-[16px] leading-snug">{shown.feature.title}</span>
+                    <span className="grid place-items-center size-7 shrink-0 rounded-full bg-white text-ink">
+                      <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                    </span>
                   </span>
-                </span>
-              </Link>
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -216,6 +250,7 @@ export function Header() {
         id="menu-mobile"
         hidden={!mobileOpen}
         className="lg:hidden fixed inset-x-0 top-[72px] bottom-0 bg-white overflow-y-auto overscroll-contain"
+        data-lenis-prevent
       >
         <div className="shell flex flex-col min-h-full pt-4 pb-8">
           {NAV.map((g) => {

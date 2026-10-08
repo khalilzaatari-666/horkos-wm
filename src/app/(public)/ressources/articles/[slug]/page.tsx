@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 import { ArrowLeft } from "lucide-react";
+import { RevealImage } from "@/components/public/reveal-image";
 import { ReadingProgress } from "@/components/public/reading-progress";
 import { CtaBand } from "@/components/public/cta-band";
 import { ArticleJsonLd } from "@/components/public/structured-data";
-import { getArticle, getArticles, formatLongDate } from "@/lib/content";
+import { getArticle, getArticles, formatLongDate, couvertureArticle } from "@/lib/content";
 
 export const revalidate = 300;
 
@@ -58,9 +59,7 @@ export default async function ArticlePage({ params }: PageProps) {
             {article.category && <span className="text-ink">{article.category} ·</span>}
             <span>{formatLongDate(article.published_at ?? article.created_at)}</span>
           </p>
-          <AnimateIn variant="fade-up" duration={1}>
-            <h1 className="display-lg mt-6 text-ink">{article.title}</h1>
-          </AnimateIn>
+          <LineReveal className="display-lg mt-6 text-ink">{article.title}</LineReveal>
           {article.excerpt && (
             <AnimateIn variant="fade-up" delay={150}>
               <p className="lead mx-auto mt-6 max-w-[58ch]">{article.excerpt}</p>
@@ -69,15 +68,15 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
       </section>
 
-      {article.cover_url && (
-        <div className="shell">
-          <AnimateIn variant="fade-up">
-            <div className="relative aspect-[21/9] overflow-hidden rounded-[24px] bg-cream-deep">
-              <Image src={article.cover_url} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" className="object-cover" priority />
-            </div>
-          </AnimateIn>
-        </div>
-      )}
+      <div className="shell">
+        <RevealImage
+          src={couvertureArticle(article)}
+          alt=""
+          priority
+          sizes="(min-width: 1320px) 1240px, 100vw"
+          className="aspect-[21/9]"
+        />
+      </div>
 
       <article id="article" className="shell py-16 lg:py-24">
         <div className="mx-auto max-w-[680px]">

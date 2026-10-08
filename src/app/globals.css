@@ -118,6 +118,10 @@
       scroll-behavior: smooth;
     }
   }
+  /* Sous Lenis (site public), l'amorti vient du script : le CSS l'annulerait. */
+  html.lenis {
+    scroll-behavior: auto;
+  }
   body {
     @apply bg-background text-foreground;
     font-size: 16px;
@@ -415,6 +419,39 @@
 @media (prefers-reduced-motion: reduce) {
   .page-transition {
     animation: none;
+  }
+}
+
+/* Méga-menu : le contenu de la rubrique suivante arrive du côté survolé. */
+@keyframes mega-swap {
+  from {
+    opacity: 0;
+    transform: translateX(var(--mega-from, 0px));
+  }
+}
+
+.mega-swap {
+  animation: mega-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mega-swap {
+    animation: none;
+  }
+}
+
+/*
+ * État de départ de `RevealImage`, posé par le CSS dès le premier rendu : si
+ * le script l'appliquait seul, la photo s'afficherait d'abord pleine puis se
+ * rognerait avant de s'ouvrir (un clignotement, visible pendant la transition
+ * de page). GSAP part exactement de ces valeurs.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-frame {
+    clip-path: inset(10% 8% 10% 8% round 20px);
+  }
+  .reveal-frame img {
+    transform: scale(1.18);
   }
 }
 

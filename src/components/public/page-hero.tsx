@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 import { RevealImage } from "./reveal-image";
 
 interface PageHeroProps {
@@ -54,9 +55,7 @@ export function PageHero({ tag, title, subtitle, image, imagePosition, anchors, 
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16 lg:items-end">
           <div className="lg:pb-6">
             {crumb}
-            <AnimateIn variant="fade-up" duration={1}>
-              <h1 className="display-lg mt-10 lg:mt-16 text-ink">{title}</h1>
-            </AnimateIn>
+            <LineReveal className="display-lg mt-10 lg:mt-16 text-ink">{title}</LineReveal>
             <AnimateIn variant="fade-up" delay={150}>
               <p className="lead mt-7 max-w-[54ch] whitespace-pre-line">{subtitle}</p>
               {extras}
@@ -79,9 +78,7 @@ export function PageHero({ tag, title, subtitle, image, imagePosition, anchors, 
     <section className="shell pt-8 pb-16 lg:pt-12 lg:pb-24">
       {crumb}
       <div className="mt-10 lg:mt-16 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-16 lg:items-end">
-        <AnimateIn variant="fade-up" duration={1}>
-          <h1 className="display-lg max-w-[18ch] text-ink">{title}</h1>
-        </AnimateIn>
+        <LineReveal className="display-lg max-w-[18ch] text-ink">{title}</LineReveal>
         <AnimateIn variant="fade-up" delay={150} className="lg:pb-2">
           <p className="lead max-w-[54ch] whitespace-pre-line">{subtitle}</p>
           {extras}

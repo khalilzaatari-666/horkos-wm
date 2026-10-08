@@ -151,6 +151,21 @@ const longDate = new Intl.DateTimeFormat("fr-FR", {
 const shortMonth = new Intl.DateTimeFormat("fr-FR", { month: "short" });
 
 /** "8 juillet 2026" - `numeric` keeps the day free of a leading zero. */
+/** Sans couverture, l'article garde une image : une photographie du fonds éditorial. */
+const COUVERTURES_SECOURS = ["/images/pages/article-cafe.jpg", "/images/pages/article-bureau.jpg"];
+
+/**
+ * La couverture d'un article, ou sa photographie de secours. Tirée du slug et
+ * non de la position dans la liste : la carte et la page de l'article montrent
+ * la même image.
+ */
+export function couvertureArticle(article: Pick<Article, "slug" | "cover_url">): string {
+  if (article.cover_url) return article.cover_url;
+  let h = 0;
+  for (const c of article.slug) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return COUVERTURES_SECOURS[Math.abs(h) % COUVERTURES_SECOURS.length];
+}
+
 export function formatLongDate(value: string): string {
   return longDate.format(new Date(value));
 }

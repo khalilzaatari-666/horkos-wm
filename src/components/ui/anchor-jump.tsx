@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { lenis } from "./smooth-scroll";
 
 /** Au-delà de cette distance (en hauteurs d'écran), on ne fait plus défiler. */
 const FAR = 1.5;
@@ -22,7 +23,16 @@ export function AnchorJump() {
       const id = link?.getAttribute("href")?.slice(1);
       const target = id ? document.getElementById(decodeURIComponent(id)) : null;
       if (!target) return;
-      if (Math.abs(target.getBoundingClientRect().top) < window.innerHeight * FAR) return;
+      // Lenis neutralise le défilement doux du CSS : c'est lui qui fait le trajet,
+      // en respectant le `scroll-margin` de la section.
+      const offset = -parseFloat(getComputedStyle(target).scrollMarginTop || "0");
+      if (Math.abs(target.getBoundingClientRect().top) < window.innerHeight * FAR) {
+        if (!lenis) return;
+        e.preventDefault();
+        lenis.scrollTo(target, { offset, duration: 1.2 });
+        history.pushState(null, "", `#${id}`);
+        return;
+      }
 
       e.preventDefault();
       const main = document.querySelector("main");
@@ -30,7 +40,8 @@ export function AnchorJump() {
       main.style.transition = `opacity ${FADE_MS}ms ease`;
       main.style.opacity = "0";
       window.setTimeout(() => {
-        target.scrollIntoView({ behavior: "instant", block: "start" });
+        if (lenis) lenis.scrollTo(target, { offset, immediate: true });
+        else target.scrollIntoView({ behavior: "instant", block: "start" });
         history.pushState(null, "", `#${id}`);
         main.style.opacity = "";
         window.setTimeout(() => (main.style.transition = ""), FADE_MS);

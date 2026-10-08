@@ -77,58 +77,64 @@ export function PinnedSteps({
   }, [pinned]);
 
   return (
-    <div ref={sectionRef} className={tone === "panel" ? "shell py-3 lg:py-4" : "relative overflow-hidden bg-white"}>
-      <div
-        ref={clipRef}
-        className={
-          tone === "panel"
-            ? "panel overflow-hidden py-16 lg:py-20"
-            : pinned
-              ? "overflow-hidden"
-              : ""
-        }
-      >
+    // L'épinglage enveloppe la section dans un `pin-spacer` créé par GSAP. Ce
+    // conteneur extérieur, lui, ne bouge jamais : React peut le retirer en
+    // quittant la page, même quand la section est posée à la racine de celle-ci
+    // (sans lui, « removeChild » échoue et la navigation tombe en erreur).
+    <div>
+      <div ref={sectionRef} className={tone === "panel" ? "shell py-3 lg:py-4" : "relative overflow-hidden bg-white"}>
         <div
-          ref={trackRef}
+          ref={clipRef}
           className={
-            pinned
-              ? tone === "panel"
-                ? "flex flex-row items-stretch gap-5 w-max px-16"
-                : "flex flex-row items-stretch gap-6 w-max pl-[max(40px,calc((100vw-1320px)/2+40px))] pr-[10vw]"
-              : tone === "panel"
-                ? "flex flex-col gap-5 px-6 sm:px-12"
-                : "shell flex flex-col gap-6 section-y"
+            tone === "panel"
+              ? "panel overflow-hidden py-16 lg:py-20"
+              : pinned
+                ? "overflow-hidden"
+                : ""
           }
         >
-          <div className={pinned ? "w-[min(440px,34vw)] shrink-0 flex flex-col justify-center pr-10" : "mb-6 max-w-[640px]"}>
-            {intro}
+          <div
+            ref={trackRef}
+            className={
+              pinned
+                ? tone === "panel"
+                  ? "flex flex-row items-stretch gap-5 w-max px-16"
+                  : "flex flex-row items-stretch gap-6 w-max pl-[max(40px,calc((100vw-1320px)/2+40px))] pr-[10vw]"
+                : tone === "panel"
+                  ? "flex flex-col gap-5 px-6 sm:px-12"
+                  : "shell flex flex-col gap-6 section-y"
+            }
+          >
+            <div className={pinned ? "w-[min(440px,34vw)] shrink-0 flex flex-col justify-center pr-10" : "mb-6 max-w-[640px]"}>
+              {intro}
+            </div>
+
+            {steps.map((s) => (
+              <article
+                key={s.mark}
+                className={`${tone === "panel" ? "bg-white rounded-[20px]" : "panel"} relative overflow-hidden grid gap-8 p-7 sm:p-10 lg:grid-cols-[1fr_minmax(0,340px)] lg:items-end lg:p-12 ${
+                  pinned ? "w-[min(800px,58vw)] min-h-[min(400px,52vh)] shrink-0 lg:items-center" : "lg:items-center"
+                }`}
+              >
+                <div className="flex flex-col h-full">
+                  <span className="font-heading font-light text-[clamp(3.5rem,6vw,5.5rem)] leading-[0.85] tracking-[-0.04em] text-ink">
+                    {s.mark}
+                  </span>
+                  <div className="pt-6">
+                    <h3 className="display-md text-ink">{s.title}</h3>
+                    <p className="mt-4 max-w-[46ch] text-[17px] leading-relaxed text-charcoal">{s.desc}</p>
+                  </div>
+                </div>
+                {s.fragment && <div className="self-center lg:self-end">{s.fragment}</div>}
+              </article>
+            ))}
           </div>
 
-          {steps.map((s) => (
-            <article
-              key={s.mark}
-              className={`${tone === "panel" ? "bg-white rounded-[20px]" : "panel"} relative overflow-hidden grid gap-8 p-7 sm:p-10 lg:grid-cols-[1fr_minmax(0,340px)] lg:items-end lg:p-12 ${
-                pinned ? "w-[min(800px,58vw)] min-h-[min(400px,52vh)] shrink-0 lg:items-center" : "lg:items-center"
-              }`}
-            >
-              <div className="flex flex-col h-full">
-                <span className="font-heading font-light text-[clamp(3.5rem,6vw,5.5rem)] leading-[0.85] tracking-[-0.04em] text-ink">
-                  {s.mark}
-                </span>
-                <div className="pt-6">
-                  <h3 className="display-md text-ink">{s.title}</h3>
-                  <p className="mt-4 max-w-[46ch] text-[17px] leading-relaxed text-charcoal">{s.desc}</p>
-                </div>
-              </div>
-              {s.fragment && <div className="self-center lg:self-end">{s.fragment}</div>}
-            </article>
-          ))}
-        </div>
-
-        <div aria-hidden="true" className={pinned ? (tone === "panel" ? "mx-16 mt-10" : "shell mt-10") : "hidden"}>
-          <span className="block h-px bg-ink/10">
-            <span ref={barRef} className="block h-px origin-left scale-x-0 bg-ink" />
-          </span>
+          <div aria-hidden="true" className={pinned ? (tone === "panel" ? "mx-16 mt-10" : "shell mt-10") : "hidden"}>
+            <span className="block h-px bg-ink/10">
+              <span ref={barRef} className="block h-px origin-left scale-x-0 bg-ink" />
+            </span>
+          </div>
         </div>
       </div>
     </div>

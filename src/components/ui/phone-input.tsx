@@ -80,7 +80,11 @@ export function PhoneInput({
     close();
   };
 
-  const borderColour = hasError ? "border-red-500" : "border-ink/10";
+  // Un seul champ pour l'indicatif et le numéro : même hauteur, même arrondi,
+  // même trait et même focus que les champs voisins des formulaires.
+  const frame = hasError
+    ? "border-red-500 focus-within:border-red-500"
+    : "border-ink/15 focus-within:border-bronze focus-within:ring-4 focus-within:ring-bronze/15";
 
   // Morocco appears in both groups, so the key needs the group to stay unique.
   const renderOption = (c: (typeof COUNTRIES)[number], group = "all") => (
@@ -104,14 +108,14 @@ export function PhoneInput({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <div className="flex">
+      <div className={`flex h-12 overflow-hidden rounded-lg border bg-white transition-[border-color,box-shadow] duration-200 ${frame}`}>
         <button
           type="button"
           onClick={() => (open ? close() : setOpen(true))}
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={`Indicatif pays : ${country.name} ${country.dial}`}
-          className={`h-11 shrink-0 flex items-center gap-1.5 px-3 bg-white border ${borderColour} border-r-0 rounded-l-lg text-[14px] text-ink outline-none transition-colors hover:bg-ink/[0.04] focus:border-bronze cursor-pointer`}
+          className="shrink-0 flex items-center gap-1.5 pl-4 pr-3 border-r border-ink/[0.1] text-[15px] text-ink outline-none transition-colors hover:bg-ink/[0.03] focus-visible:bg-ink/[0.04] cursor-pointer"
         >
           <span className="text-[17px] leading-none">{flagOf(country.iso)}</span>
           <span className="tabular-nums">{country.dial}</span>
@@ -135,9 +139,7 @@ export function PhoneInput({
           aria-required="true"
           aria-invalid={hasError ? true : undefined}
           aria-describedby={hasError ? `${id}-error` : undefined}
-          className={`h-12 w-full min-w-0 px-4 text-[16px] bg-white border ${borderColour} rounded-r-lg outline-none transition-colors ${
-            hasError ? "focus:border-red-500" : "focus:border-bronze focus:ring-4 focus:ring-bronze/15"
-          }`}
+          className="w-full min-w-0 px-4 text-[16px] text-ink bg-transparent outline-none placeholder:text-[#8A8478]"
         />
       </div>
 

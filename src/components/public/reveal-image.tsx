@@ -65,7 +65,7 @@ export function RevealImage({
   }, []);
 
   return (
-    <div ref={ref} className={`relative overflow-hidden rounded-[20px] bg-cream-deep ${className}`}>
+    <div ref={ref} className={`reveal-frame relative overflow-hidden rounded-[20px] bg-cream-deep ${className}`}>
       <Image
         src={src}
         alt={alt}

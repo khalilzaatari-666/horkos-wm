@@ -5,6 +5,7 @@ import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { OrganisationJsonLd } from "@/components/public/structured-data";
 import { ScrollRefresh } from "@/components/ui/scroll-refresh";
 import { AnchorJump } from "@/components/ui/anchor-jump";
+import { SmoothScroll } from "@/components/ui/smooth-scroll";
 
 export default function PublicLayout({
   children,
@@ -18,6 +19,7 @@ export default function PublicLayout({
       <UmamiAnalytics />
       <OrganisationJsonLd />
       <ScrollRefresh />
+      <SmoothScroll />
       <AnchorJump />
       <Header />
       {/* `main` remplit l'espace entre header et footer ; `my-auto` centre le

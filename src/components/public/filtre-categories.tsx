@@ -3,7 +3,7 @@ import Link from "next/link";
 /**
  * Les filtres par catégorie des pages Ressources : « Tout » puis les
  * catégories qui ont au moins un contenu publié sur la page, dans l'ordre
- * choisi au back-office. De simples liens : la page filtre côté serveur.
+ * choisi au back-office. De simples liens : la page filtre côté serveur, sans remonter en haut.
  */
 export function FiltreCategories({
   base,
@@ -26,6 +26,7 @@ export function FiltreCategories({
     >
       <Link
         href={base}
+        scroll={false}
         aria-current={active === null ? "page" : undefined}
         className={pastille(active === null)}
       >
@@ -35,6 +36,7 @@ export function FiltreCategories({
         <Link
           key={c}
           href={`${base}?categorie=${encodeURIComponent(c)}`}
+          scroll={false}
           aria-current={active === c ? "page" : undefined}
           className={pastille(active === c)}
         >
