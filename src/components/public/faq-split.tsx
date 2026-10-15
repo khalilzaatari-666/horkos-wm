@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { ArrowRight, Plus } from "lucide-react";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 /**
  * Questions fréquentes : titre et sortie vers le contact à gauche, collants ;
@@ -21,7 +22,7 @@ export function FaqSplit({
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-20">
       <div className="lg:sticky lg:top-32 lg:self-start">
-        <h2 className="display-lg text-ink">{title}</h2>
+        <LineReveal as="h2" className="display-lg text-ink">{title}</LineReveal>
         <p className="mt-6 max-w-[34ch] text-[17px] leading-relaxed text-charcoal">
           Une autre question ? Écrivez-nous, nous vous répondons personnellement.
         </p>

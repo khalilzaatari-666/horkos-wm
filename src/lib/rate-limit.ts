@@ -38,7 +38,7 @@ export async function rateLimit(action: string, opts: RateLimitOptions): Promise
 
 /** IP du client derrière le proxy Vercel. `x-forwarded-for` peut lister une
  *  chaîne de proxys : la première entrée est l'IP d'origine. */
-async function clientIp(): Promise<string> {
+export async function clientIp(): Promise<string> {
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();

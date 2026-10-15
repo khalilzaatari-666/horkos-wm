@@ -3,6 +3,7 @@ import { TocRail } from "@/components/public/toc-rail";
 import { StructureDiagram } from "@/components/public/structure-diagram";
 import { CtaBand } from "@/components/public/cta-band";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 const processSteps = [
   {
@@ -55,7 +56,7 @@ export default function StructurationPage() {
 
         <div className="min-w-0 space-y-24 lg:space-y-36">
           <section id="role" className="scroll-mt-32">
-            <h2 className="display-lg text-ink max-w-[16ch]">D’abord le conseil, ensuite l’implémentation.</h2>
+            <LineReveal as="h2" className="display-lg text-ink max-w-[16ch]">D’abord le conseil, ensuite l’implémentation.</LineReveal>
             <p className="lead mt-6 max-w-[58ch]">
               Nous ne sommes ni comptables, ni notaires, ni avocats. Notre rôle est de concevoir la stratégie de
               structuration la plus adaptée à votre situation, puis de vous orienter vers le bon professionnel du réseau
@@ -80,7 +81,7 @@ export default function StructurationPage() {
           </section>
 
           <section id="briques" className="scroll-mt-32">
-            <h2 className="display-lg text-ink">Quatre briques de structuration.</h2>
+            <LineReveal as="h2" className="display-lg text-ink">Quatre briques de structuration.</LineReveal>
             <ul className="mt-12 grid gap-x-10 sm:grid-cols-2">
               {services.map((s, i) => (
                 <li key={s.title} className="border-t border-ink/10 py-8">
@@ -94,7 +95,7 @@ export default function StructurationPage() {
           </section>
 
           <section id="apport" className="scroll-mt-32">
-            <h2 className="display-lg text-ink max-w-[18ch]">Intégrer un bien immobilier dans une société.</h2>
+            <LineReveal as="h2" className="display-lg text-ink max-w-[18ch]">Intégrer un bien immobilier dans une société.</LineReveal>
             <p className="lead mt-6 max-w-[58ch]">
               Le cas le plus fréquent. La détention via société facilite la transmission par cession de parts, permet
               une gestion comptable rigoureuse, et ouvre des options fiscales non disponibles en direct.

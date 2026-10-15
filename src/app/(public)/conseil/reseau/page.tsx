@@ -5,6 +5,7 @@ import { CtaBand } from "@/components/public/cta-band";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { METIERS } from "@/lib/reseau";
 import { PartenariatForm } from "./partenariat-form";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 export default function ReseauPage() {
   const sourcing = METIERS.filter((m) => m.cercle === "sourcing");
@@ -37,7 +38,7 @@ export default function ReseauPage() {
       <section className="shell section-y">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
           <div className="lg:sticky lg:top-32 lg:self-start">
-            <h2 className="display-lg text-ink max-w-[14ch]">Cinq réseaux, mobilisés selon la classe d’actifs.</h2>
+            <LineReveal as="h2" className="display-lg text-ink max-w-[14ch]">Cinq réseaux, mobilisés selon la classe d’actifs.</LineReveal>
             <p className="lead mt-6 max-w-[42ch]">
               Nous ne créons pas les opportunités, nous les sélectionnons. Ce réseau nourrit nos recommandations, il ne
               les remplace pas.
@@ -67,7 +68,7 @@ export default function ReseauPage() {
         <div className="panel px-6 py-14 sm:px-12 lg:px-16 lg:py-20">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
             <div className="lg:sticky lg:top-32 lg:self-start">
-              <h2 className="display-lg text-ink">Vous êtes un acteur spécialisé ?</h2>
+              <LineReveal as="h2" className="display-lg text-ink">Vous êtes un acteur spécialisé ?</LineReveal>
               <p className="lead mt-6 max-w-[40ch]">
                 Société de gestion, assureur, agent immobilier, fonds de private equity ou de venture capital, porteur
                 d’un partenariat : sélectionnez votre catégorie. Nous étudions chaque proposition et la présentons

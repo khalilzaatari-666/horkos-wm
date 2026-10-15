@@ -8,18 +8,16 @@ import { RevealImage } from "@/components/public/reveal-image";
 import { ReadingProgress } from "@/components/public/reading-progress";
 import { CtaBand } from "@/components/public/cta-band";
 import { ArticleJsonLd } from "@/components/public/structured-data";
-import { getArticle, getArticles, formatLongDate, couvertureArticle } from "@/lib/content";
+import { ContentGate, LignesFloues, MerciLecteur } from "@/components/public/content-gate";
+import { getArticle, formatLongDate, couvertureArticle } from "@/lib/content";
+import { estDeverrouille, lireContenuArticle, paragraphes } from "@/lib/lecteur";
+import { smsActif } from "@/lib/sms";
 
-export const revalidate = 300;
-
-/** Prerender what exists at build time; anything published later renders on demand. */
-export async function generateStaticParams() {
-  const articles = await getArticles();
-  return articles.map((article) => ({ slug: article.slug }));
-}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  /** `merci` : posé par le formulaire du lecteur juste après la vérification. */
+  searchParams: Promise<{ merci?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -33,10 +31,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ArticlePage({ params }: PageProps) {
+export default async function ArticlePage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const { merci } = await searchParams;
   const article = await getArticle(slug);
   if (!article) notFound();
+
+  // Le texte complet ne quitte le serveur que pour un lecteur identifié ;
+  // sinon seul le premier paragraphe est rendu.
+  const ouvert = await estDeverrouille();
+  const texte = paragraphes(await lireContenuArticle(article.id));
+  const visibles = ouvert ? texte : texte.slice(0, 1);
 
   return (
     <>
@@ -80,25 +85,32 @@ export default async function ArticlePage({ params }: PageProps) {
 
       <article id="article" className="shell py-16 lg:py-24">
         <div className="mx-auto max-w-[680px]">
+          {ouvert && merci && (
+            <MerciLecteur sourceType="article" titre={article.title} emailSent={merci === "1"} />
+          )}
           {/* Stored as plain text from the back-office, so blank lines are paragraphs. */}
           <div className="space-y-6">
-            {(article.content ?? "")
-              .split(/\n{2,}/)
-              .map((p) => p.trim())
-              .filter(Boolean)
-              .map((paragraph, i) => (
-                <p
-                  key={i}
-                  className={
-                    i === 0
-                      ? "text-[20px] leading-[1.7] text-ink"
-                      : "text-[18px] leading-[1.8] text-charcoal"
-                  }
-                >
-                  {paragraph}
-                </p>
-              ))}
+            {visibles.map((paragraph, i) => (
+              <p
+                key={i}
+                className={
+                  i === 0
+                    ? "text-[20px] leading-[1.7] text-ink"
+                    : "text-[18px] leading-[1.8] text-charcoal"
+                }
+              >
+                {paragraph}
+              </p>
+            ))}
           </div>
+
+          {!ouvert && texte.length > 1 && (
+            <div className="mt-6">
+              <ContentGate sourceType="article" sourceId={article.id} sms={smsActif()}>
+                <LignesFloues />
+              </ContentGate>
+            </div>
+          )}
 
           <div className="mt-14 flex items-center justify-between gap-4 border-t border-ink/10 pt-8">
             <Link href="/ressources/articles" className="link-arrow">

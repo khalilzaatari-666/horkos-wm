@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { MediaUpload } from "@/components/admin/media-upload";
+import { GuidePdf } from "@/components/admin/guide-preview";
 import { slugify } from "@/lib/slug";
 import type { ContentState } from "../shared";
 import { CategorieSelect } from "../categories/categorie-select";
@@ -24,6 +25,9 @@ export interface GuideInitial {
   cover_label: string;
   cover_url: string;
   pdf_url: string;
+  preview_url: string;
+  preview_blur_url: string;
+  preview_pages: string[];
   is_published: boolean;
 }
 
@@ -36,6 +40,9 @@ const EMPTY: GuideInitial = {
   cover_label: "",
   cover_url: "",
   pdf_url: "",
+  preview_url: "",
+  preview_blur_url: "",
+  preview_pages: [],
   is_published: false,
 };
 
@@ -157,13 +164,11 @@ export function GuideForm({
         initialUrl={initial.cover_url}
       />
 
-      <MediaUpload
-        name="pdf_url"
-        folder="guides"
-        kind="file"
-        label="Fichier PDF du guide (optionnel)"
-        hint="PDF, 15 Mo maximum. C'est le fichier envoyé aux personnes qui le demandent."
-        initialUrl={initial.pdf_url}
+      <GuidePdf
+        initialPdf={initial.pdf_url}
+        initialPreview={initial.preview_url}
+        initialBlur={initial.preview_blur_url}
+        initialPages={initial.preview_pages}
       />
 
       <label className="flex items-center gap-2.5 cursor-pointer">

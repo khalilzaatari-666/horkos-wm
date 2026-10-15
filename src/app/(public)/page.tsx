@@ -40,7 +40,7 @@ export default async function HomePage() {
       kind: "Guide" as const,
       title: g.title,
       desc: g.description,
-      href: "/ressources/guides",
+      href: `/ressources/guides/${g.slug}`,
       cover: g.cover_url,
       category: g.category,
     })),

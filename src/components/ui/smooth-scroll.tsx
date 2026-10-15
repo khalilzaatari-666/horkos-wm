@@ -33,7 +33,9 @@ export function SmoothScroll() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const instance = new Lenis({ lerp: 0.1, wheelMultiplier: 0.9 });
+    // Amorti léger : la page rattrape vite la molette et parcourt la distance
+    // native par cran, sans traîne.
+    const instance = new Lenis({ lerp: 0.14 });
     lenis = instance;
     instance.on("scroll", ScrollTrigger.update);
     const tick = (time: number) => instance.raf(time * 1000);

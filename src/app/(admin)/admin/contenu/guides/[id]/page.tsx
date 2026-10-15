@@ -36,7 +36,7 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
   const [{ data: guide }, { data: demandes, count }] = await Promise.all([
     supabase
       .from("guides")
-      .select("id, title, slug, description, category, partner, cover_label, cover_url, pdf_url, is_published")
+      .select("id, title, slug, description, category, partner, cover_label, cover_url, pdf_url, preview_url, preview_blur_url, preview_pages, is_published")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -66,6 +66,9 @@ export default async function GuideEditPage({ params, searchParams }: PageProps)
     cover_label: guide.cover_label ?? "",
     cover_url: guide.cover_url ?? "",
     pdf_url: guide.pdf_url ?? "",
+    preview_url: guide.preview_url ?? "",
+    preview_blur_url: guide.preview_blur_url ?? "",
+    preview_pages: guide.preview_pages ?? [],
     is_published: guide.is_published ?? false,
   };
 

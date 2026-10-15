@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
-import { getArticles } from "@/lib/content";
+import { getArticles, getGuides } from "@/lib/content";
 
 // Rebuilt on the same cadence as the ressources pages, so a freshly published
 // article appears without a redeployment.
@@ -38,5 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...pages, ...articlePages];
+  const guides = await getGuides();
+  const guidePages: MetadataRoute.Sitemap = guides.map((guide) => ({
+    url: `${SITE_URL}/ressources/guides/${guide.slug}`,
+    lastModified: now,
+    changeFrequency: "yearly",
+    priority: 0.6,
+  }));
+
+  return [...pages, ...articlePages, ...guidePages];
 }

@@ -8,6 +8,7 @@ import { HashScroll } from "@/components/ui/hash-scroll";
 import { PageHero } from "@/components/public/page-hero";
 import { CtaBand } from "@/components/public/cta-band";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 interface Product {
   title: string;
@@ -279,7 +280,7 @@ export default function ProduitsPage() {
 
       <section id="individuelles" className="shell pb-20 lg:pb-32">
         <div className="mb-12 grid gap-6 lg:grid-cols-2 lg:items-end">
-          <h2 className="display-lg text-ink">Solutions individuelles</h2>
+          <LineReveal as="h2" className="display-lg text-ink">Solutions individuelles</LineReveal>
           <p className="lead max-w-[48ch] lg:justify-self-end">
             Épargner, investir, préparer votre retraite ou transmettre : nous construisons avec vous des solutions
             pensées pour votre situation personnelle et familiale.
@@ -291,7 +292,7 @@ export default function ProduitsPage() {
       <section id="entreprises" className="shell pb-20 lg:pb-32">
         <div className="panel px-6 py-14 sm:px-12 lg:px-16 lg:py-20">
           <div className="mb-12 grid gap-6 lg:grid-cols-2 lg:items-end">
-            <h2 className="display-lg text-ink">Solutions entreprises</h2>
+            <LineReveal as="h2" className="display-lg text-ink">Solutions entreprises</LineReveal>
             <p className="lead max-w-[48ch] lg:justify-self-end">
               Fidéliser vos collaborateurs, faire fructifier votre trésorerie : nous accompagnons aussi les dirigeants,
               pas seulement les particuliers.
@@ -304,7 +305,7 @@ export default function ProduitsPage() {
       <section id="ceder" className="bg-ink text-cream">
         <div className="shell section-y grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
           <div className="lg:sticky lg:top-32 lg:self-start">
-            <h2 className="display-lg text-cream">Un actif à céder ?</h2>
+            <LineReveal as="h2" className="display-lg text-cream">Un actif à céder ?</LineReveal>
             <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed text-cream-muted">
               Bien immobilier, entreprise, participation, œuvre d’art… décrivez l’actif que vous souhaitez
               céder. Nous l’étudions et le présentons de façon sélective aux clients pour qui il est pertinent.

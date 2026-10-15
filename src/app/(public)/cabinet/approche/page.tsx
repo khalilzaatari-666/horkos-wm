@@ -6,6 +6,7 @@ import { InkRise } from "@/components/ui/ink-rise";
 import { AnimateIn } from "@/components/ui/animate-in";
 import { FragQuestionnaire, FragReco, FragRevue } from "@/components/public/ui-fragments";
 import { PARCOURS } from "@/lib/parcours";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 const principes = [
   "Partir de votre besoin",
@@ -64,7 +65,7 @@ export default function ApprochePage() {
         <PinnedSteps
           intro={
             <>
-              <h2 className="display-lg text-ink">Un parcours en trois jalons.</h2>
+              <LineReveal as="h2" className="display-lg text-ink">Un parcours en trois jalons.</LineReveal>
               <p className="lead mt-6 max-w-[38ch]">
                 Chaque rendez-vous porte un nom, un contenu et un livrable. Vous savez toujours où vous en êtes.
               </p>
@@ -77,7 +78,7 @@ export default function ApprochePage() {
       <InkRise id="philosophie" className="text-cream scroll-mt-20">
         <div className="shell section-y grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-20">
           <div className="lg:sticky lg:top-32 lg:self-start">
-            <h2 className="display-lg text-cream max-w-[14ch]">On ne vend pas de produits. On structure un patrimoine.</h2>
+            <LineReveal as="h2" className="display-lg text-cream max-w-[14ch]">On ne vend pas de produits. On structure un patrimoine.</LineReveal>
             <RevealImage
               src="/images/pages/approche-carnet.jpg"
               alt=""

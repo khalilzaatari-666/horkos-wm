@@ -66,8 +66,9 @@ export default function ConfidentialitePage() {
               type d’actif, motif, valeur estimée, horizon, description et vos coordonnées.
             </span>,
             <span key="4">
-              <strong className="font-medium text-ink">Téléchargement de guides</strong> : adresse
-              email.
+              <strong className="font-medium text-ink">Lecture des guides et articles</strong> :
+              prénom, nom, adresse email et numéro de téléphone mobile (qui peut être vérifié par
+              un code envoyé par SMS), ainsi que le guide ou l’article consulté.
             </span>,
             <span key="5">
               <strong className="font-medium text-ink">Espace client</strong> : adresse email, mot de
@@ -94,7 +95,7 @@ export default function ConfidentialitePage() {
             "répondre à vos demandes de contact, de rendez-vous et de cession (exécution de mesures précontractuelles et intérêt légitime à vous répondre) ;",
             "gérer et confirmer vos rendez-vous, y compris l’ajout à l’agenda et la création d’un lien de visioconférence ;",
             "vous donner accès à votre espace client et aux services associés (exécution du contrat) ;",
-            "vous envoyer les guides et documents que vous demandez (consentement) ;",
+            "vous ouvrir nos guides et articles, vous les envoyer par email et vous recontacter à leur sujet (consentement) ;",
             "assurer la sécurité, prévenir la fraude et respecter nos obligations légales.",
           ]}
         />
@@ -128,6 +129,10 @@ export default function ConfidentialitePage() {
               <strong className="font-medium text-ink">Vercel</strong> - hébergement et diffusion de
               l’application.
             </span>,
+            <span key="s5">
+              <strong className="font-medium text-ink">Twilio</strong> - envoi du code SMS qui
+              vérifie votre numéro avant l’ouverture des guides et articles.
+            </span>,
           ]}
         />
         <p>
@@ -160,7 +165,14 @@ export default function ConfidentialitePage() {
         <p>
           Le site n’utilise que des cookies strictement nécessaires à son fonctionnement,
           principalement pour maintenir votre session lorsque vous êtes connecté à votre espace
-          client. Nous n’utilisons ni cookie publicitaire, ni traceur d’analyse tiers.
+          client, et pour mémoriser pendant douze mois que vous avez déjà renseigné vos coordonnées
+          pour lire nos guides et articles. Nous n’utilisons ni cookie publicitaire, ni traceur d’analyse tiers.
+        </p>
+        <p>
+          Avec votre accord seulement, nous mesurons l’audience du site avec Umami, un outil hébergé
+          par nos soins qui ne dépose aucun cookie et ne conserve aucune donnée permettant de vous
+          identifier. Votre choix est gardé six mois ; vous pouvez le changer à tout moment avec le
+          lien « Gérer les cookies » en bas de chaque page.
         </p>
       </LegalSection>
 

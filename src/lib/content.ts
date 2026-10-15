@@ -13,7 +13,6 @@ export interface Article {
   title: string;
   slug: string;
   excerpt: string | null;
-  content: string | null;
   cover_url: string | null;
   category: string | null;
   published_at: string | null;
@@ -29,6 +28,12 @@ export interface Guide {
   cover_label: string | null;
   partner: string | null;
   category: string | null;
+  /** Haut net de la première page du PDF, et la page entière floutée. */
+  preview_url: string | null;
+  preview_blur_url: string | null;
+  /** Les pages qui suivent l’extrait, floutées. */
+  preview_pages: string[] | null;
+  /** Les pages avant l’extrait (couverture, sommaire), nettes. */
 }
 
 export interface HorkosEvent {
@@ -49,7 +54,7 @@ export async function getArticles(): Promise<Article[]> {
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("articles")
-    .select("id, title, slug, excerpt, content, cover_url, category, published_at, created_at")
+    .select("id, title, slug, excerpt, cover_url, category, published_at, created_at")
     .eq("is_published", true)
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -61,7 +66,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("articles")
-    .select("id, title, slug, excerpt, content, cover_url, category, published_at, created_at")
+    .select("id, title, slug, excerpt, cover_url, category, published_at, created_at")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
@@ -95,15 +100,30 @@ export function filtrerParCategorie<T extends { category: string | null }>(
   return { categories, active, visibles: active ? items.filter((i) => i.category === active) : items };
 }
 
+const GUIDE_COLUMNS =
+  "id, title, slug, description, cover_url, cover_label, partner, category, preview_url, preview_blur_url, preview_pages";
+
 export async function getGuides(): Promise<Guide[]> {
   const supabase = createPublicClient();
   const { data } = await supabase
     .from("guides")
-    .select("id, title, slug, description, cover_url, cover_label, partner, category")
+    .select(GUIDE_COLUMNS)
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
   return data ?? [];
+}
+
+export async function getGuide(slug: string): Promise<Guide | null> {
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("guides")
+    .select(GUIDE_COLUMNS)
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle();
+
+  return data ?? null;
 }
 
 /** Upcoming first, then past ones most-recent first. */

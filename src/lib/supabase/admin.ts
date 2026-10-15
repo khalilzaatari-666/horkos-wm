@@ -13,7 +13,10 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  *   - lire les destinataires d'une alerte interne (`lib/email/recipients.ts`),
  *     que l'expéditeur soit un visiteur anonyme ou personne ;
  *   - le cron des rappels (`app/api/cron/rappels`), appelé par Vercel et non
- *     par quelqu'un de connecté.
+ *     par quelqu'un de connecté ;
+ *   - les lecteurs des guides et articles (`lib/lecteur.ts`,
+ *     `ressources/lecteur-actions.ts`) : un visiteur anonyme dont la fiche se
+ *     crée et se vérifie, et qui lit ensuite les colonnes réservées.
  *
  * Toute autre lecture ou écriture doit passer par `@/lib/supabase/server`, où
  * les policies s'appliquent.

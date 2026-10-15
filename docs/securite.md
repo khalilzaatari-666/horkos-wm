@@ -99,7 +99,8 @@ données sont chiffrées au repos par Supabase (AES-256) et en transit (TLS 1.2+
   | rendez-vous (`rdv`) | 5 / 10 min |
   | tenue de créneau (`hold`) | 40 / 10 min |
   | vérification d'email (`email-check`) | 20 / 10 min |
-  | téléchargement de guide | 10 / 10 min |
+  | code SMS lecteur, envoi (`lecteur-sms`) | 3 / 10 min |
+  | code SMS lecteur, saisie (`lecteur-code`) | 10 / 10 min |
   | questionnaire d'entrée (`intake`) | 10 / 10 min |
   | échange sur une recommandation | 3 / 10 min |
 
@@ -114,6 +115,36 @@ données sont chiffrées au repos par Supabase (AES-256) et en transit (TLS 1.2+
 
   Une ligne attendue. Sinon, exécuter `supabase/migrations/015_rate_limits.sql`
   dans le SQL Editor.
+
+### Lecteurs des guides et articles (code SMS)
+
+Un visiteur lit le début d’un guide ou d’un article ; la suite s’ouvre après
+prénom, nom, email et téléphone, ce dernier vérifié par **Twilio Verify** dès
+que Twilio est configuré (`src/lib/sms.ts`,
+`src/app/(public)/ressources/lecteur-actions.ts`). Le cookie httpOnly
+`horkos_lecteur` (12 mois) porte l’identifiant d’une fiche `content_leads`
+ouverte (`verified_at`) ; `phone_verified` dit si le numéro a été confirmé par
+SMS. **Sans les variables Twilio, il n’y a pas d’étape SMS** : la fiche s’ouvre
+dès les coordonnées laissées, numéro non vérifié. Le serveur n’envoie jamais la partie réservée avant :
+l’aperçu flouté d’un guide est une image réduite à 120 px de large, celui d’un article
+un texte factice. Depuis la migration 034, la clé publique ne lit plus
+`articles.content` ni `guides.pdf_url`.
+
+Activer le SMS (une fois, quand le cabinet le décide) :
+
+1. Compte Twilio → **Verify → Services → Create** : nom « Horkos », langue
+   française, longueur du code 6.
+2. **Verify → Geo permissions** : n’autoriser que le Maroc, la France et les
+   pays de `SUGGESTED_ISO` (`src/lib/countries.ts`). Activer **Fraud Guard**.
+   Indispensable : la limitation de débit est fail-open, et l’envoi de SMS
+   vers des numéros surtaxés est la fraude classique de ce type de formulaire.
+3. Poser `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` et
+   `TWILIO_VERIFY_SERVICE_SID` sur Vercel (Production et Preview), puis
+   redéployer : l’étape du code apparaît d’elle-même.
+
+Ordre de mise en ligne : migration `033_lecteurs.sql`, puis déploiement, puis
+migration `034_colonnes_reservees.sql` (avant le déploiement, elle viderait les
+articles de l’ancien code).
 
 ## 4. En-têtes de sécurité
 

@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { PageHero } from "@/components/public/page-hero";
 import { CtaBand } from "@/components/public/cta-band";
 import { AnimateIn } from "@/components/ui/animate-in";
+import { LineReveal } from "@/components/ui/line-reveal";
 
 const etapes = [
   {
@@ -88,7 +89,7 @@ export default function ModelePage() {
               </p>
             </div>
             <div>
-              <h2 className="display-lg text-ink">Le client ne paie jamais deux fois.</h2>
+              <LineReveal as="h2" className="display-lg text-ink">Le client ne paie jamais deux fois.</LineReveal>
               <p className="mt-6 max-w-[46ch] text-[17px] leading-relaxed text-charcoal">
                 <strong className="font-medium text-ink">Le diagnostic patrimonial est toujours gratuit.</strong> Selon la
                 recommandation qui en découle, vous êtes facturé soit en commission sur vos opérations

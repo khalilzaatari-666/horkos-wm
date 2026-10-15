@@ -21,8 +21,20 @@ const schema = z.object({
   cover_label: z.string().trim().max(120).optional().or(z.literal("")),
   cover_url: z.string().trim().min(1, "Ajoutez une image de couverture.").url("URL de couverture invalide."),
   pdf_url: z.string().trim().url("URL du PDF invalide.").optional().or(z.literal("")),
+  preview_url: z.string().trim().url("URL d'aperçu invalide.").optional().or(z.literal("")),
+  preview_blur_url: z.string().trim().url("URL d'aperçu invalide.").optional().or(z.literal("")),
+  preview_pages: z.array(z.url("URL d'aperçu invalide.")).max(20),
   is_published: z.boolean(),
 });
+
+/** Les pages floutées arrivent en JSON dans un champ caché. */
+function pages(value: FormDataEntryValue | null): unknown {
+  try {
+    return value ? JSON.parse(String(value)) : [];
+  } catch {
+    return null;
+  }
+}
 
 function parse(formData: FormData) {
   return schema.safeParse({
@@ -34,6 +46,9 @@ function parse(formData: FormData) {
     cover_label: formData.get("cover_label") ?? "",
     cover_url: formData.get("cover_url") ?? "",
     pdf_url: formData.get("pdf_url") ?? "",
+    preview_url: formData.get("preview_url") ?? "",
+    preview_blur_url: formData.get("preview_blur_url") ?? "",
+    preview_pages: pages(formData.get("preview_pages")),
     is_published: formData.get("is_published") === "on",
   });
 }
@@ -48,6 +63,12 @@ function row(d: z.infer<typeof schema>) {
     cover_label: d.cover_label || null,
     cover_url: d.cover_url,
     pdf_url: d.pdf_url || null,
+    // Sans PDF, pas d'aperçu : il serait celui d'un fichier retiré.
+    preview_url: (d.pdf_url && d.preview_url) || null,
+    preview_blur_url: (d.pdf_url && d.preview_blur_url) || null,
+    preview_pages: d.pdf_url && d.preview_pages.length ? d.preview_pages : null,
+    // Pages nettes de l'ancien aperçu (couverture, sommaire) : vidées.
+    preview_intro: null,
     is_published: d.is_published,
   };
 }

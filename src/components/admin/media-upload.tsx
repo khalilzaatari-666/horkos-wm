@@ -19,6 +19,7 @@ export function MediaUpload({
   hint,
   initialUrl = "",
   required = false,
+  onUploaded,
 }: {
   name: string;
   folder: string;
@@ -28,6 +29,8 @@ export function MediaUpload({
   initialUrl?: string;
   /** Le champ caché ne se valide pas : c'est le sélecteur qui bloque l'envoi tant qu'aucun fichier n'est posé. */
   required?: boolean;
+  /** Appelé avec la nouvelle URL après un envoi, ou "" quand le fichier est retiré. */
+  onUploaded?: (url: string) => void;
 }) {
   const [url, setUrl] = useState(initialUrl);
   const [busy, setBusy] = useState(false);
@@ -67,10 +70,12 @@ export function MediaUpload({
     const publicUrl = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
     setUrl(publicUrl);
     setBusy(false);
+    onUploaded?.(publicUrl);
   }
 
   function clear() {
     setUrl("");
+    onUploaded?.("");
     setError("");
     if (inputRef.current) inputRef.current.value = "";
   }

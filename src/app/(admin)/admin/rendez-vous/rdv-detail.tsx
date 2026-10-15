@@ -127,10 +127,10 @@ export function RdvDetailModal({
         aria-modal="true"
         aria-label={`Rendez-vous de ${data.nom || "visiteur"}`}
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] overflow-y-auto bg-cream-deep/40 sm:rounded-2xl rounded-t-2xl border border-ink/10 shadow-xl"
+        className="w-full sm:max-w-lg max-h-[88vh] overflow-y-auto bg-white sm:rounded-2xl rounded-t-2xl border border-ink/10 shadow-xl"
       >
         {/* En-tête : qui, et le récapitulatif du rendez-vous. */}
-        <div className="sticky top-0 bg-cream-deep/40 border-b border-ink/10 px-6 py-4 flex items-start justify-between gap-3">
+        <div className="sticky top-0 z-10 bg-white border-b border-ink/10 px-6 py-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="font-heading text-[18px] font-normal text-ink truncate">

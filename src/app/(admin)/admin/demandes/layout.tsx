@@ -40,6 +40,8 @@ export default async function DemandesLayout({ children }: { children: React.Rea
       nonLues: partenairesNonLus ?? 0,
     },
     { href: "/admin/demandes/cessions", label: "Cessions", nonLues: cessionsSoumises ?? 0 },
+    // Pas de « lu » pour un lecteur : rien à traiter, seulement à consulter.
+    { href: "/admin/demandes/lecteurs", label: "Lecteurs", nonLues: 0 },
   ];
 
   return (

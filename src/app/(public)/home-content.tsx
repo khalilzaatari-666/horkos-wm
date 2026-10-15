@@ -303,7 +303,7 @@ export function HomeContent({
       <section>
         <div className="shell section-y">
         <div className="grid gap-6 lg:grid-cols-2 lg:items-end mb-10 lg:mb-12">
-          <h2 className="display-lg text-ink max-w-[14ch]">Nous partons de vos besoins.</h2>
+          <LineReveal as="h2" className="display-lg text-ink max-w-[14ch]">Nous partons de vos besoins.</LineReveal>
           <p className="lead max-w-[46ch] lg:justify-self-end">
             Avant toute recommandation, nous identifions précisément ce que vous cherchez à accomplir.
           </p>
@@ -339,7 +339,7 @@ export function HomeContent({
       <PinnedSteps
         intro={
           <>
-            <h2 className="display-lg text-ink">Trois rendez-vous, un seul objectif.</h2>
+            <LineReveal as="h2" className="display-lg text-ink">Trois rendez-vous, un seul objectif.</LineReveal>
             <p className="lead mt-6 max-w-[38ch]">Que vous compreniez avant de décider. Chaque étape a son nom, son contenu et son livrable.</p>
             <Link href="/cabinet/approche" className="link-arrow mt-8">
               Notre approche en détail <ArrowRight className="size-4" aria-hidden="true" />
@@ -373,7 +373,7 @@ export function HomeContent({
         <div className="shell section-y">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20 lg:items-center">
           <div>
-            <h2 className="display-lg text-ink max-w-[13ch]">Votre dossier, lisible à tout moment.</h2>
+            <LineReveal as="h2" className="display-lg text-ink max-w-[13ch]">Votre dossier, lisible à tout moment.</LineReveal>
             <p className="lead mt-6 max-w-[44ch]">
               Chaque client dispose d’un espace sécurisé : l’avancement de son accompagnement, ses
               recommandations, ses documents et ses rendez-vous, au même endroit.
@@ -397,7 +397,7 @@ export function HomeContent({
       <section className="bg-ink text-cream">
         <div className="shell section-y">
           <div className="grid gap-8 lg:grid-cols-2 lg:items-end mb-14 lg:mb-20">
-            <h2 className="display-lg text-cream max-w-[12ch]">Le réseau est l’offre.</h2>
+            <LineReveal as="h2" className="display-lg text-cream max-w-[12ch]">Le réseau est l’offre.</LineReveal>
             <div className="lg:justify-self-end max-w-[46ch]">
               <p className="text-[18px] leading-relaxed text-cream-muted">
                 Horkos est votre point d’entrée unique. Nous coordonnons les professionnels utiles à votre
@@ -459,7 +459,7 @@ export function HomeContent({
 
       {/* Terrains : cartes photographiques empilées */}
       <section className="shell pb-16 lg:pb-24">
-        <h2 className="display-lg mb-10 max-w-[16ch] text-ink lg:mb-12">Là où notre conseil fait la différence.</h2>
+        <LineReveal as="h2" className="display-lg mb-10 max-w-[16ch] text-ink lg:mb-12">Là où notre conseil fait la différence.</LineReveal>
         <StackFeatures
           items={[
             {
@@ -496,7 +496,7 @@ export function HomeContent({
       <section className="shell">
         <div className="section-y grid gap-12 border-t border-ink/10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
           <div className="lg:sticky lg:top-32 lg:self-start">
-            <h2 className="display-lg max-w-[14ch] text-ink">Un conseil indépendant, une pédagogie exigeante.</h2>
+            <LineReveal as="h2" className="display-lg max-w-[14ch] text-ink">Un conseil indépendant, une pédagogie exigeante.</LineReveal>
             <p className="lead mt-6 max-w-[40ch]">
               Trois engagements tiennent chaque accompagnement, du premier échange au suivi dans la durée.
             </p>
@@ -523,7 +523,7 @@ export function HomeContent({
             label="Dernières publications"
             header={
               <div>
-                <h2 className="display-lg text-ink">À lire avant un rendez-vous.</h2>
+                <LineReveal as="h2" className="display-lg text-ink">À lire avant un rendez-vous.</LineReveal>
                 <Link href="/ressources/articles" className="link-arrow mt-5">
                   Toutes nos ressources <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>

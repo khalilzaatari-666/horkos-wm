@@ -72,6 +72,11 @@ export function PinnedSteps({
         },
       });
     }, section);
+    // L'épinglage naît après les déclencheurs des sections suivantes (second
+    // rendu). ScrollTrigger se rafraîchit dans l'ordre de création : sans ce
+    // tri, tout ce qui suit serait mesuré sans la longueur de l'épinglage et
+    // se déclencherait trop tôt.
+    ScrollTrigger.sort();
     ScrollTrigger.refresh();
     return () => ctx.revert();
   }, [pinned]);

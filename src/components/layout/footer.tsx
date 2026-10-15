@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { NAV, LEGAL_LINKS } from "./nav";
+import { GererCookies } from "./cookie-consent";
 import { CABINET_ADDRESS, CABINET_EMAIL, CABINET_PHONE, CABINET_PHONE_HREF } from "@/lib/site";
 
 /**
@@ -62,6 +63,7 @@ export function Footer() {
                 {l.label}
               </Link>
             ))}
+            <GererCookies className="hover:text-cream transition-colors" />
           </div>
         </div>
       </div>
