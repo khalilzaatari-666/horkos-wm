@@ -22,8 +22,7 @@ export function Footer() {
               className="h-12 w-auto"
             />
             <p className="mt-8 max-w-[34ch] text-[15px] leading-relaxed text-cream-muted">
-              Cabinet de conseil en gestion de patrimoine, agréé conseiller en investissements
-              financiers par l’AMMC.
+              Cabinet de conseil en gestion de patrimoine au Maroc
             </p>
             <div className="mt-8 space-y-1.5 text-[15px]">
               <a href={CABINET_PHONE_HREF} className="block tabular-nums hover:text-white transition-colors">

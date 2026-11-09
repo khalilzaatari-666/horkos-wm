@@ -118,7 +118,7 @@ function Hero() {
     <section className="shell pt-6 pb-14 lg:pt-8 lg:pb-20">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-14 lg:h-[min(calc(100svh-110px),720px)] lg:min-h-[600px]">
         <div className="flex flex-col justify-center gap-10 lg:py-6">
-          <p className="tag self-start">Conseiller en investissements financiers agréé AMMC</p>
+          <p className="tag self-start">Cabinet de conseil en gestion de patrimoine au Maroc</p>
 
           <div>
             {/* Mobile : le fondateur dès le premier écran, en cadrage serré. */}
